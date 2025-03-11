@@ -2,7 +2,6 @@ package io.github.zannabianca1997.apelle.queue.models;
 
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
 

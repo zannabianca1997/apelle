@@ -1,6 +1,5 @@
 package io.github.zannabianca1997.apelle.queue.models;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
@@ -9,7 +8,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
