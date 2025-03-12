@@ -30,7 +30,6 @@ import io.quarkus.security.jpa.Username;
 @UserDefinition
 /// A user
 public class ApelleUser extends PanacheEntityBase {
-    @NonNull
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     /// Unique ID of the user
@@ -51,4 +50,14 @@ public class ApelleUser extends PanacheEntityBase {
     @Roles
     /// Comma separated list of roles
     private String roles;
+
+    /**
+     * Find a user by name
+     * 
+     * @param name the username
+     * @return The user found, or null if no user was found
+     */
+    public static ApelleUser findByName(String name) {
+        return find("name", name).firstResult();
+    }
 }
