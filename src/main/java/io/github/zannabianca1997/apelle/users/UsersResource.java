@@ -19,8 +19,10 @@ import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -57,12 +59,25 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The user was found", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    public UserQueryDto byName(String userName) throws UserNotFoundByNameException {
+    public UserQueryDto get(String userName) throws UserNotFoundByNameException {
         ApelleUser user = ApelleUser.findByName(userName);
         if (user == null) {
             throw new UserNotFoundByNameException(userName);
         }
         return userMapper.toDto(user);
+    }
+
+    @DELETE
+    @Path("/n/{userName}")
+    @RolesAllowed("admin")
+    @Operation(summary = "Delete a user by name", description = "Delete a user by name. Need to have the role `admin`")
+    @APIResponse(responseCode = "200", description = "The user was deleted")
+    public void delete(String userName) throws UserNotFoundByNameException {
+        ApelleUser user = ApelleUser.findByName(userName);
+        if (user == null) {
+            throw new UserNotFoundByNameException(userName);
+        }
+        user.delete();
     }
 
     @GET
@@ -72,12 +87,25 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The user was found", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    public UserQueryDto byName(UUID userId) throws UserNotFoundByIdException {
+    public UserQueryDto get(UUID userId) throws UserNotFoundByIdException {
         ApelleUser user = ApelleUser.findById(userId);
         if (user == null) {
             throw new UserNotFoundByIdException(userId);
         }
         return userMapper.toDto(user);
+    }
+
+    @DELETE
+    @Path("/i/{userId}")
+    @RolesAllowed("admin")
+    @Operation(summary = "Delete a user by id", description = "Delete a user by id. Need to have the role `admin`")
+    @APIResponse(responseCode = "200", description = "The user was deleted")
+    public void delete(UUID userId) throws UserNotFoundByIdException {
+        ApelleUser user = ApelleUser.findById(userId);
+        if (user == null) {
+            throw new UserNotFoundByIdException(userId);
+        }
+        user.delete();
     }
 
     @GET
@@ -87,9 +115,20 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The current user", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    public UserQueryDto me(@Context SecurityIdentity securityIdentity) {
+    public UserQueryDto get(@Context SecurityIdentity securityIdentity) {
         String name = securityIdentity.getPrincipal().getName();
         ApelleUser user = ApelleUser.findByName(name);
         return userMapper.toDto(user);
+    }
+
+    @DELETE
+    @Path("/me")
+    @Authenticated
+    @Transactional
+    @Operation(summary = "Delete current user", description = "Delete the current user")
+    @APIResponse(responseCode = "200", description = "The current user was deleted")
+    public void delete(@Context SecurityIdentity securityIdentity) {
+        String name = securityIdentity.getPrincipal().getName();
+        ApelleUser.findByName(name).delete();
     }
 }
