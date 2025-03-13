@@ -12,7 +12,7 @@ import lombok.NonNull;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Builder
-/// Data needed to create a user
+/// Data about a user
 public class UserQueryDto {
     @NonNull
     @JsonProperty(required = true)

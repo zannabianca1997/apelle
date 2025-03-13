@@ -6,9 +6,14 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import io.github.zannabianca1997.apelle.user.dtos.UserCreateDto;
 import io.github.zannabianca1997.apelle.user.dtos.UserQueryDto;
+import io.github.zannabianca1997.apelle.user.exceptions.UserAlreadyExistsException;
+import io.github.zannabianca1997.apelle.user.exceptions.UserNotFoundByIdException;
+import io.github.zannabianca1997.apelle.user.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.user.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.user.models.ApelleUser;
 import io.quarkus.security.Authenticated;
@@ -20,9 +25,10 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 @Path("/users")
+@Tag(name = "Users", description = "User management")
 public class UsersResource {
 
     @Inject
@@ -35,15 +41,13 @@ public class UsersResource {
     @APIResponse(responseCode = "201", description = "The user created", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    @APIResponse(responseCode = "400", description = "Malformed JSON")
-    @APIResponse(responseCode = "409", description = "This user already exists")
-    public Response signup(UserCreateDto userCreateDto) {
+    public RestResponse<UserQueryDto> signup(UserCreateDto userCreateDto) throws UserAlreadyExistsException {
         if (ApelleUser.findByName(userCreateDto.getName()) != null) {
-            return Response.status(Response.Status.CONFLICT).build();
+            throw new UserAlreadyExistsException(userCreateDto.getName());
         }
         ApelleUser user = userMapper.createUser(userCreateDto);
         user.persist();
-        return Response.status(Response.Status.CREATED).entity(userMapper.toDto(user)).build();
+        return RestResponse.<UserQueryDto>status(Status.CREATED, userMapper.toDto(user));
     }
 
     @GET
@@ -53,13 +57,12 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The user was found", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    @APIResponse(responseCode = "404", description = "The user does not exist")
-    public Response byName(String userName) {
+    public UserQueryDto byName(String userName) throws UserNotFoundByNameException {
         ApelleUser user = ApelleUser.findByName(userName);
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new UserNotFoundByNameException(userName);
         }
-        return Response.ok(userMapper.toDto(user)).build();
+        return userMapper.toDto(user);
     }
 
     @GET
@@ -69,13 +72,12 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The user was found", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    @APIResponse(responseCode = "404", description = "The user does not exist")
-    public Response byName(UUID userId) {
+    public UserQueryDto byName(UUID userId) throws UserNotFoundByIdException {
         ApelleUser user = ApelleUser.findById(userId);
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new UserNotFoundByIdException(userId);
         }
-        return Response.ok(userMapper.toDto(user)).build();
+        return userMapper.toDto(user);
     }
 
     @GET

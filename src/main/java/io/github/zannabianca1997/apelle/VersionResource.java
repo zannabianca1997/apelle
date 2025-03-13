@@ -2,6 +2,7 @@ package io.github.zannabianca1997.apelle;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 
@@ -12,6 +13,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 @Path("/version")
+@Tag(name = "Other", description = "General endpoints")
 public class VersionResource {
 
     @ConfigProperty(name = "quarkus.application.version")

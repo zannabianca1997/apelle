@@ -1,8 +1,10 @@
 package io.github.zannabianca1997.apelle.queue.models;
 
+import java.net.URL;
 import java.time.Duration;
 import java.util.UUID;
 
+import io.github.zannabianca1997.apelle.queue.dtos.SongKind;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,7 +27,6 @@ import lombok.NonNull;
 @Inheritance(strategy = InheritanceType.JOINED)
 /// A song inserted in a queue
 public abstract class Song extends PanacheEntityBase {
-    @NonNull
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     /// Unique ID of the song
@@ -40,4 +41,19 @@ public abstract class Song extends PanacheEntityBase {
     @Column(nullable = false)
     /// Duration of the song
     private Duration duration;
+
+    /**
+     * 
+     * @return The song kind
+     */
+    public abstract SongKind getKind();
+
+    /**
+     * The url for this song, if available
+     * 
+     * @return The url, or null if not available
+     */
+    public URL getUrl() {
+        return null;
+    }
 }
