@@ -21,7 +21,7 @@ public class QueueQueryDto {
     private UUID id;
 
     /// The current playing song, if any
-    private PlayingSongQueryDto playing;
+    private CurrentSongQueryDto current;
 
     @NonNull
     @JsonProperty(value = "queued_songs", required = true)

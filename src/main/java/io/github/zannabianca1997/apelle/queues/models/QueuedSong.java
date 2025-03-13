@@ -1,7 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import java.sql.Timestamp;
-
+import java.time.Instant;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,8 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -21,9 +19,7 @@ import lombok.NonNull;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queued_song")
 /// A queued song
@@ -31,9 +27,7 @@ public class QueuedSong extends PanacheEntityBase {
 
     @Embeddable
     @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Link {
         @NonNull
         @OneToOne(cascade = CascadeType.ALL)
@@ -55,5 +49,5 @@ public class QueuedSong extends PanacheEntityBase {
     private short likes;
 
     @Column(name = "queued_at", nullable = false)
-    private Timestamp queuedAt;
+    private Instant queuedAt;
 }

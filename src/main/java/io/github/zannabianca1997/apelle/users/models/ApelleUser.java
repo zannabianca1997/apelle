@@ -2,6 +2,7 @@ package io.github.zannabianca1997.apelle.users.models;
 
 import java.util.UUID;
 
+import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,9 +24,7 @@ import io.quarkus.security.jpa.Username;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "apelle_user")
 @UserDefinition
@@ -59,5 +59,13 @@ public class ApelleUser extends PanacheEntityBase {
      */
     public static ApelleUser findByName(String name) {
         return find("name", name).firstResult();
+    }
+
+    @Builder
+    public ApelleUser(@NonNull String name, @NonNull String password, String roles) {
+        super();
+        this.name = name;
+        this.password = BcryptUtil.bcryptHash(password);
+        this.roles = roles;
     }
 }

@@ -34,10 +34,7 @@ public class QueuesResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public RestResponse<QueueQueryDto> create() {
-        Queue queue = Queue.builder()
-                .playing(null)
-                .queuedSongs(List.of())
-                .build();
+        var queue = Queue.empty();
         queue.persist();
         return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
     }

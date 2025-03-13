@@ -13,7 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -21,8 +21,7 @@ import lombok.NonNull;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 /// A song inserted in a queue
@@ -55,5 +54,14 @@ public abstract class Song extends PanacheEntityBase {
      */
     public URL getUrl() {
         return null;
+    }
+
+    protected Song(
+            @NonNull String name,
+            @NonNull Duration duration) {
+        super();
+        this.id = null;
+        this.name = name;
+        this.duration = duration;
     }
 }

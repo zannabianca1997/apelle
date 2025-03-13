@@ -3,10 +3,10 @@ package io.github.zannabianca1997.apelle.queues.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import io.github.zannabianca1997.apelle.queues.dtos.PlayingSongQueryDto;
+import io.github.zannabianca1997.apelle.queues.dtos.CurrentSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongQueryDto;
-import io.github.zannabianca1997.apelle.queues.models.PlayingSong;
+import io.github.zannabianca1997.apelle.queues.models.CurrentSong;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 
@@ -18,5 +18,5 @@ public interface SongMapper {
     QueuedSongQueryDto toDto(QueuedSong queuedSong);
 
     @Mapping(source = "song", target = ".")
-    PlayingSongQueryDto toDto(PlayingSong playingSong);
+    CurrentSongQueryDto toDto(CurrentSong playingSong);
 }
