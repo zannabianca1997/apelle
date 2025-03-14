@@ -1,11 +1,9 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.Duration;
 import java.util.UUID;
 
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,6 +16,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
+import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -48,11 +49,11 @@ public abstract class Song extends PanacheEntityBase {
     public abstract SongKind getKind();
 
     /**
-     * The url for this song, if available
+     * The uri for this song, if available
      * 
-     * @return The url, or null if not available
+     * @return The uri, or null if not available
      */
-    public URL getUrl() {
+    public URI getUri() {
         return null;
     }
 

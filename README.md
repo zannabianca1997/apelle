@@ -2,9 +2,15 @@
 
 > A communist music queue
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+## Needed API keys
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+### Google
+
+`apelle` needs access to Google Youtube API to fetch the video data. Provide the key in the property `apelle.youtube.api.key`.
+For example, using a `.env` in the project root:
+```env
+apelle.youtube.api.key=<your-key-here>
+```
 
 ## Running the application in dev mode
 
@@ -54,11 +60,3 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./build/apelle-0.0.1-runner`
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/gradle-tooling>.
-
-## Provided Code
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)

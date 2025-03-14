@@ -1,14 +1,11 @@
 package io.github.zannabianca1997.apelle.queues.models.sources.youtube;
 
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Duration;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
-import io.github.zannabianca1997.apelle.queues.models.Song;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -19,11 +16,18 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.youtube.ConstantUris;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "youtube_song")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * A song backed up by a youtube video
+ */
 public class YoutubeSong extends Song {
 
     @NonNull
@@ -32,13 +36,13 @@ public class YoutubeSong extends Song {
     private String videoId;
 
     @Override
-    public URL getUrl() {
+    public URI getUri() {
         try {
-            return new URIBuilder("https://www.youtube.com/watch")
+            return new URIBuilder(ConstantUris.WATCH)
                     .addParameter("v", videoId)
-                    .build().toURL();
-        } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException("The youtube url should always form a valid url", e);
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("The youtube uri should always form a valid uri", e);
         }
     }
 

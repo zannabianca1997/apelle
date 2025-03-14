@@ -1,11 +1,12 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+
 import org.apache.http.client.utils.URIBuilder;
+
 import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -104,24 +105,24 @@ public class CurrentSong {
     }
 
     /**
-     * Get a URL to the song, if available.
+     * Get a URI to the song, if available.
      * 
-     * If possible the URL will contain the position info.
+     * If possible the URI will contain the position info.
      * 
-     * @return The URL, or null if not available.
+     * @return The URI, or null if not available.
      */
-    public URL getUrl() {
+    public URI getUri() {
         switch (song) {
             case YoutubeSong youtubeSong:
                 try {
-                    return new URIBuilder(youtubeSong.getUrl().toURI())
+                    return new URIBuilder(youtubeSong.getUri())
                             .addParameter("t", Long.toString(getPosition().toSeconds()))
-                            .build().toURL();
-                } catch (MalformedURLException | URISyntaxException e) {
+                            .build();
+                } catch (URISyntaxException e) {
                     throw new RuntimeException("The built url should be valid", e);
                 }
             default:
-                throw new RuntimeException("Missing url definition for class: `%s`".formatted(song.getClass()));
+                return song.getUri();
         }
     }
 

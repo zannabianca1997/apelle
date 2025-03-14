@@ -1,5 +1,8 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -27,9 +30,13 @@ import lombok.Singular;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Check(name = "song_is_either_started_or_stopped", constraints = "(current_song_starts_at IS NULL) <> (current_song_position IS NULL)")
+@Check(name = "song_is_either_started_or_stopped", constraints = """
+        ((current_song IS NULL) AND (current_song_starts_at IS NULL) AND (current_song_position IS NULL))
+        OR ((current_song IS NOT NULL) AND ((current_song_starts_at IS NULL) <> (current_song_position IS NULL)))
+        """)
 /// A queue of songs
 public class Queue extends PanacheEntityBase {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     /// Unique ID of the queue
@@ -46,19 +53,47 @@ public class Queue extends PanacheEntityBase {
     private List<QueuedSong> queuedSongs;
 
     static public Queue empty() {
-        return new Queue(null, List.of());
+        return new Queue(null, new ArrayList<>());
     }
+
+    /**
+     * Order of the queued songs
+     */
+    private static final Comparator<QueuedSong> QUEUED_SONGS_COMPARATOR = Comparator
+            .comparing(QueuedSong::getLikes).reversed()
+            .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
     public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs) {
         super();
         // Sort the songs
-        queuedSongs.sort(Comparator
-                .comparing(QueuedSong::getLikes).reversed()
-                .thenComparing(QueuedSong::getQueuedAt));
+        queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
 
         this.id = null;
         this.current = current;
         this.queuedSongs = queuedSongs;
+    }
+
+    /**
+     * Add a new song to the queue
+     * 
+     * @param song The song to add
+     * @return The added song
+     */
+    public QueuedSong enqueue(@NonNull Song song) {
+        var enqueued = QueuedSong.builder()
+                .song(song)
+                .queue(this)
+                .likes((short) 0)
+                .queuedAt(Instant.now())
+                .build();
+        // Add the song in the correct position
+        int index = Collections.binarySearch(this.queuedSongs, enqueued, QUEUED_SONGS_COMPARATOR);
+        if (index < 0) {
+            index = -index - 1;
+        }
+        this.queuedSongs.add(index, enqueued);
+
+        return enqueued;
     }
 }
