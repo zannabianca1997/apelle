@@ -2,6 +2,8 @@ package io.github.zannabianca1997.apelle;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -11,6 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @QuarkusTest
 @TestHTTPEndpoint(VersionResource.class)
+@Tag("common")
 class VersionResourceTest {
 
     @ConfigProperty(name = "quarkus.application.version")
