@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.queues.dtos;
 import java.net.URL;
 import java.time.Duration;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -15,25 +17,23 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @Jacksonized
-/// Data about a song
+@Schema(description = "A song")
 public class SongQueryDto {
     @NonNull
     @JsonProperty(required = true)
-    /// Name of the song
+    @Schema(description = "Name of the song")
     private String name;
 
     @NonNull
     @JsonProperty(required = true)
-    /// Duration of the song
+    @Schema(description = "Duration of the song")
     private Duration duration;
 
     @NonNull
     @JsonProperty(required = true)
-    /// Kind of song
-    ///
-    /// This identifies the source (e.g. youtube, spotify, etc)
+    @Schema(description = "Source of the song")
     private SongKind kind;
 
-    /// Url of the song, if available
+    @Schema(description = "Eventual public url of the song")
     private URL url;
 }

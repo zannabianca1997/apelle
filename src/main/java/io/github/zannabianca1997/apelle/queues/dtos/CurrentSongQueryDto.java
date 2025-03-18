@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.queues.dtos;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -12,15 +14,15 @@ import lombok.experimental.SuperBuilder;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
-/// Data about a song being playied
+@Schema(description = "The song currently being played")
 public class CurrentSongQueryDto extends SongQueryDto {
-    /// If the song is stopped or playing
     @JsonProperty(required = true)
+    @Schema(description = "If the song is currently stopped")
     private boolean stopped;
-    /// Point in time where the song would be started to reach this point
     @JsonProperty(required = true, value = "starts_at")
+    @Schema(description = "Moment at which the song should have started to reach the current position")
     private Instant startsAt;
-    /// Position in the song
     @JsonProperty(required = true)
+    @Schema(description = "Current position in the song")
     private Duration position;
 }
