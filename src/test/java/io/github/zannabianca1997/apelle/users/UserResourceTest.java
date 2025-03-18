@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.users;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 
@@ -13,11 +15,14 @@ import org.junit.jupiter.api.Test;
 
 import io.github.zannabianca1997.apelle.users.dtos.UserCreateDto;
 import io.github.zannabianca1997.apelle.users.dtos.UserQueryDto;
+import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
@@ -31,7 +36,7 @@ class UserResourceTest {
         ApelleUser.deleteAll();
     }
 
-    Response createUser(String name, String password) {
+    Response createUserRequest(String name, String password) {
         return given()
                 .auth().none()
                 .contentType(ContentType.JSON)
@@ -42,9 +47,19 @@ class UserResourceTest {
                 .post();
     }
 
+    ApelleUser createUser(String name, String password) {
+        var user = ApelleUser.builder()
+                .name(name).password(password)
+                .roles("user")
+                .build();
+        QuarkusTransaction.requiringNew()
+                .run(user::persist);
+        return user;
+    }
+
     @Test
     void shouldCreateUser() {
-        UserQueryDto created = createUser("zanna", "zanna").then()
+        UserQueryDto created = createUserRequest("zanna", "zanna").then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
                 .body("$", not(hasKey("password")))
@@ -55,18 +70,19 @@ class UserResourceTest {
 
     @Test
     void shouldNotCreateDoubleUser() {
-        createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED);
-        createUser("zanna", "other pass").then()
+        createUser("zanna", "zanna");
+
+        createUserRequest("zanna", "other pass").then()
                 .log().body()
                 .statusCode(StatusCode.CONFLICT);
     }
 
+    @Inject
+    UserMapper userMapper;
+
     @Test
     void shouldReturnCurrentUser() {
-        UserQueryDto created = createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED)
-                .extract().as(UserQueryDto.class);
+        ApelleUser created = createUser("zanna", "zanna");
 
         UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
@@ -77,13 +93,12 @@ class UserResourceTest {
                 .body("$", not(hasKey("password")))
                 .extract().as(UserQueryDto.class);
 
-        assertEquals(created, found);
+        assertEquals(userMapper.toDto(created), found);
     }
 
     @Test
     void shouldDeleteCurrentUser() {
-        createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED);
+        UUID createdId = createUser("zanna", "zanna").getId();
 
         given()
                 .auth().basic("zanna", "zanna")
@@ -91,18 +106,12 @@ class UserResourceTest {
                 .then()
                 .statusCode(StatusCode.NO_CONTENT);
 
-        given()
-                .auth().basic("zanna", "zanna")
-                .get("/me")
-                .then()
-                .statusCode(StatusCode.UNAUTHORIZED);
+        assertNull(ApelleUser.findById(createdId));
     }
 
     @Test
     void shouldFindUserById() {
-        UserQueryDto created = createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED)
-                .extract().as(UserQueryDto.class);
+        ApelleUser created = createUser("zanna", "zanna");
 
         UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
@@ -113,16 +122,13 @@ class UserResourceTest {
                 .body("$", not(hasKey("password")))
                 .extract().as(UserQueryDto.class);
 
-        assertEquals(created, found);
+        assertEquals(userMapper.toDto(created), found);
     }
 
     @Test
     void shouldNotDeleteOtherUserById() {
-        createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED);
-        UUID createdId = createUser("other", "other_password").then()
-                .statusCode(StatusCode.CREATED)
-                .extract().jsonPath().getUUID("id");
+        createUser("zanna", "zanna");
+        UUID createdId = createUser("other", "other_password").getId();
 
         given()
                 .auth().basic("zanna", "zanna")
@@ -130,38 +136,29 @@ class UserResourceTest {
                 .then()
                 .statusCode(StatusCode.FORBIDDEN);
 
-        given()
-                .auth().basic("other", "other_password")
-                .get("/me")
-                .then()
-                .statusCode(StatusCode.OK);
+        assertNotNull(ApelleUser.findById(createdId));
     }
 
     @Test
     void shouldFindUserByName() {
-        UserQueryDto created = createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED)
-                .extract().as(UserQueryDto.class);
+        ApelleUser created = createUser("zanna", "zanna");
 
         UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
-                .get("/n/{id}", created.getName())
+                .get("/n/{name}", created.getName())
                 .then()
                 .statusCode(StatusCode.OK)
                 .contentType(ContentType.JSON)
                 .body("$", not(hasKey("password")))
                 .extract().as(UserQueryDto.class);
 
-        assertEquals(created, found);
+        assertEquals(userMapper.toDto(created), found);
     }
 
     @Test
     void shouldNotDeleteOtherUserByName() {
-        createUser("zanna", "zanna").then()
-                .statusCode(StatusCode.CREATED);
-        createUser("other", "other_password").then()
-                .statusCode(StatusCode.CREATED)
-                .extract().jsonPath().getUUID("id");
+        createUser("zanna", "zanna");
+        UUID createdId = createUser("other", "other_password").getId();
 
         given()
                 .auth().basic("zanna", "zanna")
@@ -169,10 +166,6 @@ class UserResourceTest {
                 .then()
                 .statusCode(StatusCode.FORBIDDEN);
 
-        given()
-                .auth().basic("other", "other_password")
-                .get("/me")
-                .then()
-                .statusCode(StatusCode.OK);
+        assertNotNull(ApelleUser.findById(createdId));
     }
 }
