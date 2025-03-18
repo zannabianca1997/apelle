@@ -13,22 +13,22 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.Getter;
 
 @Getter
-public class QueueNotFoundException extends Exception {
+public class CantPlayEmptyQueue extends Exception {
     private final UUID queueId;
 
-    public QueueNotFoundException(UUID queueId) {
-        super(String.format("Queue `%s` not found", queueId));
+    public CantPlayEmptyQueue(UUID queueId) {
+        super(String.format("Queue `%s` is empty, no song to play", queueId));
         this.queueId = queueId;
     }
 
     @Provider
-    @APIResponse(responseCode = "404", description = "No queue with this id", content = {
+    @APIResponse(responseCode = "400", description = "Cannot play an empty queue", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<QueueNotFoundException> {
+    public static class Mapper implements ExceptionMapper<CantPlayEmptyQueue> {
         @Override
-        public Response toResponse(QueueNotFoundException exception) {
-            return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
+        public Response toResponse(CantPlayEmptyQueue exception) {
+            return RestResponse.status(Status.BAD_REQUEST, exception.getMessage()).toResponse();
         }
     }
 }

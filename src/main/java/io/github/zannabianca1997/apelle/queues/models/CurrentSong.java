@@ -184,7 +184,7 @@ public class CurrentSong {
 
             public Instant startsAt;
 
-            public Playing position(@NonNull Instant startsAt) {
+            public Playing startsAt(@NonNull Instant startsAt) {
                 this.startsAt = startsAt;
                 return this;
             }

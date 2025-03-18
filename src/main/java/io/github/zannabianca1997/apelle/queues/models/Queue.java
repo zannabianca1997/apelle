@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
@@ -47,6 +50,7 @@ public class Queue extends PanacheEntityBase {
     private CurrentSong current;
 
     @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
     @OrderBy("likes DESC, queued_at ASC")
     /// The songs in the queue
@@ -95,5 +99,44 @@ public class Queue extends PanacheEntityBase {
         this.queuedSongs.add(index, enqueued);
 
         return enqueued;
+    }
+
+    /**
+     * Start to play music
+     * 
+     * @return If the queue was stopped before
+     * @throws CantPlayEmptyQueue The queue is empty
+     */
+    public boolean play() throws CantPlayEmptyQueue {
+        // If a song is running, start playing
+        if (getCurrent() != null) {
+            return getCurrent().play();
+        }
+
+        // Pop a song from the queue
+        if (getQueuedSongs().isEmpty()) {
+            throw new CantPlayEmptyQueue(getId());
+        }
+
+        QueuedSong next = getQueuedSongs().remove(0);
+        setCurrent(CurrentSong.builder()
+                .song(next.getSong())
+                .playing().startsAt(Instant.now())
+                .build());
+
+        return true;
+    }
+
+    /**
+     * Stop the queue from playing
+     * 
+     * @return If the queue was playing before
+     */
+    public boolean stop() {
+        if (getCurrent() == null) {
+            return false;
+        }
+
+        return getCurrent().stop();
     }
 }

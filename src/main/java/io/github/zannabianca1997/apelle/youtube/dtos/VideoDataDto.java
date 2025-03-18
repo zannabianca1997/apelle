@@ -30,6 +30,7 @@ public class VideoDataDto {
         private Thumbnails thumbnails;
 
         @Data
+        @Builder
         public static class Thumbnails {
             @JsonProperty("default")
             private Thumbnail default_;
@@ -39,6 +40,7 @@ public class VideoDataDto {
             private Thumbnail maxres;
 
             @Data
+            @Builder
             public static class Thumbnail {
                 private URL url;
                 private int width;

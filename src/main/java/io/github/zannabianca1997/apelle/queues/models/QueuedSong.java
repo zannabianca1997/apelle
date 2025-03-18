@@ -3,6 +3,9 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -56,6 +59,7 @@ public class QueuedSong extends PanacheEntityBase {
     private Instant queuedAt;
 
     @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToOne(cascade = CascadeType.ALL)
     @MapsId("song")
     /// The queued song

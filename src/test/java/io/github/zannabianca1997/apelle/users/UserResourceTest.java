@@ -73,7 +73,6 @@ class UserResourceTest {
         createUser("zanna", "zanna");
 
         createUserRequest("zanna", "other pass").then()
-                .log().body()
                 .statusCode(StatusCode.CONFLICT);
     }
 

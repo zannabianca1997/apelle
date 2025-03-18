@@ -39,11 +39,11 @@ public class PaginatedDto<T> {
     }
 
     public static <T> PaginatedDto<T> ofOne(T t) {
-        return new PaginatedDto<>(new PageInfo(1), List.of(t));
+        return new PaginatedDto<T>(new PageInfo(1), List.of(t));
     }
 
     public static <T> PaginatedDto<T> ofNone() {
-        return new PaginatedDto<>(new PageInfo(0), List.of());
+        return new PaginatedDto<T>(new PageInfo(0), List.of());
     }
 
 }
