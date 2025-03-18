@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
@@ -83,6 +84,25 @@ public class QueueResource {
         } catch (MalformedURLException e) {
             throw new RuntimeException("All know uris should form valid urls", e);
         }
+    }
 
+    @POST
+    @Path("/play")
+    @Operation(summary = "Start playing", description = "Start playing music from the queue.")
+    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @Transactional
+    public void play(UUID queueId)
+            throws QueueNotFoundException, CantPlayEmptyQueue {
+        queueService.play(queueId);
+    }
+
+    @POST
+    @Path("/stop")
+    @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
+    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @Transactional
+    public void stop(UUID queueId)
+            throws QueueNotFoundException {
+        queueService.stop(queueId);
     }
 }
