@@ -9,10 +9,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
+@Jacksonized
 /// Data about a song
 public class SongQueryDto {
     @NonNull

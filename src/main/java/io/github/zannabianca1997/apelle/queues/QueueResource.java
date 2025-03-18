@@ -61,7 +61,7 @@ public class QueueResource {
     }
 
     @POST
-    @Path("/songs")
+    @Path("/queued-songs")
     @Operation(summary = "Add a song to the queue", description = "Add a song to the queue, with no likes.")
     @APIResponse(responseCode = "201", description = "The enqueue song", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))

@@ -52,7 +52,7 @@ public class Queue extends PanacheEntityBase {
     /// The songs in the queue
     private List<QueuedSong> queuedSongs;
 
-    static public Queue empty() {
+    public static Queue empty() {
         return new Queue(null, new ArrayList<>());
     }
 
