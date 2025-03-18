@@ -35,7 +35,7 @@ public class PaginatedDto<T> {
         if (!isSingleResult()) {
             return null;
         }
-        return items.getFirst();
+        return items.get(0);
     }
 
     public static <T> PaginatedDto<T> ofOne(T t) {
