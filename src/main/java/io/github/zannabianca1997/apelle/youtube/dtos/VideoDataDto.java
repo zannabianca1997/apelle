@@ -5,6 +5,7 @@ import java.time.Duration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -12,6 +13,7 @@ import lombok.NonNull;
  * Response of the youtube api
  */
 @Data
+@Builder
 public class VideoDataDto {
     @NonNull
     private String id;
@@ -21,6 +23,7 @@ public class VideoDataDto {
     private ContentDetails contentDetails;
 
     @Data
+    @Builder
     public static class Snippet {
         @NonNull
         private String title;
@@ -45,6 +48,7 @@ public class VideoDataDto {
     }
 
     @Data
+    @Builder
     public static class ContentDetails {
         @NonNull
         private Duration duration;
