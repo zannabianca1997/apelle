@@ -12,10 +12,12 @@ import org.junit.jupiter.api.Test;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
@@ -38,9 +40,13 @@ class QueuesResourceTest {
                 .build().persist();
     }
 
+    @Inject
+    QueueService queueService;
+
     @BeforeEach
     @Transactional
     void deleteAllQueues() {
+        queueService.destroy();
         Queue.deleteAll();
     }
 

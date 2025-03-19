@@ -11,10 +11,12 @@ import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.quarkus.runtime.Shutdown;
 import io.vertx.mutiny.ext.web.Session;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 
 @ApplicationScoped
@@ -30,7 +32,7 @@ public class QueueService {
      * Handler for a running queue
      */
     public class QueueHandler {
-        private Queue queue;
+        private UUID queueUuid;
 
         private record UserSession(
                 ApelleUser user, Session session) {
@@ -38,10 +40,14 @@ public class QueueService {
 
         private ConcurrentHashMap<UUID, UserSession> sessions;
 
-        public QueueHandler(@NonNull Queue queue) {
-            this.queue = queue;
+        public QueueHandler(@NonNull UUID queueUuid) {
+            this.queueUuid = queueUuid;
 
             sessions = new ConcurrentHashMap<>();
+        }
+
+        private @NonNull Queue getQueue() {
+            return Queue.findById(queueUuid);
         }
 
         /**
@@ -50,7 +56,7 @@ public class QueueService {
          * @throws CantPlayEmptyQueue Cannot play a empty queue
          */
         public boolean play() throws CantPlayEmptyQueue {
-            var stopped = queue.play();
+            var stopped = getQueue().play();
             // TODO: signal all sessions
             return stopped;
         }
@@ -59,7 +65,7 @@ public class QueueService {
          * Stops the music
          */
         public boolean stop() {
-            var playing = queue.stop();
+            var playing = getQueue().stop();
             // TODO: signal all sessions
             return playing;
         }
@@ -79,16 +85,9 @@ public class QueueService {
          * @return The added song
          */
         public QueuedSong enqueue(Song song) {
-            var enqueued = queue.enqueue(song);
+            var enqueued = getQueue().enqueue(song);
             // TODO: signal all sessions
             return enqueued;
-        }
-
-        /**
-         * Activate this handler, adding the entity to the persistence context
-         */
-        public void activate() {
-            queue = entityManager.merge(queue);
         }
     }
 
@@ -98,12 +97,13 @@ public class QueueService {
     private ConcurrentMap<UUID, QueueHandler> handlers = new ConcurrentHashMap<>();
 
     /**
-     * Stop all sessions, persist everything to the database
+     * Stop all sessions
      */
-    void destroy() {
+    @Shutdown
+    @Transactional
+    public void destroy() {
         // Stop all sessions
         for (QueueHandler handler : handlers.values()) {
-            handler.activate();
             handler.close();
         }
         handlers.clear();
@@ -150,14 +150,13 @@ public class QueueService {
     private QueueHandler getHandler(@NonNull UUID queueId) throws QueueNotFoundException {
         var handler = handlers.compute(queueId, (id, presentHandler) -> {
             if (presentHandler != null) {
-                presentHandler.activate();
                 return presentHandler;
             }
             var queue = (Queue) Queue.findById(id);
             if (queue == null) {
                 return null;
             }
-            return new QueueHandler(queue);
+            return new QueueHandler(id);
         });
         if (handler == null) {
             throw new QueueNotFoundException(queueId);
