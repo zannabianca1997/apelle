@@ -25,7 +25,6 @@ import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
-import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
 
@@ -40,9 +39,6 @@ public class QueueResource {
     SongMapper songMapper;
     @Inject
     SongService songService;
-
-    @Inject
-    QueueService queueService;
 
     private Queue getQueue(UUID queueId) throws QueueNotFoundException {
         Queue queue = Queue.findById(queueId);
@@ -75,9 +71,10 @@ public class QueueResource {
     public RestResponse<QueuedSongQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
             throws QueueNotFoundException, BadYoutubeApiResponse {
         var song = songService.fromDto(songAddDto);
+        var queue = getQueue(queueId);
 
         // Using the service as this mutate the queue
-        var enqueued = queueService.enqueue(queueId, song);
+        var enqueued = queue.enqueue(song);
 
         try {
             return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
@@ -93,7 +90,7 @@ public class QueueResource {
     @Transactional
     public void play(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
-        queueService.play(queueId);
+        getQueue(queueId).play();
     }
 
     @POST
@@ -103,6 +100,6 @@ public class QueueResource {
     @Transactional
     public void stop(UUID queueId)
             throws QueueNotFoundException {
-        queueService.stop(queueId);
+        getQueue(queueId).stop();
     }
 }

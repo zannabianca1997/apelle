@@ -19,7 +19,6 @@ import com.google.common.collect.Streams;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
@@ -29,7 +28,6 @@ import io.github.zannabianca1997.apelle.queues.dtos.sources.youtube.YoutubeSongA
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
-import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMock;
 import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
@@ -57,13 +55,9 @@ class QueueResourceTest {
     UUID queueId;
     Queue createdQueue;
 
-    @Inject
-    QueueService queueService;
-
     @BeforeEach
     @Transactional
     void createQueue() {
-        queueService.destroy();
         Queue.deleteAll();
 
         var queue = Queue.builder().build();
