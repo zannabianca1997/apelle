@@ -24,6 +24,7 @@ import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
@@ -111,7 +112,7 @@ public class QueueResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public QueueQueryDto get(UUID queueId) throws QueueNotFoundException {
-            return queueMapper.toDto(getQueue(queueId));
+        return queueMapper.toDto(getQueue(queueId));
     }
 
     @POST
@@ -129,7 +130,7 @@ public class QueueResource {
         var enqueued = queue.enqueue(song);
         publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
 
-            return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
+        return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
     }
 
     @POST
@@ -158,5 +159,21 @@ public class QueueResource {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
             publish(QueueStopEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+        }
+    }
+
+    @POST
+    @Path("/next")
+    @Operation(summary = "Start playing the next song", description = """
+            Start the next song in the queue.
+            The current one will be requeued as the last one, with no likes.""")
+    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @Transactional
+    public void next(UUID queueId)
+            throws QueueNotFoundException, CantPlayEmptyQueue {
+        Queue queue = getQueue(queueId);
+        queue.next();
+        publish(QueueNextEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+        scheduleStopAtEnd(queue);
     }
 }

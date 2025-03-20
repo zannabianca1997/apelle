@@ -139,4 +139,19 @@ public class Queue extends PanacheEntityBase {
 
         return getCurrent().stop();
     }
+
+    /**
+     * Move to the next song
+     * 
+     * @return If the queue was playing before
+     * @throws CantPlayEmptyQueue The queue is empty
+     */
+    public void next() throws CantPlayEmptyQueue {
+        if (getCurrent() != null) {
+            var current = getCurrent().getSong();
+            setCurrent(null);
+            enqueue(current);
+        }
+        play();
+    }
 }
