@@ -59,7 +59,7 @@ public class QueueResource {
      * @param event The event to publish
      */
     private void publish(QueueEvent event) {
-        eventBus.publish(event.getQueueUuid().toString(), JsonObject.mapFrom(event));
+        eventBus.publish(event.getQueueId().toString(), JsonObject.mapFrom(event));
     }
 
     private Queue getQueue(UUID queueId) throws QueueNotFoundException {
@@ -96,7 +96,7 @@ public class QueueResource {
         var queue = getQueue(queueId);
 
         var enqueued = queue.enqueue(song);
-        publish(QueueEnqueueEvent.builder().queueUuid(queueId).build());
+        publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
 
         try {
             return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
@@ -115,30 +115,7 @@ public class QueueResource {
         Queue queue = getQueue(queueId);
         boolean startedNow = queue.play();
         if (startedNow) {
-            publish(QueuePlayEvent.builder().queueUuid(queueId).build());
-
-            // Fire when the song would end
-            Uni<Boolean> songEnded = Uni.createFrom().voidItem()
-                    .onItem().delayIt().by(queue.getCurrent().timeLeft())
-                    .replaceWith(false);
-            // Fire if something stop the song
-            Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queueId.toString())
-                    .toMulti()
-                    .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
-                    .filter(event -> event instanceof QueueStopEvent)
-                    .onItem().castTo(QueueStopEvent.class)
-                    .toUni().replaceWith(true);
-            // On song completion, if nothing stopped it before, stop the song
-            Uni.combine().any().of(songEnded, stopEvent)
-                    .subscribe().with(stopped -> {
-                        if (!stopped) {
-                            // Stopping the song
-                            try {
-                                getQueue(queueId).stop();
-                            } catch (QueueNotFoundException e) {
-                            }
-                        }
-                    });
+            publish(QueuePlayEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
         }
     }
 
@@ -149,9 +126,9 @@ public class QueueResource {
     @Transactional
     public void stop(UUID queueId)
             throws QueueNotFoundException {
-        boolean stoppedNow = getQueue(queueId).stop();
+        Queue queue = getQueue(queueId);
+        boolean stoppedNow = queue.stop();
         if (stoppedNow) {
-            publish(QueueStopEvent.builder().queueUuid(queueId).build());
-        }
+            publish(QueueStopEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
     }
 }

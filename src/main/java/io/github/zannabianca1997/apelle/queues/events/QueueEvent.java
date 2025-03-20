@@ -19,5 +19,5 @@ public abstract class QueueEvent {
      * Id of the affected queue
      */
     @NonNull
-    private UUID queueUuid;
+    private UUID queueId;
 }

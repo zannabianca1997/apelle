@@ -7,12 +7,12 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 /**
- * A queue started playing
+ * A queue started playing the next song
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-public final class QueuePlayEvent extends QueueEvent {
+public final class QueueNextEvent extends QueueEvent {
     private QueueQueryDto state;
 }

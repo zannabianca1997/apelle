@@ -1,13 +1,11 @@
 package io.github.zannabianca1997.apelle.queues;
 
-import java.net.MalformedURLException;
 import java.util.UUID;
 
-import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.QueueStateMessage;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.ServerMessage;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.UnknowQueueMessage;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
-import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
+import io.github.zannabianca1997.apelle.queues.mappers.EventMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.quarkus.security.Authenticated;
 import io.quarkus.websockets.next.OnOpen;
@@ -25,7 +23,7 @@ public class QueueWebsocket {
     @Inject
     private EventBus eventBus;
     @Inject
-    private QueueMapper queueMapper;
+    private EventMapper eventMapper;
 
     @OnOpen
     Multi<ServerMessage> open(
@@ -49,16 +47,6 @@ public class QueueWebsocket {
                 .<JsonObject>consumer(uuid.toString())
                 .toMulti()
                 .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
-                .map(event -> {
-                    try {
-                        // For now, simply broadcast the queue state at each event
-                        return QueueStateMessage.builder()
-                                .queue(queueMapper.toDto(Queue.findById(event.getQueueUuid())))
-                                .build();
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                });
+                .map(eventMapper::toMessage);
     }
 }
