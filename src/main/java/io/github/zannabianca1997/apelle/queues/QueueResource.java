@@ -32,6 +32,9 @@ import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
+import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
 
@@ -45,66 +48,9 @@ public class QueueResource {
     @Inject
     SongMapper songMapper;
     @Inject
-    SongService songService;
+    QueueService queueService;
     @Inject
-    EventBus eventBus;
-
-    /**
-     * Send a queue event.
-     * 
-     * The event is published on the address equal to the queue ID.
-     * 
-     * @param event The event to publish
-     */
-    private void publish(QueueEvent event) {
-        eventBus.publish(event.getQueueId().toString(), JsonObject.mapFrom(event));
-    }
-
-    /**
-     * Obtain a queue, or generate an exception if not possible
-     * 
-     * @param queueId The id of the queue
-     * @return The found queue
-     * @throws QueueNotFoundException The queue does not exist
-     */
-    private Queue getQueue(UUID queueId) throws QueueNotFoundException {
-        Queue queue = Queue.findById(queueId);
-        if (queue == null) {
-            throw new QueueNotFoundException(queueId);
-        }
-        return queue;
-    }
-
-    /**
-     * Schedule the queue to be stopped when it finished
-     * 
-     * @param queue The queue to stop
-     */
-    private void scheduleStopAtEnd(Queue queue) {
-        final UUID queueId = queue.getId();
-        // Fire when the song would end
-        Uni<Boolean> songEnded = Uni.createFrom().voidItem()
-                .onItem().delayIt().by(queue.getCurrent().timeLeft())
-                .replaceWith(false);
-        // Fire if something stop the song
-        Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queueId.toString())
-                .toMulti()
-                .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
-                .filter(event -> event instanceof QueueStopEvent)
-                .onItem().castTo(QueueStopEvent.class)
-                .toUni().replaceWith(true);
-        // On song completion, if nothing stopped it before, stop the song
-        Uni.combine().any().of(songEnded, stopEvent)
-                .subscribe().with(stopped -> {
-                    if (!stopped) {
-                        try {
-                            stop(queueId);
-                        } catch (QueueNotFoundException e) {
-                            // Queue was deleted, nothing to do
-                        }
-                    }
-                });
-    }
+    SongService songService;
 
     @GET
     @Operation(summary = "Get the queue state", description = "Get the queue state, with both the currently playing song and the list of songs to play next")
@@ -112,7 +58,8 @@ public class QueueResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public QueueQueryDto get(UUID queueId) throws QueueNotFoundException {
-        return queueMapper.toDto(getQueue(queueId));
+        Queue queue = queueService.get(queueId);
+        return queueMapper.toDto(queue);
     }
 
     @POST
@@ -124,12 +71,8 @@ public class QueueResource {
     @Transactional
     public RestResponse<QueuedSongQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
             throws QueueNotFoundException, BadYoutubeApiResponse {
-        var song = songService.fromDto(songAddDto);
-        var queue = getQueue(queueId);
-
-        var enqueued = queue.enqueue(song);
-        publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
-
+        Song song = songService.fromDto(songAddDto);
+        QueuedSong enqueued = queueService.enqueue(queueId, song);
         return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
     }
 
@@ -140,12 +83,7 @@ public class QueueResource {
     @Transactional
     public void play(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
-        Queue queue = getQueue(queueId);
-        boolean startedNow = queue.play();
-        if (startedNow) {
-            publish(QueuePlayEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
-            scheduleStopAtEnd(queue);
-        }
+        queueService.play(queueId);
     }
 
     @POST
@@ -155,11 +93,7 @@ public class QueueResource {
     @Transactional
     public void stop(UUID queueId)
             throws QueueNotFoundException {
-        Queue queue = getQueue(queueId);
-        boolean stoppedNow = queue.stop();
-        if (stoppedNow) {
-            publish(QueueStopEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
-        }
+        queueService.stop(queueId);
     }
 
     @POST
@@ -171,9 +105,6 @@ public class QueueResource {
     @Transactional
     public void next(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
-        Queue queue = getQueue(queueId);
-        queue.next();
-        publish(QueueNextEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
-        scheduleStopAtEnd(queue);
+        queueService.next(queueId);
     }
 }

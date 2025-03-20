@@ -16,7 +16,7 @@ import jakarta.ws.rs.core.Response.Status;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
-import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.services.QueueService;
 
 @Path("/queues")
 @Tag(name = "Queue", description = "Management of the queue")
@@ -25,6 +25,8 @@ public class QueuesResource {
 
     @Inject
     QueueMapper queueMapper;
+    @Inject
+    QueueService queueService;
 
     @POST
     @Transactional
@@ -33,8 +35,7 @@ public class QueuesResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public RestResponse<QueueQueryDto> create() {
-        var queue = Queue.empty();
-        queue.persist();
+        var queue = queueService.create();
         return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
     }
 
