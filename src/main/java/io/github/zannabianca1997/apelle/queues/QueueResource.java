@@ -19,7 +19,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response.Status;
-import io.github.zannabianca1997.apelle.VirtualAddresses;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
@@ -49,8 +48,15 @@ public class QueueResource {
     @Inject
     EventBus eventBus;
 
+    /**
+     * Send a queue event.
+     * 
+     * The event is published on the address equal to the queue ID.
+     * 
+     * @param event The event to publish
+     */
     private void publish(QueueEvent event) {
-        eventBus.publish(VirtualAddresses.QUEUE_EVENTS, JsonObject.mapFrom(event));
+        eventBus.publish(event.getQueueUuid().toString(), JsonObject.mapFrom(event));
     }
 
     private Queue getQueue(UUID queueId) throws QueueNotFoundException {

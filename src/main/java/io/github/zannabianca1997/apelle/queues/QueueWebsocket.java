@@ -3,7 +3,6 @@ package io.github.zannabianca1997.apelle.queues;
 import java.net.MalformedURLException;
 import java.util.UUID;
 
-import io.github.zannabianca1997.apelle.VirtualAddresses;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.QueueStateMessage;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.ServerMessage;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.UnknowQueueMessage;
@@ -12,6 +11,7 @@ import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.quarkus.security.Authenticated;
 import io.quarkus.websockets.next.OnOpen;
+import io.quarkus.websockets.next.PathParam;
 import io.quarkus.websockets.next.WebSocket;
 import io.quarkus.websockets.next.WebSocketConnection;
 import io.smallrye.mutiny.Multi;
@@ -23,17 +23,17 @@ import jakarta.inject.Inject;
 @Authenticated
 public class QueueWebsocket {
     @Inject
-    private WebSocketConnection connection;
-    @Inject
     private EventBus eventBus;
     @Inject
     private QueueMapper queueMapper;
 
     @OnOpen
-    Multi<ServerMessage> giveStartState() {
+    Multi<ServerMessage> open(
+            @PathParam String queueId, WebSocketConnection connection) {
+        // Check that the id is a queue id
         UUID uuid;
         try {
-            uuid = UUID.fromString(connection.pathParam("queueId"));
+            uuid = UUID.fromString(queueId);
         } catch (IllegalArgumentException e) {
             uuid = null;
         }
@@ -44,16 +44,16 @@ public class QueueWebsocket {
                     .onCompletion().call(() -> connection.close());
         }
 
-        final UUID multiUuid = uuid;
+        // Create a listener on the uuid address, and handle all events from it
         return eventBus
-                .<JsonObject>consumer(VirtualAddresses.QUEUE_EVENTS)
+                .<JsonObject>consumer(uuid.toString())
                 .toMulti()
                 .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
-                .filter(event -> event.getQueueUuid() == multiUuid)
                 .map(event -> {
                     try {
+                        // For now, simply broadcast the queue state at each event
                         return QueueStateMessage.builder()
-                                .queue(queueMapper.toDto(Queue.findById(multiUuid)))
+                                .queue(queueMapper.toDto(Queue.findById(event.getQueueUuid())))
                                 .build();
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
