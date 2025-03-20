@@ -10,6 +10,9 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionChecker;
+import io.quarkus.security.PermissionsAllowed;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
@@ -24,9 +27,11 @@ import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
+import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
 
@@ -43,6 +48,8 @@ public class QueueResource {
     QueueService queueService;
     @Inject
     SongService songService;
+    @Inject
+    QueueUserService queueUserService;
 
     @GET
     @Operation(summary = "Get the queue state", description = "Get the queue state, with both the currently playing song and the list of songs to play next")
@@ -61,6 +68,7 @@ public class QueueResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
     })
     @Transactional
+    @PermissionsAllowed("queue-enqueue")
     public RestResponse<QueuedSongQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
             throws QueueNotFoundException, BadYoutubeApiResponse {
         Song song = songService.fromDto(songAddDto);
@@ -73,6 +81,7 @@ public class QueueResource {
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started", content = {})
     @Transactional
+    @PermissionsAllowed("queue-control")
     public void play(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
         queueService.play(queueId);
@@ -83,6 +92,7 @@ public class QueueResource {
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started", content = {})
     @Transactional
+    @PermissionsAllowed("queue-control")
     public void stop(UUID queueId)
             throws QueueNotFoundException {
         queueService.stop(queueId);
@@ -95,8 +105,31 @@ public class QueueResource {
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started", content = {})
     @Transactional
+    @PermissionsAllowed("queue-control")
     public void next(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
         queueService.next(queueId);
+    }
+
+    @PermissionChecker("queue-control")
+    boolean canControlQueue(SecurityIdentity identity, UUID queueId) {
+        QueueUser queueUser;
+        try {
+            queueUser = queueUserService.getCurrent(queueId);
+        } catch (QueueNotFoundException e) {
+            return false;
+        }
+        return queueUser.getRole().canControlQueue();
+    }
+
+    @PermissionChecker("queue-enqueue")
+    boolean canEnqueue(SecurityIdentity identity, UUID queueId) {
+        QueueUser queueUser;
+        try {
+            queueUser = queueUserService.getCurrent(queueId);
+        } catch (QueueNotFoundException e) {
+            return false;
+        }
+        return queueUser.getRole().canEnqueue();
     }
 }

@@ -69,7 +69,7 @@ public class UsersResource {
 
     @DELETE
     @Path("/n/{userName}")
-    @RolesAllowed("admin")
+    @RolesAllowed({ "ADMIN" })
     @Operation(summary = "Delete a user by name", description = "Delete a user by name. Need to have the role `admin`")
     @APIResponse(responseCode = "200", description = "The user was deleted")
     public void delete(String userName) throws UserNotFoundByNameException {
@@ -97,7 +97,7 @@ public class UsersResource {
 
     @DELETE
     @Path("/i/{userId}")
-    @RolesAllowed("admin")
+    @RolesAllowed({ "ADMIN" })
     @Operation(summary = "Delete a user by id", description = "Delete a user by id. Need to have the role `admin`")
     @APIResponse(responseCode = "200", description = "The user was deleted")
     public void delete(UUID userId) throws UserNotFoundByIdException {

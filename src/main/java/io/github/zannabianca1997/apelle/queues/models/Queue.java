@@ -1,11 +1,10 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.Check;
@@ -13,6 +12,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
+import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
@@ -61,11 +61,7 @@ public class Queue extends PanacheEntityBase {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
     /// The users of this queue
-    private Set<QueueUser> users;
-
-    public static Queue empty() {
-        return new Queue(null, new ArrayList<>());
-    }
+    private Collection<QueueUser> users;
 
     /**
      * Order of the queued songs
@@ -75,7 +71,8 @@ public class Queue extends PanacheEntityBase {
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
-    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs) {
+    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs,
+            @Singular @NonNull Collection<ApelleUser> admins) {
         super();
         // Sort the songs
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
@@ -83,6 +80,9 @@ public class Queue extends PanacheEntityBase {
         this.id = null;
         this.current = current;
         this.queuedSongs = queuedSongs;
+        this.users = admins.stream()
+                .map(apelleUser -> QueueUser.builder().user(apelleUser).queue(this).role(QueueUserRole.ADMIN).build())
+                .toList();
     }
 
     /**

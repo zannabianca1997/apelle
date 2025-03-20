@@ -37,31 +37,31 @@ import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 @TestHTTPEndpoint(QueueResource.class)
 @Tag("queue")
 class QueueResourceTest {
-    @BeforeEach
-    @Transactional
-    void createUsers() {
-        ApelleUser.deleteAll();
-        ApelleUser.builder()
-                .name("zanna")
-                .password("zanna")
-                .role(ApelleUserRole.USER)
-                .build().persist();
-        ApelleUser.builder()
-                .name("other")
-                .password("other_psw")
-                .role(ApelleUserRole.USER)
-                .build().persist();
-    }
 
     UUID queueId;
     Queue createdQueue;
 
     @BeforeEach
     @Transactional
-    void createQueue() {
+    void createUsers() {
+        ApelleUser.deleteAll();
+
+        ApelleUser admin = ApelleUser.builder()
+                .name("zanna")
+                .password("zanna")
+                .role(ApelleUserRole.USER)
+                .build();
+        admin.persist();
+
+        ApelleUser.builder()
+                .name("other")
+                .password("other_psw")
+                .role(ApelleUserRole.USER)
+                .build().persist();
+
         Queue.deleteAll();
 
-        var queue = Queue.builder().build();
+        var queue = Queue.builder().admin(admin).build();
         queue.persist();
 
         this.queueId = queue.getId();

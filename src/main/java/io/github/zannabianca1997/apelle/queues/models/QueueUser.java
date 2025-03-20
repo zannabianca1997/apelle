@@ -85,4 +85,8 @@ public class QueueUser extends PanacheEntityBase {
     public short getMaxLikes() {
         return getRole().getMaxLikes();
     }
+
+    public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
+        return findById(new Link(userId, queueId));
+    }
 }

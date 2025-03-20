@@ -13,6 +13,8 @@ import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -28,6 +30,11 @@ public class QueueService {
     QueueMapper queueMapper;
     @Inject
     SongService songService;
+    @Inject
+    QueueUserService queueUserService;
+
+    @Inject
+    SecurityIdentity securityIdentity;
 
     /**
      * Create a new queue
@@ -35,7 +42,12 @@ public class QueueService {
      * @return The created queue
      */
     public Queue create() {
-        var queue = Queue.empty();
+        ApelleUser currentUser = ApelleUser.findByName(securityIdentity.getPrincipal().getName());
+
+        var queue = Queue.builder()
+                .admin(currentUser)
+                .build();
+
         queue.persist();
         return queue;
     }
