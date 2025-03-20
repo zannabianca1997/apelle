@@ -1,7 +1,5 @@
 package io.github.zannabianca1997.apelle.queues;
 
-import java.net.MalformedURLException;
-import java.time.Duration;
 import java.util.UUID;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -76,11 +74,7 @@ public class QueueResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public QueueQueryDto get(UUID queueId) throws QueueNotFoundException {
-        try {
             return queueMapper.toDto(getQueue(queueId));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("All know uris should form valid urls", e);
-        }
     }
 
     @POST
@@ -98,11 +92,7 @@ public class QueueResource {
         var enqueued = queue.enqueue(song);
         publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
 
-        try {
             return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("All know uris should form valid urls", e);
-        }
     }
 
     @POST

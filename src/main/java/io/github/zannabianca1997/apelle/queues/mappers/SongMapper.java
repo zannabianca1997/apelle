@@ -25,15 +25,15 @@ import jakarta.inject.Named;
 @Mapper(config = MappersConfig.class)
 public abstract class SongMapper {
     @Mapping(source = "uri", target = "url")
-    public abstract SongQueryDto toDto(Song song) throws MalformedURLException;
+    public abstract SongQueryDto toDto(Song song);
 
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")
-    public abstract QueuedSongQueryDto toDto(QueuedSong queuedSong) throws MalformedURLException;
+    public abstract QueuedSongQueryDto toDto(QueuedSong queuedSong);
 
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")
-    public abstract CurrentSongQueryDto toDto(CurrentSong playingSong) throws MalformedURLException;
+    public abstract CurrentSongQueryDto toDto(CurrentSong playingSong);
 
     public YoutubeSong fromDto(YoutubeSongAddDto youtubeSongAddDto, VideoDataDto videoData) {
         if (youtubeSongAddDto == null || videoData == null) {
@@ -48,7 +48,13 @@ public abstract class SongMapper {
     @Mapping(source = "videoData.contentDetails.duration", target = "duration")
     protected abstract YoutubeSong fromDtoInner(YoutubeSongAddDto youtubeSongAddDto, VideoDataDto videoData);
 
-    protected URL toUrl(URI uri) throws MalformedURLException {
-        return uri.toURL();
+    protected URL toUrl(URI uri) {
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException e) {
+            // This should not happen, as the url should always be valid
+            e.printStackTrace();
+            return null;
+        }
     }
 }

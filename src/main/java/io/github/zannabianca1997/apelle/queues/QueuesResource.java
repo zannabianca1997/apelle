@@ -1,7 +1,5 @@
 package io.github.zannabianca1997.apelle.queues;
 
-import java.net.MalformedURLException;
-
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -37,11 +35,7 @@ public class QueuesResource {
     public RestResponse<QueueQueryDto> create() {
         var queue = Queue.empty();
         queue.persist();
-        try {
-            return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("The empty queue has no uri to map", e);
-        }
+        return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
     }
 
 }

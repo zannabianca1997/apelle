@@ -1,7 +1,5 @@
 package io.github.zannabianca1997.apelle.queues.mappers;
 
-import java.net.MalformedURLException;
-
 import org.mapstruct.Mapper;
 
 import io.github.zannabianca1997.apelle.MappersConfig;
@@ -13,5 +11,5 @@ import io.github.zannabianca1997.apelle.queues.models.Queue;
  */
 @Mapper(config = MappersConfig.class, uses = { SongMapper.class })
 public interface QueueMapper {
-    QueueQueryDto toDto(Queue queue) throws MalformedURLException;
+    QueueQueryDto toDto(Queue queue);
 }
