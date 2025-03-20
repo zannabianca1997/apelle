@@ -125,6 +125,7 @@ public class QueueService {
     public QueuedSong enqueue(UUID queueId, Song song) throws QueueNotFoundException {
         Queue queue = get(queueId);
         QueuedSong enqueued = queue.enqueue(song);
+        enqueued.persist();
         publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
         return enqueued;
     }
