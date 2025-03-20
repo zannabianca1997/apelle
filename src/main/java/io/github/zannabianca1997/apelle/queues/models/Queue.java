@@ -64,6 +64,12 @@ public class Queue extends PanacheEntityBase {
     /// The users of this queue
     private Collection<QueueUser> users;
 
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    /// The likes on this queue
+    private Collection<Likes> likes;
+
     /**
      * Order of the queued songs
      */

@@ -2,22 +2,17 @@ package io.github.zannabianca1997.apelle.queues.models;
 
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
-
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -27,9 +22,9 @@ import lombok.NonNull;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "queue_user")
-/// A user relationship with a queue
-public class QueueUser extends PanacheEntityBase {
+@Table(name = "likes")
+/// A number of likes given on a song
+public class Likes extends PanacheEntityBase {
 
     @Embeddable
     @Data
@@ -45,6 +40,11 @@ public class QueueUser extends PanacheEntityBase {
         @Column(nullable = false)
         /// The queue
         private UUID queue;
+
+        @NonNull
+        @Column(nullable = false)
+        /// The queued song
+        private UUID song;
     }
 
     @EmbeddedId
@@ -64,29 +64,11 @@ public class QueueUser extends PanacheEntityBase {
     private Queue queue;
 
     @NonNull
-    @Column(nullable = false)
-    @Enumerated
-    @JdbcType(PostgreSQLEnumJdbcType.class)
-    /// Role of the user in the queue
-    private QueueUserRole role;
+    @ManyToOne
+    @MapsId("song")
+    /// The queued song
+    private Song song;
 
-    @Builder
-    public QueueUser(
-            @NonNull ApelleUser user,
-            @NonNull Queue queue,
-            @NonNull QueueUserRole role) {
-        super();
-        this.link = new Link();
-        this.user = user;
-        this.queue = queue;
-        this.role = role;
-    }
-
-    public short getMaxLikes() {
-        return getRole().getMaxLikes();
-    }
-
-    public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
-        return findById(new Link(userId, queueId));
-    }
+    /// Number of likes given
+    private short count;
 }

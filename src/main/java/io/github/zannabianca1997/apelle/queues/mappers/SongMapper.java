@@ -27,6 +27,7 @@ public abstract class SongMapper {
     @Mapping(source = "uri", target = "url")
     public abstract SongQueryDto toDto(Song song);
 
+    @Mapping(source = "likes", target = "likes")
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")
     public abstract QueuedSongQueryDto toDto(QueuedSong queuedSong);

@@ -2,8 +2,13 @@ package io.github.zannabianca1997.apelle.queues.models;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.UUID;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +24,6 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
-import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Data
@@ -42,6 +47,12 @@ public abstract class Song extends PanacheEntityBase {
     @Column(nullable = false)
     /// Duration of the song
     private Duration duration;
+
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
+    /// The likes on this song, on any queue
+    private Collection<Likes> likes;
 
     /**
      * 

@@ -1,5 +1,6 @@
 package io.github.zannabianca1997.apelle.users.models;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.type.SqlTypes;
 
+import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
@@ -68,6 +70,12 @@ public class ApelleUser extends PanacheEntityBase {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
     /// The queues this user voted on
     private Set<QueueUser> queues;
+
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
+    /// The likes given by this user
+    private Collection<Likes> likes;
 
     /**
      * Find a user by name
