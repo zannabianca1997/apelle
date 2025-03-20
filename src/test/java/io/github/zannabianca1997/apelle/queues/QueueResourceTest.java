@@ -29,6 +29,7 @@ import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
 import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMock;
 import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 
@@ -43,12 +44,12 @@ class QueueResourceTest {
         ApelleUser.builder()
                 .name("zanna")
                 .password("zanna")
-                .roles("user")
+                .role(ApelleUserRole.USER)
                 .build().persist();
         ApelleUser.builder()
                 .name("other")
                 .password("other_psw")
-                .roles("user")
+                .role(ApelleUserRole.USER)
                 .build().persist();
     }
 

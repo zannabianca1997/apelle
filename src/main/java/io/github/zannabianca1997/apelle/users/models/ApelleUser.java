@@ -1,14 +1,25 @@
 package io.github.zannabianca1997.apelle.users.models;
 
+import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
+
+import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Singular;
 import io.quarkus.security.jpa.Password;
 import io.quarkus.security.jpa.Roles;
 import io.quarkus.security.jpa.UserDefinition;
@@ -46,8 +58,13 @@ public class ApelleUser extends PanacheEntityBase {
     /// Hashed password
     private String password;
 
+    @NonNull
     @Roles
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
     /// Comma separated list of roles
+    private Set<ApelleUserRole> roles;
+
     private String roles;
 
     /**
@@ -61,7 +78,7 @@ public class ApelleUser extends PanacheEntityBase {
     }
 
     @Builder
-    public ApelleUser(@NonNull String name, @NonNull String password, String roles) {
+    public ApelleUser(@NonNull String name, @NonNull String password, @Singular Set<ApelleUserRole> roles) {
         super();
         this.name = name;
         this.password = BcryptUtil.bcryptHash(password);

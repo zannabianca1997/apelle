@@ -52,12 +52,6 @@ public class QueuedSong extends PanacheEntityBase {
     @NonNull
     private Link link;
 
-    private short likes;
-
-    @NonNull
-    @Column(name = "queued_at", nullable = false)
-    private Instant queuedAt;
-
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToOne(cascade = CascadeType.ALL)
@@ -70,6 +64,12 @@ public class QueuedSong extends PanacheEntityBase {
     @MapsId("queue")
     /// The queue
     private Queue queue;
+
+    private short likes;
+
+    @NonNull
+    @Column(name = "queued_at", nullable = false)
+    private Instant queuedAt;
 
     @Builder
     public QueuedSong(

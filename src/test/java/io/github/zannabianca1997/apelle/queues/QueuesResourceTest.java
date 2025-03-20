@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -29,12 +30,12 @@ class QueuesResourceTest {
         ApelleUser.builder()
                 .name("zanna")
                 .password("zanna")
-                .roles("user")
+                .role(ApelleUserRole.USER)
                 .build().persist();
         ApelleUser.builder()
                 .name("other")
                 .password("other_psw")
-                .roles("user")
+                .role(ApelleUserRole.USER)
                 .build().persist();
     }
 
