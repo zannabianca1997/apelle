@@ -59,6 +59,13 @@ public class QueueResource {
         eventBus.publish(event.getQueueId().toString(), JsonObject.mapFrom(event));
     }
 
+    /**
+     * Obtain a queue, or generate an exception if not possible
+     * 
+     * @param queueId The id of the queue
+     * @return The found queue
+     * @throws QueueNotFoundException The queue does not exist
+     */
     private Queue getQueue(UUID queueId) throws QueueNotFoundException {
         Queue queue = Queue.findById(queueId);
         if (queue == null) {
