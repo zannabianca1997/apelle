@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "event")
-public abstract sealed class QueueEvent permits QueueEnqueueEvent, QueuePlayEvent, QueueStopEvent {
+public abstract class QueueEvent {
     /**
      * Id of the affected queue
      */

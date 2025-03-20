@@ -21,6 +21,6 @@ import lombok.experimental.SuperBuilder;
 
         The `kind` property discriminates between the different messages.""", oneOf = { QueueStateMessage.class,
         UnknowQueueMessage.class })
-public abstract sealed class ServerMessage permits QueueStateMessage, UnknowQueueMessage {
+public abstract class ServerMessage {
 
 }
