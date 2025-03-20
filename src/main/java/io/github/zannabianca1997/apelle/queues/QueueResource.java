@@ -9,17 +9,24 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
+
 import io.quarkus.security.Authenticated;
+import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response.Status;
-
+import io.github.zannabianca1997.apelle.VirtualAddresses;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
+import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
@@ -39,6 +46,12 @@ public class QueueResource {
     SongMapper songMapper;
     @Inject
     SongService songService;
+    @Inject
+    EventBus eventBus;
+
+    private void publish(QueueEvent event) {
+        eventBus.publish(VirtualAddresses.QUEUE_EVENTS, JsonObject.mapFrom(event));
+    }
 
     private Queue getQueue(UUID queueId) throws QueueNotFoundException {
         Queue queue = Queue.findById(queueId);
@@ -73,8 +86,8 @@ public class QueueResource {
         var song = songService.fromDto(songAddDto);
         var queue = getQueue(queueId);
 
-        // Using the service as this mutate the queue
         var enqueued = queue.enqueue(song);
+        publish(QueueEnqueueEvent.builder().queueUuid(queueId).build());
 
         try {
             return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
@@ -91,6 +104,7 @@ public class QueueResource {
     public void play(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
         getQueue(queueId).play();
+        publish(QueuePlayEvent.builder().queueUuid(queueId).build());
     }
 
     @POST
@@ -101,5 +115,6 @@ public class QueueResource {
     public void stop(UUID queueId)
             throws QueueNotFoundException {
         getQueue(queueId).stop();
+        publish(QueueStopEvent.builder().queueUuid(queueId).build());
     }
 }
