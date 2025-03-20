@@ -9,6 +9,7 @@ import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
@@ -121,9 +122,13 @@ public class QueueService {
      * @param song    The song to add
      * @return The queued song
      * @throws QueueNotFoundException The queue does not exist
+     * @throws SongAlreadyQueued      The song is already in the queue
      */
-    public QueuedSong enqueue(UUID queueId, Song song) throws QueueNotFoundException {
+    public QueuedSong enqueue(UUID queueId, Song song) throws QueueNotFoundException, SongAlreadyQueued {
         Queue queue = get(queueId);
+        if (queue.getAllSongs().anyMatch(queued -> queued.isSame(song))) {
+            throw new SongAlreadyQueued(queue.getId(), song);
+        }
         QueuedSong enqueued = queue.enqueue(song);
         enqueued.persist();
         publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());

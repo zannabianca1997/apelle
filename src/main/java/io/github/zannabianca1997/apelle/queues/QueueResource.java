@@ -24,6 +24,7 @@ import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
@@ -62,7 +63,7 @@ public class QueueResource {
     }
 
     @POST
-    @Path("/queued-songs")
+    @Path("/enqueue")
     @Operation(summary = "Add a song to the queue", description = "Add a song to the queue, with no likes.")
     @APIResponse(responseCode = "201", description = "The enqueued song", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
@@ -70,7 +71,7 @@ public class QueueResource {
     @Transactional
     @PermissionsAllowed("queue-enqueue")
     public RestResponse<QueuedSongQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
-            throws QueueNotFoundException, BadYoutubeApiResponse {
+            throws QueueNotFoundException, BadYoutubeApiResponse, SongAlreadyQueued {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queueId, song);
         return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));

@@ -59,4 +59,14 @@ public class YoutubeSong extends Song {
         super(name, duration);
         this.videoId = videoId;
     }
+
+    @Override
+    public boolean isSame(Song b) {
+        switch (b) {
+            case YoutubeSong bYoutubeSong:
+                return getVideoId() == bYoutubeSong.getVideoId();
+            default:
+                return false;
+        }
+    }
 }

@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Data
@@ -64,5 +65,15 @@ public abstract class Song extends PanacheEntityBase {
         this.id = null;
         this.name = name;
         this.duration = duration;
+    }
+
+    /**
+     * Check if two songs are the same song
+     * 
+     * @param b The other song
+     * @return If the two song match
+     */
+    public boolean isSame(Song b) {
+        return false;
     }
 }

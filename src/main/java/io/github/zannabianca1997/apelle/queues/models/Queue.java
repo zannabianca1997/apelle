@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.OnDelete;
@@ -160,5 +161,16 @@ public class Queue extends PanacheEntityBase {
             enqueue(current);
         }
         play();
+    }
+
+    /**
+     * Get all songs tracked by this queue
+     * 
+     * @return All the song tracked
+     */
+    public Stream<Song> getAllSongs() {
+        return Stream.concat(
+                Stream.ofNullable(getCurrent()).map(CurrentSong::getSong),
+                getQueuedSongs().stream().map(QueuedSong::getSong));
     }
 }
