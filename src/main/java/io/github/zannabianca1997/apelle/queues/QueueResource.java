@@ -11,7 +11,6 @@ import org.jboss.resteasy.reactive.RestResponse;
 
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.subscription.Cancellable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
@@ -68,6 +67,37 @@ public class QueueResource {
         return queue;
     }
 
+    /**
+     * Schedule the queue to be stopped when it finished
+     * 
+     * @param queue The queue to stop
+     */
+    private void scheduleStopAtEnd(Queue queue) {
+        final UUID queueId = queue.getId();
+        // Fire when the song would end
+        Uni<Boolean> songEnded = Uni.createFrom().voidItem()
+                .onItem().delayIt().by(queue.getCurrent().timeLeft())
+                .replaceWith(false);
+        // Fire if something stop the song
+        Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queueId.toString())
+                .toMulti()
+                .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
+                .filter(event -> event instanceof QueueStopEvent)
+                .onItem().castTo(QueueStopEvent.class)
+                .toUni().replaceWith(true);
+        // On song completion, if nothing stopped it before, stop the song
+        Uni.combine().any().of(songEnded, stopEvent)
+                .subscribe().with(stopped -> {
+                    if (!stopped) {
+                        try {
+                            stop(queueId);
+                        } catch (QueueNotFoundException e) {
+                            // Queue was deleted, nothing to do
+                        }
+                    }
+                });
+    }
+
     @GET
     @Operation(summary = "Get the queue state", description = "Get the queue state, with both the currently playing song and the list of songs to play next")
     @APIResponse(responseCode = "200", description = "The queue state", content = {
@@ -106,6 +136,7 @@ public class QueueResource {
         boolean startedNow = queue.play();
         if (startedNow) {
             publish(QueuePlayEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+            scheduleStopAtEnd(queue);
         }
     }
 
