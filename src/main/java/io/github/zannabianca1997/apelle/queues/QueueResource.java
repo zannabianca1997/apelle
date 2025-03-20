@@ -1,6 +1,7 @@
 package io.github.zannabianca1997.apelle.queues;
 
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.UUID;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -11,6 +12,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.subscription.Cancellable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
@@ -109,8 +112,34 @@ public class QueueResource {
     @Transactional
     public void play(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
-        getQueue(queueId).play();
-        publish(QueuePlayEvent.builder().queueUuid(queueId).build());
+        Queue queue = getQueue(queueId);
+        boolean startedNow = queue.play();
+        if (startedNow) {
+            publish(QueuePlayEvent.builder().queueUuid(queueId).build());
+
+            // Fire when the song would end
+            Uni<Boolean> songEnded = Uni.createFrom().voidItem()
+                    .onItem().delayIt().by(queue.getCurrent().timeLeft())
+                    .replaceWith(false);
+            // Fire if something stop the song
+            Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queueId.toString())
+                    .toMulti()
+                    .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
+                    .filter(event -> event instanceof QueueStopEvent)
+                    .onItem().castTo(QueueStopEvent.class)
+                    .toUni().replaceWith(true);
+            // On song completion, if nothing stopped it before, stop the song
+            Uni.combine().any().of(songEnded, stopEvent)
+                    .subscribe().with(stopped -> {
+                        if (!stopped) {
+                            // Stopping the song
+                            try {
+                                getQueue(queueId).stop();
+                            } catch (QueueNotFoundException e) {
+                            }
+                        }
+                    });
+        }
     }
 
     @POST
@@ -120,7 +149,9 @@ public class QueueResource {
     @Transactional
     public void stop(UUID queueId)
             throws QueueNotFoundException {
-        getQueue(queueId).stop();
-        publish(QueueStopEvent.builder().queueUuid(queueId).build());
+        boolean stoppedNow = getQueue(queueId).stop();
+        if (stoppedNow) {
+            publish(QueueStopEvent.builder().queueUuid(queueId).build());
+        }
     }
 }

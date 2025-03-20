@@ -89,7 +89,7 @@ public class CurrentSong {
     /**
      * Start the song
      * 
-     * @return if the song was stopped before
+     * @return if the song state changed
      */
     public boolean play() {
         if (!isStopped()) {
@@ -97,6 +97,11 @@ public class CurrentSong {
         }
 
         var playStartsAt = getStartsAt();
+
+        if (!playStartsAt.plus(getPosition()).isBefore(Instant.now())) {
+            // The song reached his end, not starting it
+            return false;
+        }
 
         position = null;
         startsAt = playStartsAt;
@@ -204,5 +209,14 @@ public class CurrentSong {
                 return built;
             }
         }
+    }
+
+    /**
+     * Calculate how much time left before the song is finished
+     * 
+     * @return The time left
+     */
+    public Duration timeLeft() {
+        return getSong().getDuration().minus(getPosition());
     }
 }
