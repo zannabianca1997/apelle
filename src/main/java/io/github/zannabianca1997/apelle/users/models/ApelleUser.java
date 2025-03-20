@@ -65,7 +65,11 @@ public class ApelleUser extends PanacheEntityBase {
     /// Comma separated list of roles
     private Set<ApelleUserRole> roles;
 
-    private String roles;
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
+    /// The queues this user voted on
+    private Set<QueueUser> queues;
 
     /**
      * Find a user by name

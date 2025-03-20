@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.Check;
@@ -55,6 +56,12 @@ public class Queue extends PanacheEntityBase {
     @OrderBy("likes DESC, queued_at ASC")
     /// The songs in the queue
     private List<QueuedSong> queuedSongs;
+
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    /// The users of this queue
+    private Set<QueueUser> users;
 
     public static Queue empty() {
         return new Queue(null, new ArrayList<>());
