@@ -7,6 +7,7 @@ import java.net.URL;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import io.github.zannabianca1997.apelle.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.CurrentSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongQueryDto;
@@ -21,7 +22,7 @@ import jakarta.inject.Named;
 /**
  * Maps songs to dtos and back
  */
-@Mapper(componentModel = "cdi")
+@Mapper(config = MappersConfig.class)
 public abstract class SongMapper {
     @Mapping(source = "uri", target = "url")
     public abstract SongQueryDto toDto(Song song) throws MalformedURLException;
