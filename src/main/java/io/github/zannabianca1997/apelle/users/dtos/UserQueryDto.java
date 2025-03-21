@@ -12,10 +12,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
+@Jacksonized
 @Schema(description = "Data about a single user")
 public class UserQueryDto {
     @NonNull
