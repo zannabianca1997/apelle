@@ -81,4 +81,8 @@ public class QueuedSong extends PanacheEntityBase {
         this.song = song;
         this.queue = queue;
     }
+
+    public static QueuedSong findById(@NonNull UUID songId, @NonNull UUID queueId) {
+        return findById(new Link(songId, queueId));
+    }
 }

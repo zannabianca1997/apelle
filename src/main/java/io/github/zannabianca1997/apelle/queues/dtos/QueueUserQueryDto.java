@@ -28,8 +28,4 @@ public class QueueUserQueryDto extends UserQueryDto {
     @JsonProperty(value = "max_likes", required = true)
     @Schema(description = "Maximum number of likes that can be given")
     private short maxLikes;
-
-    @JsonProperty(value = "can_like", required = true)
-    @Schema(description = "If the user can like more songs")
-    private boolean canLike;
 }

@@ -20,7 +20,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
-import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
+import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
@@ -66,15 +66,15 @@ public class QueueResource {
     @Path("/queue")
     @Operation(summary = "Add a song to the queue", description = "Add a song to the queue, with no likes.")
     @APIResponse(responseCode = "201", description = "The enqueued song", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
+            @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongShortQueryDto.class))
     })
     @Transactional
     @PermissionsAllowed("queue-enqueue")
-    public RestResponse<QueuedSongQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
+    public RestResponse<QueuedSongShortQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
             throws QueueNotFoundException, BadYoutubeApiResponse, SongAlreadyQueued {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queueId, song);
-        return RestResponse.status(Status.CREATED, songMapper.toDto(enqueued));
+        return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));
     }
 
     @POST
@@ -118,7 +118,7 @@ public class QueueResource {
         try {
             queueUser = queueUserService.getCurrent(queueId);
         } catch (QueueNotFoundException e) {
-            return false;
+            return true;
         }
         return queueUser.getRole().canControlQueue();
     }
@@ -129,7 +129,7 @@ public class QueueResource {
         try {
             queueUser = queueUserService.getCurrent(queueId);
         } catch (QueueNotFoundException e) {
-            return false;
+            return true;
         }
         return queueUser.getRole().canEnqueue();
     }

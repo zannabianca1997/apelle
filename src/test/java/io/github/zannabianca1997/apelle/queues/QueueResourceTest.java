@@ -22,7 +22,7 @@ import io.restassured.http.ContentType;
 import jakarta.transaction.Transactional;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
-import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
+import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.dtos.sources.youtube.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
@@ -90,14 +90,14 @@ class QueueResourceTest {
     void shouldEnqueueYoutubeSong() throws MalformedURLException {
         String videoId = YoutubeApiVideosClientMock.RESPONSES.keySet().iterator().next();
 
-        QueuedSongQueryDto created = given()
+        QueuedSongShortQueryDto created = given()
                 .auth().basic("zanna", "zanna")
                 .contentType(ContentType.JSON)
                 .body(YoutubeSongAddDto.builder().videoId(videoId).build())
                 .post("/queue", queueId).then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
-                .extract().as(QueuedSongQueryDto.class);
+                .extract().as(QueuedSongShortQueryDto.class);
 
         VideoDataDto videoData = YoutubeApiVideosClientMock.RESPONSES.get(videoId).unwrapSingle();
 

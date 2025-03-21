@@ -16,7 +16,6 @@ public abstract class QueueUserMapper {
     UserMapper userMapper;
 
     @Mapping(target = "queueRole", source = "queueUser.role")
-    @Mapping(target = "canLike", expression = "java( queueUser.canLike() )")
     protected abstract QueueUserQueryDto toDtoInner(QueueUser queueUser, UserQueryDto userQueryDto);
 
     public QueueUserQueryDto toDto(QueueUser queueUser) {

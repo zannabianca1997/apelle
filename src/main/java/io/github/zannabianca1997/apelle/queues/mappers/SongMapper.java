@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import io.github.zannabianca1997.apelle.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.CurrentSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
+import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.sources.youtube.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.queues.models.CurrentSong;
@@ -26,6 +27,11 @@ import jakarta.inject.Named;
 public abstract class SongMapper {
     @Mapping(source = "uri", target = "url")
     public abstract SongQueryDto toDto(Song song);
+
+    @Mapping(source = "likes", target = "likes")
+    @Mapping(source = "song", target = ".")
+    @Mapping(source = "song.uri", target = "url")
+    public abstract QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong);
 
     @Mapping(source = "likes", target = "likes")
     @Mapping(source = "song", target = ".")

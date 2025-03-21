@@ -184,4 +184,8 @@ public class Queue extends PanacheEntityBase {
                 Stream.ofNullable(getCurrent()).map(CurrentSong::getSong),
                 getQueuedSongs().stream().map(QueuedSong::getSong));
     }
+
+    public static boolean exists(UUID queueId) {
+        return findById(queueId) != null;
+    }
 }
