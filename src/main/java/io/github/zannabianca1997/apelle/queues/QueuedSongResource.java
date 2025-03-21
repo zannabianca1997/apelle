@@ -9,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.PermissionChecker;
+import io.quarkus.security.PermissionsAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -59,6 +60,7 @@ public class QueuedSongResource {
 
             If the maximum number of likes was already reached, the oldest like will be removed.
             """)
+    @PermissionsAllowed("queued-song-like")
     public void like(UUID queueId, UUID songId) {
         // TODO
     }
