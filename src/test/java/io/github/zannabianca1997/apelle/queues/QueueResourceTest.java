@@ -94,7 +94,7 @@ class QueueResourceTest {
                 .auth().basic("zanna", "zanna")
                 .contentType(ContentType.JSON)
                 .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                .post("/enqueue", queueId).then()
+                .post("/queue", queueId).then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
                 .extract().as(QueuedSongQueryDto.class);
@@ -132,7 +132,7 @@ class QueueResourceTest {
                     .auth().basic("zanna", "zanna")
                     .contentType(ContentType.JSON)
                     .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                    .post("/enqueue", queueId).then()
+                    .post("/queue", queueId).then()
                     .statusCode(StatusCode.CREATED);
             // Minimal separation between requests to ensure they are correctly sorted
             Thread.sleep(10);

@@ -26,7 +26,7 @@ public class QueueQueryDto {
     private CurrentSongQueryDto current;
 
     @NonNull
-    @JsonProperty(value = "queued_songs", required = true)
+    @JsonProperty(value = "queue", required = true)
     @Schema(description = "The songs in the queue")
     private List<QueuedSongQueryDto> queuedSongs;
 }
