@@ -2,6 +2,7 @@ package io.github.zannabianca1997.apelle.queues.models;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -22,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -70,6 +72,11 @@ public class QueueUser extends PanacheEntityBase {
     /// Role of the user in the queue
     private QueueUserRole role;
 
+    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.user_id = user_id), 0)")
+    @Setter(AccessLevel.NONE)
+    /// Number of likes given by this user
+    private short likes;
+
     @Builder
     public QueueUser(
             @NonNull ApelleUser user,
@@ -86,7 +93,12 @@ public class QueueUser extends PanacheEntityBase {
         return getRole().getMaxLikes();
     }
 
+    public boolean canLike() {
+        return getLikes() < getMaxLikes();
+    }
+
     public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
         return findById(new Link(userId, queueId));
     }
+
 }

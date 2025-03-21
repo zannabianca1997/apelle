@@ -3,6 +3,7 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -23,6 +24,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -65,21 +67,22 @@ public class QueuedSong extends PanacheEntityBase {
     /// The queue
     private Queue queue;
 
-    private short likes;
-
     @NonNull
     @Column(name = "queued_at", nullable = false)
     private Instant queuedAt;
+
+    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.song_id = song_id), 0)")
+    @Setter(AccessLevel.NONE)
+    /// Number of likes on this song
+    private short likes;
 
     @Builder
     public QueuedSong(
             @NonNull Song song,
             @NonNull Queue queue,
-            short likes,
             @NonNull Instant queuedAt) {
         super();
         this.link = new Link();
-        this.likes = likes;
         this.queuedAt = queuedAt;
         this.song = song;
         this.queue = queue;

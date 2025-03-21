@@ -102,7 +102,6 @@ public class Queue extends PanacheEntityBase {
         var enqueued = QueuedSong.builder()
                 .song(song)
                 .queue(this)
-                .likes((short) 0)
                 .queuedAt(Instant.now())
                 .build();
         // Add the song in the correct position

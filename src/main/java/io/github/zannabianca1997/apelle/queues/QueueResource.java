@@ -80,7 +80,7 @@ public class QueueResource {
     @POST
     @Path("/play")
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
-    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
     @PermissionsAllowed("queue-control")
     public void play(UUID queueId)
@@ -91,7 +91,7 @@ public class QueueResource {
     @POST
     @Path("/stop")
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
-    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
     @PermissionsAllowed("queue-control")
     public void stop(UUID queueId)
@@ -104,7 +104,7 @@ public class QueueResource {
     @Operation(summary = "Start playing the next song", description = """
             Start the next song in the queue.
             The current one will be requeued as the last one, with no likes.""")
-    @APIResponse(responseCode = "204", description = "The music started", content = {})
+    @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
     @PermissionsAllowed("queue-control")
     public void next(UUID queueId)

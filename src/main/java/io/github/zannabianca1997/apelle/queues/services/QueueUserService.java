@@ -5,6 +5,8 @@ import java.util.UUID;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueueUserRole;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,17 +29,76 @@ public class QueueUserService {
      */
     public QueueUser getCurrent(UUID queueId) throws QueueNotFoundException {
         ApelleUser user = ApelleUser.findByName(securityIdentity.getPrincipal().getName());
-        QueueUser queueUser = QueueUser.findById(user.getId(), queueId);
+        return findOrCreate(queueId, user);
+    }
 
-        if (queueUser == null) {
-            queueUser = QueueUser.builder()
-                    .queue(queueService.get(queueId))
-                    .user(user)
-                    .role(QueueUserRole.getDefault())
-                    .build();
-            queueUser.persist();
+    /**
+     * Get a queue user by name
+     * 
+     * @param queueId  The queue id
+     * @param userName The user name
+     * @return The queue user
+     * @throws UserNotFoundByNameException The user does not exist
+     * @throws QueueNotFoundException      The queue does not exist
+     */
+    public QueueUser getByName(UUID queueId, String userName)
+            throws UserNotFoundByNameException, QueueNotFoundException {
+        ApelleUser user = ApelleUser.findByName(userName);
+        if (user == null) {
+            throw new UserNotFoundByNameException(userName);
         }
+        return findOrCreate(queueId, user);
+    }
 
+    /**
+     * Get a queue user by name
+     * 
+     * @param queueId The queue id
+     * @param userId  The user id
+     * @return The queue user
+     * @throws UserNotFoundByIdException The user does not exist
+     * @throws QueueNotFoundException    The queue does not exist
+     */
+    public QueueUser getById(UUID queueId, UUID userId) throws QueueNotFoundException, UserNotFoundByIdException {
+        ApelleUser user = ApelleUser.findById(userId);
+        if (user == null) {
+            throw new UserNotFoundByIdException(userId);
+        }
+        return findOrCreate(queueId, user);
+    }
+
+    /**
+     * Find the queue user, or create a new one
+     * 
+     * @param queueId The queue id
+     * @param user    The user to link
+     * @return The found or created queue user
+     * @throws QueueNotFoundException The queue does not exist
+     */
+    private QueueUser findOrCreate(UUID queueId, ApelleUser user) throws QueueNotFoundException {
+        QueueUser queueUser = QueueUser.findById(user.getId(), queueId);
+        if (queueUser == null) {
+            return create(queueId, user);
+        }
+        return queueUser;
+    }
+
+    /**
+     * Create a new queue user
+     * 
+     * @param queueId The queue id
+     * @param user    The user to link
+     * @return The created queue user
+     * @throws QueueNotFoundException The queue does not exist
+     */
+    private QueueUser create(UUID queueId, ApelleUser user) throws QueueNotFoundException {
+        QueueUser queueUser;
+        queueUser = QueueUser.builder()
+                .queue(queueService.get(queueId))
+                .user(user)
+                .role(QueueUserRole.getDefault())
+                .build();
+        queueUser.persist();
         return queueUser;
     }
 }

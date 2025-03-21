@@ -8,14 +8,14 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Builder
+@SuperBuilder
 @Schema(description = "Data about a single user")
 public class UserQueryDto {
     @NonNull
