@@ -54,6 +54,12 @@ public abstract class Song extends PanacheEntityBase {
     /// The likes on this song, on any queue
     private Collection<Likes> likes;
 
+    @NonNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
+    /// The queues this song is inside
+    private Collection<QueuedSong> queues;
+
     /**
      * 
      * @return The song kind

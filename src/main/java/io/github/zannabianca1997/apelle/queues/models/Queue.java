@@ -136,6 +136,7 @@ public class Queue extends PanacheEntityBase {
                 .song(next.getSong())
                 .playing().startsAt(Instant.now())
                 .build());
+        next.delete();
 
         return true;
     }
