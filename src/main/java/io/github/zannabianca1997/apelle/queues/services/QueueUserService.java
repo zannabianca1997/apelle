@@ -68,7 +68,10 @@ public class QueueUserService {
     }
 
     /**
-     * Find the queue user, or create a new one
+     * Find the queue user, or create a new one.
+     * 
+     * The newly created queue user is not persisted automatically,
+     * as it has the default role.
      * 
      * @param queueId The queue id
      * @param user    The user to link
@@ -78,26 +81,13 @@ public class QueueUserService {
     private QueueUser findOrCreate(UUID queueId, ApelleUser user) throws QueueNotFoundException {
         QueueUser queueUser = QueueUser.findById(user.getId(), queueId);
         if (queueUser == null) {
-            return create(queueId, user);
+            return QueueUser.builder()
+                    .queue(queueService.get(queueId))
+                    .user(user)
+                    .role(QueueUserRole.getDefault())
+                    .likesFilled(true)
+                    .build();
         }
-        return queueUser;
-    }
-
-    /**
-     * Create a new queue user
-     * 
-     * @param queueId The queue id
-     * @param user    The user to link
-     * @return The created queue user
-     * @throws QueueNotFoundException The queue does not exist
-     */
-    private QueueUser create(UUID queueId, ApelleUser user) throws QueueNotFoundException {
-        QueueUser queueUser = QueueUser.builder()
-                .queue(queueService.get(queueId))
-                .user(user)
-                .role(QueueUserRole.getDefault())
-                .build();
-        queueUser.persist();
         return queueUser;
     }
 }

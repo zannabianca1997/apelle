@@ -15,6 +15,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queue_user")
+@NamedNativeQuery(name = "QueueUser.countLikes", query = "COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = :queue_id AND l.user_id = :user_id), 0)", resultClass = Short.class)
 /// A user relationship with a queue
 public class QueueUser extends PanacheEntityBase {
 
@@ -81,12 +83,24 @@ public class QueueUser extends PanacheEntityBase {
     public QueueUser(
             @NonNull ApelleUser user,
             @NonNull Queue queue,
-            @NonNull QueueUserRole role) {
+            @NonNull QueueUserRole role,
+            boolean likesFilled) {
         super();
+
         this.link = new Link();
         this.user = user;
         this.queue = queue;
         this.role = role;
+
+        if (likesFilled) {
+            this.likes = getSession()
+                    .createNamedQuery("QueueUser.countLikes", Short.class)
+                    .setParameter("queue_id", queue.getId())
+                    .setParameter("user_id", user.getId())
+                    .getSingleResult();
+        } else {
+            this.likes = 0;
+        }
     }
 
     public short getMaxLikes() {

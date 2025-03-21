@@ -88,7 +88,12 @@ public class Queue extends PanacheEntityBase {
         this.current = current;
         this.queuedSongs = queuedSongs;
         this.users = admins.stream()
-                .map(apelleUser -> QueueUser.builder().user(apelleUser).queue(this).role(QueueUserRole.ADMIN).build())
+                .map(apelleUser -> QueueUser.builder()
+                        .user(apelleUser)
+                        .queue(this)
+                        .role(QueueUserRole.ADMIN)
+                        .likesFilled(false) // The queue is brand new, so no likes
+                        .build())
                 .toList();
     }
 
