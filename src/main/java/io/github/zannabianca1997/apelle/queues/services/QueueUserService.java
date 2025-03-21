@@ -92,8 +92,7 @@ public class QueueUserService {
      * @throws QueueNotFoundException The queue does not exist
      */
     private QueueUser create(UUID queueId, ApelleUser user) throws QueueNotFoundException {
-        QueueUser queueUser;
-        queueUser = QueueUser.builder()
+        QueueUser queueUser = QueueUser.builder()
                 .queue(queueService.get(queueId))
                 .user(user)
                 .role(QueueUserRole.getDefault())
