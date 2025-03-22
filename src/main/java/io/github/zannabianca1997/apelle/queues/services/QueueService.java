@@ -26,16 +26,16 @@ import jakarta.inject.Inject;
 public class QueueService {
 
     @Inject
-    EventBus eventBus;
+    private EventBus eventBus;
     @Inject
-    QueueMapper queueMapper;
+    private QueueMapper queueMapper;
     @Inject
-    SongService songService;
+    private SongService songService;
     @Inject
-    QueueUserService queueUserService;
+    private QueueUserService queueUserService;
 
     @Inject
-    SecurityIdentity securityIdentity;
+    private SecurityIdentity securityIdentity;
 
     /**
      * Create a new queue

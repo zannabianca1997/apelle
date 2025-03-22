@@ -42,15 +42,15 @@ import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse
 public class QueueResource {
 
     @Inject
-    QueueMapper queueMapper;
+    private QueueMapper queueMapper;
     @Inject
-    SongMapper songMapper;
+    private SongMapper songMapper;
     @Inject
-    QueueService queueService;
+    private QueueService queueService;
     @Inject
-    SongService songService;
+    private SongService songService;
     @Inject
-    QueueUserService queueUserService;
+    private QueueUserService queueUserService;
 
     @GET
     @Operation(summary = "Get the queue state", description = "Get the queue state, with both the currently playing song and the list of songs to play next")

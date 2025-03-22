@@ -78,7 +78,7 @@ class UserResourceTest {
     }
 
     @Inject
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Test
     void shouldReturnCurrentUser() {

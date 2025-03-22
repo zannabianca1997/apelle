@@ -16,9 +16,9 @@ import jakarta.inject.Inject;
 public class QueueUserService {
 
     @Inject
-    SecurityIdentity securityIdentity;
+    private SecurityIdentity securityIdentity;
     @Inject
-    QueueService queueService;
+    private QueueService queueService;
 
     /**
      * Get the queue user for the current user

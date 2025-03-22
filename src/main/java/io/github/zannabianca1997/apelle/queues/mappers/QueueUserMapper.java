@@ -13,7 +13,7 @@ import jakarta.inject.Inject;
 @Mapper(config = MappersConfig.class)
 public abstract class QueueUserMapper {
     @Inject
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Mapping(target = "queueRole", source = "queueUser.role")
     protected abstract QueueUserQueryDto toDtoInner(QueueUser queueUser, UserQueryDto userQueryDto);
