@@ -16,8 +16,8 @@ import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdExcepti
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
+import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -26,7 +26,6 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response.Status;
 
 @Path("/users")
@@ -34,7 +33,9 @@ import jakarta.ws.rs.core.Response.Status;
 public class UsersResource {
 
     @Inject
-    UserMapper userMapper;
+    private UserMapper userMapper;
+    @Inject
+    private UsersService usersService;
 
     @POST
     @PermitAll
@@ -44,11 +45,8 @@ public class UsersResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
     public RestResponse<UserQueryDto> signup(UserCreateDto userCreateDto) throws UserAlreadyExistsException {
-        if (ApelleUser.findByName(userCreateDto.getName()) != null) {
-            throw new UserAlreadyExistsException(userCreateDto.getName());
-        }
         ApelleUser user = userMapper.createUser(userCreateDto);
-        user.persist();
+        usersService.signup(user);
         return RestResponse.<UserQueryDto>status(Status.CREATED, userMapper.toDto(user));
     }
 
@@ -60,11 +58,7 @@ public class UsersResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
     public UserQueryDto get(String userName) throws UserNotFoundByNameException {
-        ApelleUser user = ApelleUser.findByName(userName);
-        if (user == null) {
-            throw new UserNotFoundByNameException(userName);
-        }
-        return userMapper.toDto(user);
+        return userMapper.toDto(usersService.get(userName));
     }
 
     @DELETE
@@ -73,11 +67,7 @@ public class UsersResource {
     @Operation(summary = "Delete a user by name", description = "Delete a user by name. Need to have the role `admin`")
     @APIResponse(responseCode = "200", description = "The user was deleted")
     public void delete(String userName) throws UserNotFoundByNameException {
-        ApelleUser user = ApelleUser.findByName(userName);
-        if (user == null) {
-            throw new UserNotFoundByNameException(userName);
-        }
-        user.delete();
+        usersService.delete(userName);
     }
 
     @GET
@@ -88,11 +78,7 @@ public class UsersResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
     public UserQueryDto get(UUID userId) throws UserNotFoundByIdException {
-        ApelleUser user = ApelleUser.findById(userId);
-        if (user == null) {
-            throw new UserNotFoundByIdException(userId);
-        }
-        return userMapper.toDto(user);
+        return userMapper.toDto(usersService.get(userId));
     }
 
     @DELETE
@@ -101,11 +87,7 @@ public class UsersResource {
     @Operation(summary = "Delete a user by id", description = "Delete a user by id. Need to have the role `admin`")
     @APIResponse(responseCode = "200", description = "The user was deleted")
     public void delete(UUID userId) throws UserNotFoundByIdException {
-        ApelleUser user = ApelleUser.findById(userId);
-        if (user == null) {
-            throw new UserNotFoundByIdException(userId);
-        }
-        user.delete();
+        usersService.delete(userId);
     }
 
     @GET
@@ -115,10 +97,8 @@ public class UsersResource {
     @APIResponse(responseCode = "200", description = "The current user", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
-    public UserQueryDto get(@Context SecurityIdentity securityIdentity) {
-        String name = securityIdentity.getPrincipal().getName();
-        ApelleUser user = ApelleUser.findByName(name);
-        return userMapper.toDto(user);
+    public UserQueryDto get() {
+        return userMapper.toDto(usersService.getCurrent());
     }
 
     @DELETE
@@ -127,8 +107,7 @@ public class UsersResource {
     @Transactional
     @Operation(summary = "Delete current user", description = "Delete the current user")
     @APIResponse(responseCode = "200", description = "The current user was deleted")
-    public void delete(@Context SecurityIdentity securityIdentity) {
-        String name = securityIdentity.getPrincipal().getName();
-        ApelleUser.findByName(name).delete();
+    public void delete() {
+        usersService.deleteCurrent();
     }
 }
