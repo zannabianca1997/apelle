@@ -8,7 +8,7 @@ import io.github.zannabianca1997.apelle.queues.models.QueueUserRole;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
-import io.quarkus.security.identity.SecurityIdentity;
+import io.github.zannabianca1997.apelle.users.services.UsersService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -16,9 +16,9 @@ import jakarta.inject.Inject;
 public class QueueUserService {
 
     @Inject
-    private SecurityIdentity securityIdentity;
-    @Inject
     private QueueService queueService;
+    @Inject
+    private UsersService usersService;
 
     /**
      * Get the queue user for the current user
@@ -28,8 +28,7 @@ public class QueueUserService {
      * @throws QueueNotFoundException The queue does not exist
      */
     public QueueUser getCurrent(UUID queueId) throws QueueNotFoundException {
-        ApelleUser user = ApelleUser.findByName(securityIdentity.getPrincipal().getName());
-        return findOrCreate(queueId, user);
+        return findOrCreate(queueId, usersService.getCurrent());
     }
 
     /**
@@ -43,11 +42,7 @@ public class QueueUserService {
      */
     public QueueUser getByName(UUID queueId, String userName)
             throws UserNotFoundByNameException, QueueNotFoundException {
-        ApelleUser user = ApelleUser.findByName(userName);
-        if (user == null) {
-            throw new UserNotFoundByNameException(userName);
-        }
-        return findOrCreate(queueId, user);
+        return findOrCreate(queueId, usersService.get(userName));
     }
 
     /**
@@ -60,11 +55,7 @@ public class QueueUserService {
      * @throws QueueNotFoundException    The queue does not exist
      */
     public QueueUser getById(UUID queueId, UUID userId) throws QueueNotFoundException, UserNotFoundByIdException {
-        ApelleUser user = ApelleUser.findById(userId);
-        if (user == null) {
-            throw new UserNotFoundByIdException(userId);
-        }
-        return findOrCreate(queueId, user);
+        return findOrCreate(queueId, usersService.get(userId));
     }
 
     /**
