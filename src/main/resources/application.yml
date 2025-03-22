@@ -1,0 +1,36 @@
+# Program configuration
+apelle:
+  queue:
+    user:
+      # The role that will be given by default to every user in any queue
+      default-role: VOTER
+      VOTER:
+        # Maximum number of simultaneus likes
+        max-likes: 4
+# Quarkus configuration
+quarkus:
+  # Database: the application for now support only PostgreSQL
+  datasource:
+    db-kind: postgresql
+  # Run basic globally
+  http:
+    auth:
+      basic: true
+  # External APIs urls
+  rest-client:
+    youtube-api:
+      url: https://www.googleapis.com/youtube/v3
+# Setup during Dev
+"%dev":
+  quarkus:
+    hibernate-orm:
+      database:
+        # in dev mode only, create all the tables at startup
+        generation: drop-and-create
+# Setup during tests
+"%test":
+  quarkus:
+    rest-client:
+      youtube-api:
+        # Do not contact youtube during tests
+        url:
