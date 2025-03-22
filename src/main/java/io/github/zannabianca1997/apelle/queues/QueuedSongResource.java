@@ -5,23 +5,25 @@ import java.util.UUID;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.PermissionChecker;
 import io.quarkus.security.PermissionsAllowed;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
+import jakarta.ws.rs.QueryParam;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
-import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
+import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 
 @Path("/queues/{queueId}/queue/{songId}")
@@ -33,6 +35,8 @@ public class QueuedSongResource {
     private SongMapper songMapper;
     @Inject
     private QueueUserService queueUserService;
+    @Inject
+    private QueueService queueService;
 
     @GET
     @Operation(summary = "Get the queued song", description = """
@@ -43,14 +47,7 @@ public class QueuedSongResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
     })
     public QueuedSongQueryDto get(UUID queueId, UUID songId) throws QueueNotFoundException, SongNotQueued {
-        QueuedSong queuedSong = QueuedSong.findById(queueId, songId);
-        if (queuedSong == null) {
-            if (!Queue.exists(queueId)) {
-                throw new QueueNotFoundException(queueId);
-            }
-            throw new SongNotQueued(queueId, songId);
-        }
-        return songMapper.toDto(queuedSong);
+        return songMapper.toDto(queueService.getQueuedSong(queueId, songId));
     }
 
     @POST
@@ -59,10 +56,16 @@ public class QueuedSongResource {
             Add a like to the song, pushing it upwards in the queue.
 
             If the maximum number of likes was already reached, the oldest like will be removed.
-            """)
+            This will happen trasparently even if a number of likes larger than available is specified,
+            effectively removing all likes and moving them to the song.""")
+    @Parameter(name = "count", description = "How many time to like the song. If negative, nothing will happen.")
     @PermissionsAllowed("queued-song-like")
-    public void like(UUID queueId, UUID songId) {
-        // TODO
+    @Transactional
+    public void like(UUID queueId, UUID songId,
+            @QueryParam("count") @DefaultValue("1") short count)
+            throws SongNotQueued, QueueNotFoundException {
+        QueuedSong queuedSong = queueService.getQueuedSong(queueId, songId);
+        queueService.like(queuedSong, queueUserService.getCurrent(queueId), count);
     }
 
     @PermissionChecker("queued-song-like")

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.Formula;
+
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -19,7 +20,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -66,7 +66,6 @@ public class QueuedSong extends PanacheEntityBase {
     private Instant queuedAt;
 
     @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.song_id = song_id), 0)")
-    @Setter(AccessLevel.NONE)
     /// Number of likes on this song
     private short likes;
 
@@ -84,5 +83,13 @@ public class QueuedSong extends PanacheEntityBase {
 
     public static QueuedSong findById(@NonNull UUID songId, @NonNull UUID queueId) {
         return findById(new Link(songId, queueId));
+    }
+
+    @Override
+    public void delete() {
+        // Remove all likes
+        Likes.deleteReferringTo(getLink());
+        // Delete the entity
+        super.delete();
     }
 }

@@ -114,7 +114,9 @@ public class Queue extends PanacheEntityBase {
         if (index < 0) {
             index = -index - 1;
         }
-        this.queuedSongs.add(index, enqueued);
+        List<QueuedSong> queuedSongs = getQueuedSongs();
+        queuedSongs.add(index, enqueued);
+        setQueuedSongs(queuedSongs);
 
         return enqueued;
     }
@@ -187,5 +189,11 @@ public class Queue extends PanacheEntityBase {
 
     public static boolean exists(UUID queueId) {
         return findById(queueId) != null;
+    }
+
+    public void sortSongs() {
+        List<QueuedSong> queuedSongs = getQueuedSongs();
+        queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
+        setQueuedSongs(queuedSongs);
     }
 }

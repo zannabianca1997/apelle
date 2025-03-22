@@ -10,6 +10,7 @@ import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.QueueStateM
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.ServerMessage;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
@@ -19,6 +20,7 @@ public interface EventMapper {
     @SubclassMapping(source = QueuePlayEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueStopEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueNextEvent.class, target = QueueStateMessage.class)
+    @SubclassMapping(source = QueueLikeEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueEnqueueEvent.class, target = QueueStateMessage.class)
     ServerMessage toMessage(QueueEvent event);
 
@@ -33,4 +35,7 @@ public interface EventMapper {
 
     @Mapping(target = "queue", source = "state")
     QueueStateMessage toMessage(QueueEnqueueEvent event);
+
+    @Mapping(target = "queue", source = "state")
+    QueueStateMessage toMessage(QueueLikeEvent event);
 }

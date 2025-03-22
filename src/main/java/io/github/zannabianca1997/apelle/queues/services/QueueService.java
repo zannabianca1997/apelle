@@ -1,21 +1,25 @@
 package io.github.zannabianca1997.apelle.queues.services;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
+import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
-import io.github.zannabianca1997.apelle.users.models.ApelleUser;
-import io.quarkus.security.identity.SecurityIdentity;
+import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -30,12 +34,7 @@ public class QueueService {
     @Inject
     private QueueMapper queueMapper;
     @Inject
-    private SongService songService;
-    @Inject
-    private QueueUserService queueUserService;
-
-    @Inject
-    private SecurityIdentity securityIdentity;
+    private UsersService usersService;
 
     /**
      * Create a new queue
@@ -43,12 +42,9 @@ public class QueueService {
      * @return The created queue
      */
     public Queue create() {
-        ApelleUser currentUser = ApelleUser.findByName(securityIdentity.getPrincipal().getName());
-
         var queue = Queue.builder()
-                .admin(currentUser)
+                .admin(usersService.getCurrent())
                 .build();
-
         queue.persist();
         return queue;
     }
@@ -133,6 +129,91 @@ public class QueueService {
         enqueued.persist();
         publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
         return enqueued;
+    }
+
+    /**
+     * Add a like to a song
+     * 
+     * @param song   The song to like
+     * @param userId The user liking the song
+     */
+    public void like(QueuedSong song, QueueUser user) {
+        like(song, user, (short) 1);
+    }
+
+    /**
+     * Add many like to a song
+     * 
+     * @param song   The song to like
+     * @param userId The user liking the song
+     * @param count  The number of like to add
+     */
+    public void like(QueuedSong song, QueueUser user, short count) {
+        if (count < 1) {
+            // Nothing to do
+            return;
+        }
+
+        Queue queue = song.getQueue();
+
+        // Liming the number of likes to the max
+        count = (short) Math.min(count, user.getMaxLikes());
+
+        // Calculating how many likes must be removed
+        int toRemove = Math.max(count - (user.getMaxLikes() - user.getLikes()), 0);
+        while (toRemove > 0) {
+            // Find the oldest group of likes
+            Likes oldests = Likes.findOldests(user.getUser().getId(), song.getLink());
+
+            // calculate how many to remove
+            var removing = Math.min(toRemove, oldests.getCount());
+            oldests.setCount((short) (oldests.getCount() - removing));
+            toRemove -= removing;
+
+            // Mark row for deletion id all the likes where removed
+            if (oldests.getCount() == 0) {
+                oldests.delete();
+            }
+
+            // Remove likes from the queue in memory
+            QueuedSong removingFrom = queue.getQueuedSongs().stream()
+                    .filter(song2 -> song2.getLink().getSong() == oldests.getLink().getSong())
+                    .findAny().orElseThrow();
+            removingFrom.setLikes((short) (removingFrom.getLikes() - removing));
+        }
+
+        Instant now = Instant.now();
+        Likes likes = Likes.findById(user.getUser().getId(), song.getLink(), now);
+
+        if (likes == null) {
+            likes = Likes.builder().user(user.getUser()).song(song).givenAt(now).count(count).build();
+            likes.persist();
+        } else {
+            likes.setCount((short) (likes.getCount() + count));
+        }
+
+        // Adding likes to the queue in memory
+        QueuedSong addingTo = queue.getQueuedSongs().stream()
+                .filter(song2 -> song2.getLink().getSong() == song.getLink().getSong())
+                .findAny().orElseThrow();
+        addingTo.setLikes((short) (addingTo.getLikes() + count));
+
+        // Sorting the song, as likes have changed
+        queue.sortSongs();
+
+        // Signal songs have changed
+        publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+    }
+
+    public QueuedSong getQueuedSong(UUID queueId, UUID songId) throws QueueNotFoundException, SongNotQueued {
+        QueuedSong queuedSong = QueuedSong.findById(queueId, songId);
+        if (queuedSong == null) {
+            if (!Queue.exists(queueId)) {
+                throw new QueueNotFoundException(queueId);
+            }
+            throw new SongNotQueued(queueId, songId);
+        }
+        return queuedSong;
     }
 
     /**

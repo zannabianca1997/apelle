@@ -1,5 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
@@ -13,6 +14,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -45,6 +47,11 @@ public class Likes extends PanacheEntityBase {
         @Column(nullable = false)
         /// The queued song
         private UUID song;
+
+        @NonNull
+        @Column(name = "given_at", nullable = false)
+        /// When these likes where assigned
+        private Instant givenAt;
     }
 
     @EmbeddedId
@@ -71,4 +78,45 @@ public class Likes extends PanacheEntityBase {
 
     /// Number of likes given
     private short count;
+
+    /**
+     * Create a new Likes.
+     * 
+     * @param user    The user liking
+     * @param song    The song liked
+     * @param givenAt The moment of the liking
+     * @param count   The count of the likes
+     */
+    @Builder
+    public Likes(
+            ApelleUser user, QueuedSong song, Instant givenAt, short count) {
+        this();
+        this.link = new Link(null, null, null, givenAt);
+        this.user = user;
+        this.queue = song.getQueue();
+        this.song = song.getSong();
+        this.count = count;
+    }
+
+    /**
+     * Find the likes given by a user to a queued song, at a given instant
+     * 
+     * @param user    The user liking the song
+     * @param song    The song liked
+     * @param givenAt The moment the likes were given
+     * @return The likes, or null if none were found
+     */
+    public static Likes findById(UUID user, QueuedSong.Link song, Instant givenAt) {
+        return findById(new Link(user, song.getQueue(), song.getSong(), givenAt));
+    }
+
+    public static Likes findOldests(UUID user, QueuedSong.Link song) {
+        return find("user_id = ?1 AND queue_id = ?2 AND song_id = ?3 ORDER BY given_at ASC",
+                user, song.getQueue(), song.getSong())
+                .firstResult();
+    }
+
+    public static long deleteReferringTo(QueuedSong.Link link) {
+        return delete("queue_id = ?1 AND song_id = ?2", link.getQueue(), link.getSong());
+    }
 }

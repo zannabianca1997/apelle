@@ -70,6 +70,7 @@ public class QueueResource {
     })
     @Transactional
     @PermissionsAllowed("queue-enqueue")
+    @Tag(name = "Queued song")
     public RestResponse<QueuedSongShortQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
             throws QueueNotFoundException, BadYoutubeApiResponse, SongAlreadyQueued {
         Song song = songService.fromDto(songAddDto);
