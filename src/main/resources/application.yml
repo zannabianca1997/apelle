@@ -20,6 +20,33 @@ quarkus:
   rest-client:
     youtube-api:
       url: https://www.googleapis.com/youtube/v3
+  # Configuration of the Swagger
+  smallrye-openapi:
+    info-title: Apelle API
+    info-version: ${quarkus.application.version:-}
+    info-description: |-
+      > A communist music queue
+
+      `Apelle` is a backend for handling a shared music queue. 
+      Users can insert songs in the queues, and upvote them to push them upward. Apelle
+      will track the position of each song in the queue, and the position of the currently
+      playing song.
+
+      It also fetch the song data from the sources (for now, only Youtube is supported).
+      Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
+
+      ### Websockets
+      To avoid polling the REST API, Apelle provide a websocket interface to each queue.
+      The relative URL is `/queues/{queueId}/ws`. It needs basic auth to connect.
+
+      The websocket does not listen for now to any message, but sends JSON messages at each queue change.
+      See the `ServerMessage` schema for the schema.
+    info-contact-name: zannabianca1997
+    info-contact-email: zannabianca199712@gmail.com
+    info-license-name: MIT
+    info-license-url: https://opensource.org/license/mit
+  swagger-ui:
+    deep-linking: true
 # Setup during Dev
 "%dev":
   quarkus:
@@ -27,9 +54,13 @@ quarkus:
       database:
         # in dev mode only, create all the tables at startup
         generation: drop-and-create
+    smallrye-openapi:
+      info-title: Apelle API (development)
 # Setup during tests
 "%test":
   quarkus:
+    smallrye-openapi:
+      info-title: Apelle API (test)
     rest-client:
       youtube-api:
         # Do not contact youtube during tests
