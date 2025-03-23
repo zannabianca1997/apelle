@@ -59,8 +59,8 @@ quarkus:
     info-description: |-
       > A communist music queue
 
-      `Apelle` is a backend for handling a shared music queue. 
-      Users can insert songs in the queues, and upvote them to push them upward. Apelle
+      `apelle` is a backend for handling a shared music queue. 
+      Users can insert songs in the queues, and upvote them to push them upward. `apelle`
       will track the position of each song in the queue, and the position of the currently
       playing song.
 
@@ -68,7 +68,7 @@ quarkus:
       Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
 
       ### Websockets
-      To avoid polling the REST API, Apelle provide a websocket interface to each queue.
+      To avoid polling the REST API, `apelle` provide a websocket interface to each queue.
       The relative URL is `/queues/{queueId}/ws`. It needs basic auth to connect.
 
       The websocket does not listen for now to any message, but sends JSON messages at each queue change.

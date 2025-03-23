@@ -1,8 +1,18 @@
-# apelle
+# `apelle`
 
 > A communist music queue
 
+`apelle` is a backend for handling a shared music queue. 
+Users can insert songs in the queues, and upvote them to push them upward. `apelle`
+will track the position of each song in the queue, and the position of the currently
+playing song.
+
+It also fetch the song data from the sources (for now, only Youtube is supported).
+Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
+
 ## Needed API keys
+
+`apelle` loads the song data from external sources. API keys need to be provided for each one of them to work.
 
 ### Google
 
@@ -11,6 +21,7 @@ For example, using a `.env` in the project root:
 ```env
 apelle.youtube.api.key=<your-key-here>
 ```
+The key need to be able to query the youtube API v3.
 
 ## Running the application in dev mode
 
@@ -20,7 +31,8 @@ You can run your application in dev mode that enables live coding using:
 ./gradlew quarkusDev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+You can then found the dev UI at <http://localhost:8080/q/dev/>. 
+You can also found the Swagged OpenAPI documentation at <http://localhost:8080/q/swagger-ui/>.
 
 ## Packaging and running the application
 
@@ -48,13 +60,13 @@ The application, packaged as an _über-jar_, is now runnable using `java -jar bu
 You can create a native executable using:
 
 ```shell script
-./gradlew build -Dquarkus.native.enabled=true
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false
 ```
 
 Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
 
 ```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true -Dquarkus.package.jar.enabled=false
 ```
 
 You can then execute your native executable with: `./build/apelle-0.0.1-runner`
