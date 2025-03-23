@@ -1,0 +1,1148 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "description" : "> A communist music queue\n\n`apelle` is a backend for handling a shared music queue. \nUsers can insert songs in the queues, and upvote them to push them upward. `apelle`\nwill track the position of each song in the queue, and the position of the currently\nplaying song.\n\nIt also fetch the song data from the sources (for now, only Youtube is supported).\nUsers provides only the minimal necessary to identify the song (e.g. the youtube video ID).\n\n### Websockets\nTo avoid polling the REST API, `apelle` provide a websocket interface to each queue.\nThe relative URL is `/queues/{queueId}/ws`. It needs basic auth to connect.\n\nThe websocket does not listen for now to any message, but sends JSON messages at each queue change.\nSee the `ServerMessage` schema for the schema.",
+    "contact" : {
+      "name" : "zannabianca1997",
+      "email" : "zannabianca199712@gmail.com"
+    },
+    "license" : {
+      "name" : "MIT",
+      "url" : "https://opensource.org/license/mit"
+    },
+    "title" : "Apelle API",
+    "version" : "0.0.1"
+  },
+  "components" : {
+    "schemas" : {
+      "ApelleUserRole" : {
+        "type" : "string",
+        "enum" : [ "ADMIN", "USER" ]
+      },
+      "CurrentSongQueryDto" : {
+        "description" : "The song currently being played",
+        "type" : "object",
+        "required" : [ "id", "name", "duration", "kind", "stopped", "starts_at", "position" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique id of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the song"
+          },
+          "duration" : {
+            "description" : "Duration of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Duration"
+          },
+          "kind" : {
+            "description" : "Source of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SongKind"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "Eventual public url of the song"
+          },
+          "stopped" : {
+            "type" : "boolean",
+            "description" : "If the song is currently stopped"
+          },
+          "starts_at" : {
+            "description" : "Moment at which the song should have started to reach the current position",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "position" : {
+            "description" : "Current position in the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Duration"
+          }
+        }
+      },
+      "Duration" : {
+        "type" : "string",
+        "format" : "duration",
+        "examples" : [ "P1D" ]
+      },
+      "Instant" : {
+        "type" : "string",
+        "format" : "date-time",
+        "examples" : [ "2022-03-10T16:15:50Z" ]
+      },
+      "Permissions" : {
+        "type" : "object"
+      },
+      "QueueQueryDto" : {
+        "description" : "A queue of songs",
+        "type" : "object",
+        "required" : [ "id", "queue" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique ID of the queue",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "current" : {
+            "description" : "The current playing song, if any",
+            "type" : "object",
+            "$ref" : "#/components/schemas/CurrentSongQueryDto"
+          },
+          "queue" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueuedSongShortQueryDto"
+            },
+            "description" : "The songs in the queue"
+          }
+        }
+      },
+      "QueueStateMessage" : {
+        "description" : "An authoritative broadcast of the queue state.\n\nAfter receiving this message a client must assume the queue is in the provided state.",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "queue-state" ]
+          },
+          "queue" : {
+            "$ref" : "#/components/schemas/QueueQueryDto"
+          }
+        },
+        "type" : "object"
+      },
+      "QueueUserQueryDto" : {
+        "description" : "Data about a user of a queue",
+        "type" : "object",
+        "required" : [ "id", "name", "roles", "queue_role", "likes", "max_likes" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique ID of the user",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Unique username of the user"
+          },
+          "roles" : {
+            "type" : "array",
+            "uniqueItems" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/ApelleUserRole"
+            },
+            "description" : "Comma separated list of roles the user has"
+          },
+          "queue_role" : {
+            "description" : "Role of the user in the queue",
+            "type" : "object",
+            "$ref" : "#/components/schemas/QueueUserRole"
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int16",
+            "description" : "Number of likes given in the queue"
+          },
+          "max_likes" : {
+            "type" : "integer",
+            "format" : "int16",
+            "description" : "Maximum number of likes that can be given"
+          }
+        }
+      },
+      "QueueUserRole" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "config" : {
+            "$ref" : "#/components/schemas/QueueUserRoleConfig"
+          },
+          "maxLikes" : {
+            "type" : "integer",
+            "format" : "int16"
+          },
+          "permissions" : {
+            "$ref" : "#/components/schemas/Permissions"
+          }
+        }
+      },
+      "QueueUserRoleConfig" : {
+        "type" : "object"
+      },
+      "QueuedSongQueryDto" : {
+        "description" : "Full description of a song inside a queue",
+        "type" : "object",
+        "required" : [ "id", "name", "duration", "kind", "likes" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique id of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the song"
+          },
+          "duration" : {
+            "description" : "Duration of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Duration"
+          },
+          "kind" : {
+            "description" : "Source of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SongKind"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "Eventual public url of the song"
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int16",
+            "description" : "The number of likes this song received"
+          }
+        }
+      },
+      "QueuedSongShortQueryDto" : {
+        "type" : "object",
+        "description" : "A song inside a queue",
+        "required" : [ "id", "name", "duration", "kind", "likes" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique id of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the song"
+          },
+          "duration" : {
+            "description" : "Duration of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Duration"
+          },
+          "kind" : {
+            "description" : "Source of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SongKind"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "Eventual public url of the song"
+          },
+          "likes" : {
+            "type" : "integer",
+            "format" : "int16",
+            "description" : "The number of likes this song received"
+          }
+        }
+      },
+      "ServerMessage" : {
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/QueueStateMessage"
+        }, {
+          "$ref" : "#/components/schemas/UnknowQueueMessage"
+        } ],
+        "description" : "A message from the server.\n\nThe `kind` property discriminates between the different messages.",
+        "type" : "object"
+      },
+      "SongAddDto" : {
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/YoutubeSongAddDto"
+        } ],
+        "description" : "Data defining a song to add",
+        "type" : "object"
+      },
+      "SongKind" : {
+        "type" : "string",
+        "enum" : [ "Youtube" ]
+      },
+      "SongQueryDto" : {
+        "description" : "A song",
+        "type" : "object",
+        "required" : [ "id", "name", "duration", "kind" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique id of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the song"
+          },
+          "duration" : {
+            "description" : "Duration of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Duration"
+          },
+          "kind" : {
+            "description" : "Source of the song",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SongKind"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "Eventual public url of the song"
+          }
+        }
+      },
+      "UUID" : {
+        "type" : "string",
+        "format" : "uuid",
+        "pattern" : "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+      },
+      "UnknowQueueMessage" : {
+        "description" : "The queue id is invalid.\n\nEither the queue does not exist, it was cancelled.\n\nAfter this message the socket will be closed.\n",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "unknow-queue" ]
+          },
+          "queueId" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "UserCreateDto" : {
+        "description" : "User creation data",
+        "type" : "object",
+        "required" : [ "name", "password" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Unique username for the user"
+          },
+          "password" : {
+            "type" : "string",
+            "description" : "Password for the user"
+          }
+        }
+      },
+      "UserQueryDto" : {
+        "description" : "Data about a single user",
+        "type" : "object",
+        "required" : [ "id", "name", "roles" ],
+        "properties" : {
+          "id" : {
+            "description" : "Unique ID of the user",
+            "type" : "string",
+            "$ref" : "#/components/schemas/UUID"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Unique username of the user"
+          },
+          "roles" : {
+            "type" : "array",
+            "uniqueItems" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/ApelleUserRole"
+            },
+            "description" : "Comma separated list of roles the user has"
+          }
+        }
+      },
+      "YoutubeSongAddDto" : {
+        "required" : [ "kind", "video_id" ],
+        "description" : "A song that comes from youtube",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "Youtube" ]
+          },
+          "video_id" : {
+            "type" : "string",
+            "description" : "The video ID"
+          }
+        },
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "SecurityScheme" : {
+        "type" : "http",
+        "scheme" : "basic",
+        "description" : "Authentication"
+      }
+    }
+  },
+  "tags" : [ {
+    "name" : "Other",
+    "description" : "General endpoints"
+  }, {
+    "name" : "Queue",
+    "description" : "Management of the queue"
+  }, {
+    "name" : "Queue Users",
+    "description" : "Management of the queue users"
+  }, {
+    "name" : "Queued song",
+    "description" : "Interaction with a queued song"
+  }, {
+    "name" : "Users",
+    "description" : "User management"
+  } ],
+  "paths" : {
+    "/queues" : {
+      "post" : {
+        "summary" : "Create a new queue",
+        "description" : "Create a new queue without any song inside it",
+        "tags" : [ "Queue" ],
+        "responses" : {
+          "201" : {
+            "description" : "The newly created queue",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueQueryDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}" : {
+      "get" : {
+        "summary" : "Get the queue state",
+        "description" : "Get the queue state, with both the currently playing song and the list of songs to play next",
+        "tags" : [ "Queue" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The queue state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/next" : {
+      "post" : {
+        "summary" : "Start playing the next song",
+        "description" : "Start the next song in the queue.\nThe current one will be requeued as the last one, with no likes.",
+        "tags" : [ "Queue" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "The music started"
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "400" : {
+            "description" : "Cannot play an empty queue",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/queue" : {
+      "post" : {
+        "summary" : "Add a song to the queue",
+        "description" : "Add a song to the queue, with no likes.",
+        "tags" : [ "Queued song" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SongAddDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The enqueued song",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueuedSongShortQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "502" : {
+            "description" : "An unexpected response was given by the youtube api",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "409" : {
+            "description" : "The song is already in the queue",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/queue/{songId}" : {
+      "get" : {
+        "summary" : "Get the queued song",
+        "description" : "Get the full state of the queued song, with all data.\n\nTODO: Add query parameters to ask for thumbnails.",
+        "tags" : [ "Queued song" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        }, {
+          "name" : "songId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The queued song",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueuedSongQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/queue/{songId}/likes" : {
+      "post" : {
+        "summary" : "Add a like to the song",
+        "description" : "Add a like to the song, pushing it upwards in the queue.\n\nIf the maximum number of likes was already reached, the oldest like will be removed.\nThis will happen trasparently even if a number of likes larger than available is specified,\neffectively removing all likes and moving them to the song.",
+        "tags" : [ "Queued song" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        }, {
+          "name" : "songId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        }, {
+          "description" : "How many time to like the song. If negative, nothing will happen.",
+          "name" : "count",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int16",
+            "default" : 1
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created"
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/start" : {
+      "post" : {
+        "summary" : "Start playing",
+        "description" : "Start playing music from the queue.",
+        "tags" : [ "Queue" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "The music started"
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "400" : {
+            "description" : "Cannot play an empty queue",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/stop" : {
+      "post" : {
+        "summary" : "Stop playing",
+        "description" : "Stop playing music from the queue.",
+        "tags" : [ "Queue" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "The music started"
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/users/i/{userId}" : {
+      "get" : {
+        "summary" : "Get a queue user by id",
+        "description" : "Get the state of a queue user by id, with role and likes data.",
+        "tags" : [ "Queue Users" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        }, {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueUserQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/users/me" : {
+      "get" : {
+        "summary" : "Get the current queue user",
+        "description" : "Get the state of the current queue user, with role and likes data.",
+        "tags" : [ "Queue Users" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueUserQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/queues/{queueId}/users/n/{userName}" : {
+      "get" : {
+        "summary" : "Get a queue user by name",
+        "description" : "Get the state of a queue user by name, with role and likes data.",
+        "tags" : [ "Queue Users" ],
+        "parameters" : [ {
+          "name" : "queueId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        }, {
+          "name" : "userName",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueUserQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No queue with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/users" : {
+      "post" : {
+        "summary" : "Create a user",
+        "description" : "Create an user that can access queues and vote on them",
+        "tags" : [ "Users" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserCreateDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The user created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserQueryDto"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "The user already exist",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        }
+      }
+    },
+    "/users/i/{userId}" : {
+      "get" : {
+        "summary" : "Find user by id",
+        "description" : "Find a user by their universal id",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user was found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No user with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete a user by id",
+        "description" : "Delete a user by id. Need to have the role `admin`",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UUID"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user was deleted"
+          },
+          "404" : {
+            "description" : "No user with this id",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "ADMIN" ]
+        } ]
+      }
+    },
+    "/users/me" : {
+      "get" : {
+        "summary" : "Current user data",
+        "description" : "Returns the data of the user that is currently logged in",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "The current user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserQueryDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete current user",
+        "description" : "Delete the current user",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "The current user was deleted"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/users/n/{userName}" : {
+      "get" : {
+        "summary" : "Find user by name",
+        "description" : "Find a user by their username",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user was found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserQueryDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "No user with this name",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete a user by name",
+        "description" : "Delete a user by name. Need to have the role `admin`",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The user was deleted"
+          },
+          "404" : {
+            "description" : "No user with this name",
+            "content" : {
+              "text/plain" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "ADMIN" ]
+        } ]
+      }
+    },
+    "/version" : {
+      "get" : {
+        "summary" : "Version of the server",
+        "description" : "Return the version of the server",
+        "tags" : [ "Other" ],
+        "responses" : {
+          "200" : {
+            "description" : "The version of the server",
+            "content" : {
+              "text/plain" : {
+                "example" : "0.0.1"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080",
+    "description" : "Auto generated value"
+  }, {
+    "url" : "http://0.0.0.0:8080",
+    "description" : "Auto generated value"
+  } ]
+}

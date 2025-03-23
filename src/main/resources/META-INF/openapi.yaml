@@ -1,0 +1,26 @@
+---
+openapi: 3.1.0
+info:
+  description: |-
+    > A communist music queue
+
+    `apelle` is a backend for handling a shared music queue. 
+    Users can insert songs in the queues, and upvote them to push them upward. `apelle`
+    will track the position of each song in the queue, and the position of the currently
+    playing song.
+
+    It also fetch the song data from the sources (for now, only Youtube is supported).
+    Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
+
+    ### Websockets
+    To avoid polling the REST API, `apelle` provide a websocket interface to each queue.
+    The relative URL is `/queues/{queueId}/ws`. It needs basic auth to connect.
+
+    The websocket does not listen for now to any message, but sends JSON messages at each queue change.
+    See the `ServerMessage` schema for the schema.
+  contact:
+    name: zannabianca1997
+    email: zannabianca199712@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit
