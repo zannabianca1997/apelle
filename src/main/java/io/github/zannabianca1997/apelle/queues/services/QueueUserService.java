@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
-import io.github.zannabianca1997.apelle.queues.models.QueueUserRole;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
@@ -19,6 +18,8 @@ public class QueueUserService {
     private QueueService queueService;
     @Inject
     private UsersService usersService;
+    @Inject
+    private QueueUserRolesService queueUserRolesService;
 
     /**
      * Get the queue user for the current user
@@ -75,7 +76,7 @@ public class QueueUserService {
             return QueueUser.builder()
                     .queue(queueService.get(queueId))
                     .user(user)
-                    .role(QueueUserRole.getDefault())
+                    .role(queueUserRolesService.getDefaultRole())
                     .likesFilled(true)
                     .build();
         }

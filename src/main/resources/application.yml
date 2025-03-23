@@ -4,9 +4,41 @@ apelle:
     user:
       # The role that will be given by default to every user in any queue
       default-role: VOTER
-      VOTER:
-        # Maximum number of simultaneus likes
-        max-likes: 4
+      # The role of the creator of the queue
+      creator-role: PLAYER
+      # The role of banned users
+      banned-role: OBSERVER
+      # Config of the roles
+      roles:
+        PLAYER:
+          max-likes: 32767
+          permissions:
+            start-song: true
+            stop-song: true
+            next-song: true
+            like-song: true
+            enqueue: true
+        VOTER:
+          max-likes: 4
+          permissions:
+            start-song: false
+            stop-song: false
+            next-song: false
+            like-song: true
+            enqueue: true
+        OBSERVER:
+          max-likes: 0
+          permissions:
+            start-song: false
+            stop-song: false
+            next-song: false
+            like-song: false
+            enqueue: false
+  songs:
+    sources:
+      youtube:
+        api-uri: &yt-api https://www.googleapis.com/youtube/v3
+        watch-uri: https://www.youtube.com/watch
 # Quarkus configuration
 quarkus:
   # Database: the application for now support only PostgreSQL
@@ -19,7 +51,7 @@ quarkus:
   # External APIs urls
   rest-client:
     youtube-api:
-      url: https://www.googleapis.com/youtube/v3
+      url: *yt-api
   # Configuration of the Swagger
   smallrye-openapi:
     info-title: Apelle API

@@ -3,16 +3,15 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.util.UUID;
 
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.Type;
 
+import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig.Permissions;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.NamedNativeQuery;
@@ -69,8 +68,7 @@ public class QueueUser extends PanacheEntityBase {
 
     @NonNull
     @Column(nullable = false)
-    @Enumerated
-    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Type(QueueUserRole.Type.class)
     /// Role of the user in the queue
     private QueueUserRole role;
 
@@ -103,12 +101,15 @@ public class QueueUser extends PanacheEntityBase {
         }
     }
 
-    public short getMaxLikes() {
-        return getRole().getMaxLikes();
-    }
-
     public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
         return findById(new Link(userId, queueId));
     }
 
+    public short getMaxLikes() {
+        return getRole().getMaxLikes();
+    }
+
+    public Permissions getPermissions() {
+        return getRole().getPermissions();
+    }
 }

@@ -79,14 +79,14 @@ public class QueueResource {
     }
 
     @POST
-    @Path("/play")
+    @Path("/start")
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-control")
-    public void play(UUID queueId)
+    @PermissionsAllowed("queue-start-song")
+    public void start(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
-        queueService.play(queueId);
+        queueService.start(queueId);
     }
 
     @POST
@@ -94,7 +94,7 @@ public class QueueResource {
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-control")
+    @PermissionsAllowed("queue-stop-song")
     public void stop(UUID queueId)
             throws QueueNotFoundException {
         queueService.stop(queueId);
@@ -107,21 +107,43 @@ public class QueueResource {
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-control")
+    @PermissionsAllowed("queue-next-song")
     public void next(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
         queueService.next(queueId);
     }
 
-    @PermissionChecker("queue-control")
-    boolean canControlQueue(SecurityIdentity identity, UUID queueId) {
+    @PermissionChecker("queue-start-song")
+    boolean canStartSong(SecurityIdentity identity, UUID queueId) {
         QueueUser queueUser;
         try {
             queueUser = queueUserService.getCurrent(queueId);
         } catch (QueueNotFoundException e) {
             return true;
         }
-        return queueUser.getRole().canControlQueue();
+        return queueUser.getPermissions().startSong();
+    }
+
+    @PermissionChecker("queue-stop-song")
+    boolean canStopSong(SecurityIdentity identity, UUID queueId) {
+        QueueUser queueUser;
+        try {
+            queueUser = queueUserService.getCurrent(queueId);
+        } catch (QueueNotFoundException e) {
+            return true;
+        }
+        return queueUser.getPermissions().stopSong();
+    }
+
+    @PermissionChecker("queue-next-song")
+    boolean canNextSong(SecurityIdentity identity, UUID queueId) {
+        QueueUser queueUser;
+        try {
+            queueUser = queueUserService.getCurrent(queueId);
+        } catch (QueueNotFoundException e) {
+            return true;
+        }
+        return queueUser.getPermissions().nextSong();
     }
 
     @PermissionChecker("queue-enqueue")
@@ -132,6 +154,6 @@ public class QueueResource {
         } catch (QueueNotFoundException e) {
             return true;
         }
-        return queueUser.getRole().canEnqueue();
+        return queueUser.getPermissions().enqueue();
     }
 }

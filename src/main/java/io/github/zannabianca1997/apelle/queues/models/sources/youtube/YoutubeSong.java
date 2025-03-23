@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +19,6 @@ import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.models.Song;
-import io.github.zannabianca1997.apelle.youtube.ConstantUris;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -38,7 +38,9 @@ public class YoutubeSong extends Song {
     @Override
     public URI getUri() {
         try {
-            return new URIBuilder(ConstantUris.WATCH)
+            return new URIBuilder(
+                    ConfigProvider.getConfig()
+                            .getValue("apelle.songs.sources.youtube.watch-uri", URI.class))
                     .addParameter("v", videoId)
                     .build();
         } catch (URISyntaxException e) {

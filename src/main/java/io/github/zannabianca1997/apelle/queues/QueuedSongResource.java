@@ -11,6 +11,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.PermissionChecker;
 import io.quarkus.security.PermissionsAllowed;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DefaultValue;
@@ -22,6 +23,7 @@ import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
+import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
@@ -59,7 +61,7 @@ public class QueuedSongResource {
             This will happen trasparently even if a number of likes larger than available is specified,
             effectively removing all likes and moving them to the song.""")
     @Parameter(name = "count", description = "How many time to like the song. If negative, nothing will happen.")
-    @PermissionsAllowed("queued-song-like")
+    @PermissionsAllowed("queue-like-song")
     @Transactional
     public void like(UUID queueId, UUID songId,
             @QueryParam("count") @DefaultValue("1") short count)
@@ -68,12 +70,14 @@ public class QueuedSongResource {
         queueService.like(queuedSong, queueUserService.getCurrent(queueId), count);
     }
 
-    @PermissionChecker("queued-song-like")
-    boolean canLike(UUID queueId) {
+    @PermissionChecker("queue-like-song")
+    boolean canNextSong(SecurityIdentity identity, UUID queueId) {
+        QueueUser queueUser;
         try {
-            return queueUserService.getCurrent(queueId).getMaxLikes() > 0;
+            queueUser = queueUserService.getCurrent(queueId);
         } catch (QueueNotFoundException e) {
             return true;
         }
+        return queueUser.getPermissions().likeSong();
     }
 }

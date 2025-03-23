@@ -12,12 +12,12 @@ import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
-import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 
 @Mapper(config = MappersConfig.class, subclassExhaustiveStrategy = SubclassExhaustiveStrategy.RUNTIME_EXCEPTION)
 public interface EventMapper {
-    @SubclassMapping(source = QueuePlayEvent.class, target = QueueStateMessage.class)
+    @SubclassMapping(source = QueueStartEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueStopEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueNextEvent.class, target = QueueStateMessage.class)
     @SubclassMapping(source = QueueLikeEvent.class, target = QueueStateMessage.class)
@@ -25,7 +25,7 @@ public interface EventMapper {
     ServerMessage toMessage(QueueEvent event);
 
     @Mapping(target = "queue", source = "state")
-    QueueStateMessage toMessage(QueuePlayEvent event);
+    QueueStateMessage toMessage(QueueStartEvent event);
 
     @Mapping(target = "queue", source = "state")
     QueueStateMessage toMessage(QueueStopEvent event);

@@ -1,52 +1,126 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import org.eclipse.microprofile.config.ConfigProvider;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.UserType;
+
+import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig;
+import io.github.zannabianca1997.apelle.queues.exceptions.RoleDoesNotExistException;
+import io.github.zannabianca1997.apelle.queues.services.QueueUserRolesService;
+import jakarta.enterprise.inject.spi.CDI;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
- * Roles that a user has in a queue
+ * Role that a user has in a queue
  */
-public enum QueueUserRole {
-    ADMIN, VOTER, OBSERVER;
+@AllArgsConstructor
+public class QueueUserRole {
+    @Getter
+    @NonNull
+    private String name;
+    @NonNull
+    private QueueUserRoleConfig config;
 
-    /**
-     * @return The default role for all users
-     */
-    public static QueueUserRole getDefault() {
-        return ConfigProvider.getConfig()
-                .getValue("apelle.queue.user.default-role", QueueUserRole.class);
-    }
-
-    /**
-     * @return The maximum number of likes this user can give
-     */
     public short getMaxLikes() {
-        return switch (this) {
-            case ADMIN -> Short.MAX_VALUE;
-            case OBSERVER -> 0;
-            case VOTER -> ConfigProvider.getConfig()
-                    .getValue(String.format("apelle.queue.user.%s.max-likes", this), Short.class);
-        };
+        return config.maxLikes();
     }
 
-    /**
-     * @return If this user can control the queue
-     */
-    public boolean canControlQueue() {
-        return switch (this) {
-            case ADMIN -> true;
-            case OBSERVER -> false;
-            case VOTER -> false;
-        };
+    public QueueUserRoleConfig.Permissions getPermissions() {
+        return config.permissions();
     }
 
-    /**
-     * @return If this user can add songs to the queue
-     */
-    public boolean canEnqueue() {
-        return switch (this) {
-            case ADMIN -> true;
-            case VOTER -> true;
-            case OBSERVER -> false;
-        };
+    public static class Type implements UserType<QueueUserRole> {
+        private QueueUserRolesService service;
+
+        public Type() {
+            service = CDI.current().select(QueueUserRolesService.class).get();
+        }
+
+        @Override
+        public int getSqlType() {
+            return Types.VARCHAR;
+        }
+
+        @Override
+        public Class<QueueUserRole> returnedClass() {
+            return QueueUserRole.class;
+        }
+
+        @Override
+        public boolean equals(QueueUserRole x, QueueUserRole y) {
+            if (x == null || y == null) {
+                return x == null && y == null;
+            }
+            return x.getName() == y.getName();
+        }
+
+        @Override
+        public int hashCode(QueueUserRole x) {
+            return x.hashCode();
+        }
+
+        @Override
+        public QueueUserRole nullSafeGet(ResultSet rs, int column, SharedSessionContractImplementor session,
+                Object owner)
+                throws SQLException {
+            String name = rs.getString(column);
+            if (name == null) {
+                return null;
+            }
+            try {
+                return service.getRole(name);
+            } catch (RoleDoesNotExistException e) {
+                throw new SQLException(
+                        String.format("The role `%s` was found in the database, but not in the configurations", name),
+                        e);
+            }
+        }
+
+        @Override
+        public void nullSafeSet(PreparedStatement st, QueueUserRole value, int index,
+                SharedSessionContractImplementor session) throws SQLException {
+            if (value == null) {
+                st.setNull(index, Types.VARCHAR);
+            } else {
+                st.setString(index, value.getName());
+            }
+        }
+
+        @Override
+        public QueueUserRole deepCopy(QueueUserRole value) {
+            return value;
+        }
+
+        @Override
+        public boolean isMutable() {
+            return false;
+        }
+
+        @Override
+        public Serializable disassemble(QueueUserRole value) {
+            return value.getName();
+        }
+
+        @Override
+        public QueueUserRole assemble(Serializable cached, Object owner) {
+            try {
+                return service.getRole((String) cached);
+            } catch (RoleDoesNotExistException e) {
+                throw new RuntimeException(String.format("Unknow role made his way into the cache: %s", cached));
+            }
+        }
+
+        @Override
+        public QueueUserRole replace(QueueUserRole detached, QueueUserRole managed, Object owner) {
+            return detached;
+        }
     }
+
 }

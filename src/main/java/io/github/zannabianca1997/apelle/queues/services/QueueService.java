@@ -7,7 +7,7 @@ import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
-import io.github.zannabianca1997.apelle.queues.events.QueuePlayEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
@@ -35,6 +35,8 @@ public class QueueService {
     private QueueMapper queueMapper;
     @Inject
     private UsersService usersService;
+    @Inject
+    private QueueUserRolesService queueUserRolesService;
 
     /**
      * Create a new queue
@@ -42,9 +44,13 @@ public class QueueService {
      * @return The created queue
      */
     public Queue create() {
-        var queue = Queue.builder()
-                .admin(usersService.getCurrent())
-                .build();
+        var queue = Queue.builder().build();
+        queue.getUsers().add(QueueUser.builder()
+                .queue(queue)
+                .user(usersService.getCurrent())
+                .role(queueUserRolesService.getCreatorRole())
+                .likesFilled(false)
+                .build());
         queue.persist();
         return queue;
     }
@@ -71,12 +77,12 @@ public class QueueService {
      * @throws QueueNotFoundException The queue does not exist
      * @throws CantPlayEmptyQueue     The queue is empty
      */
-    public void play(UUID queueId)
+    public void start(UUID queueId)
             throws QueueNotFoundException, CantPlayEmptyQueue {
         Queue queue = get(queueId);
-        boolean startedNow = queue.play();
+        boolean startedNow = queue.start();
         if (startedNow) {
-            publish(QueuePlayEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+            publish(QueueStartEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
             scheduleStopAtEnd(queue);
         }
     }

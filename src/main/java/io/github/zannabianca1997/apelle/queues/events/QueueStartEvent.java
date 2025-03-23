@@ -13,6 +13,6 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-public final class QueuePlayEvent extends QueueEvent {
+public final class QueueStartEvent extends QueueEvent {
     private QueueQueryDto state;
 }
