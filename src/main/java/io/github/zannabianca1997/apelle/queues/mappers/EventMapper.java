@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.SubclassExhaustiveStrategy;
 import org.mapstruct.SubclassMapping;
 
-import io.github.zannabianca1997.apelle.MappersConfig;
+import io.github.zannabianca1997.apelle.common.configs.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.QueueStateMessage;
 import io.github.zannabianca1997.apelle.queues.dtos.websocket.server.ServerMessage;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;

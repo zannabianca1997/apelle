@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle;
+package io.github.zannabianca1997.apelle.common.configs;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;

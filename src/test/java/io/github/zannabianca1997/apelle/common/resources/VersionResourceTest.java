@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle;
+package io.github.zannabianca1997.apelle.common.resources;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;

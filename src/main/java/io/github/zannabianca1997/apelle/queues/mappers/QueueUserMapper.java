@@ -3,7 +3,7 @@ package io.github.zannabianca1997.apelle.queues.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import io.github.zannabianca1997.apelle.MappersConfig;
+import io.github.zannabianca1997.apelle.common.configs.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueUserQueryDto;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.users.dtos.UserQueryDto;

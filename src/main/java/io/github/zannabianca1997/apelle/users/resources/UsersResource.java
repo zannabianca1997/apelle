@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.users;
+package io.github.zannabianca1997.apelle.users.resources;
 
 import java.util.UUID;
 

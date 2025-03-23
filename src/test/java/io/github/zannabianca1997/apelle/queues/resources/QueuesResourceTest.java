@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.queues;
+package io.github.zannabianca1997.apelle.queues.resources;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;

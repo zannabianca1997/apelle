@@ -7,7 +7,7 @@ import java.net.URL;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import io.github.zannabianca1997.apelle.MappersConfig;
+import io.github.zannabianca1997.apelle.common.configs.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.CurrentSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;

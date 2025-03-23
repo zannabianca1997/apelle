@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.queues;
+package io.github.zannabianca1997.apelle.queues.resources;
 
 import java.util.UUID;
 
