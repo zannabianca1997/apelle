@@ -30,13 +30,13 @@ import jakarta.inject.Inject;
 public class QueueService {
 
     @Inject
-    private EventBus eventBus;
+    EventBus eventBus;
     @Inject
-    private QueueMapper queueMapper;
+    QueueMapper queueMapper;
     @Inject
-    private UsersService usersService;
+    UsersService usersService;
     @Inject
-    private QueueUserRolesService queueUserRolesService;
+    QueueUserRolesService queueUserRolesService;
 
     /**
      * Create a new queue

@@ -24,9 +24,9 @@ import io.github.zannabianca1997.apelle.queues.services.QueueService;
 public class QueuesResource {
 
     @Inject
-    private QueueMapper queueMapper;
+    QueueMapper queueMapper;
     @Inject
-    private QueueService queueService;
+    QueueService queueService;
 
     @POST
     @Transactional

@@ -33,9 +33,9 @@ import jakarta.ws.rs.core.Response.Status;
 public class UsersResource {
 
     @Inject
-    private UserMapper userMapper;
+    UserMapper userMapper;
     @Inject
-    private UsersService usersService;
+    UsersService usersService;
 
     @POST
     @PermitAll

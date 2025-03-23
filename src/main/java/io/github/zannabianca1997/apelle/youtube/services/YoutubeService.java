@@ -14,7 +14,7 @@ public class YoutubeService {
 
     @Inject
     @RestClient
-    private YoutubeApiVideosClient youtubeApiVideosClient;
+    YoutubeApiVideosClient youtubeApiVideosClient;
 
     public VideoDataDto getVideoData(String videoId) throws BadYoutubeApiResponse {
         var videos = youtubeApiVideosClient.getDataById(videoId);

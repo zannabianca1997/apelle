@@ -45,7 +45,7 @@ class QueueResourceTest {
     Queue createdQueue;
 
     @Inject
-    private QueueUserRolesService queueUserRolesService;
+    QueueUserRolesService queueUserRolesService;
 
     @BeforeEach
     @Transactional

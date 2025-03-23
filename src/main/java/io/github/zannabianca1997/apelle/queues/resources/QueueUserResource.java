@@ -25,9 +25,9 @@ import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameExcep
 public class QueueUserResource {
 
     @Inject
-    private QueueUserService queueUserService;
+    QueueUserService queueUserService;
     @Inject
-    private QueueUserMapper queueUserMapper;
+    QueueUserMapper queueUserMapper;
 
     @GET
     @Path("/me")

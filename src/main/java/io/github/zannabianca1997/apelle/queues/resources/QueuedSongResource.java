@@ -34,11 +34,11 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 public class QueuedSongResource {
 
     @Inject
-    private SongMapper songMapper;
+    SongMapper songMapper;
     @Inject
-    private QueueUserService queueUserService;
+    QueueUserService queueUserService;
     @Inject
-    private QueueService queueService;
+    QueueService queueService;
 
     @GET
     @Operation(summary = "Get the queued song", description = """

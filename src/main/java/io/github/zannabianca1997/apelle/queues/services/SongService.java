@@ -15,9 +15,9 @@ import io.github.zannabianca1997.apelle.youtube.services.YoutubeService;
 public class SongService {
 
     @Inject
-    private YoutubeService youtubeService;
+    YoutubeService youtubeService;
     @Inject
-    private SongMapper songMapper;
+    SongMapper songMapper;
 
     /**
      * Complete the definition of a song by querying the youtube API

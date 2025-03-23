@@ -15,7 +15,7 @@ import jakarta.inject.Inject;
 class YoutubeApiVideosClientMockTest {
     @Inject
     @RestClient
-    private YoutubeApiVideosClient youtubeApiVideosClient;
+    YoutubeApiVideosClient youtubeApiVideosClient;
 
     @BeforeEach
     void installYoutubeMock() {

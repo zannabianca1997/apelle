@@ -21,9 +21,9 @@ import jakarta.inject.Inject;
 @Authenticated
 public class QueueWebsocket {
     @Inject
-    private EventBus eventBus;
+    EventBus eventBus;
     @Inject
-    private EventMapper eventMapper;
+    EventMapper eventMapper;
 
     @OnOpen
     Multi<ServerMessage> open(

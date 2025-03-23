@@ -14,7 +14,7 @@ import jakarta.inject.Inject;
 public class UsersService {
 
     @Inject
-    private SecurityIdentity securityIdentity;
+    SecurityIdentity securityIdentity;
 
     /**
      * Crate a user

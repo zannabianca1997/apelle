@@ -15,11 +15,11 @@ import jakarta.inject.Inject;
 public class QueueUserService {
 
     @Inject
-    private QueueService queueService;
+    QueueService queueService;
     @Inject
-    private UsersService usersService;
+    UsersService usersService;
     @Inject
-    private QueueUserRolesService queueUserRolesService;
+    QueueUserRolesService queueUserRolesService;
 
     /**
      * Get the queue user for the current user

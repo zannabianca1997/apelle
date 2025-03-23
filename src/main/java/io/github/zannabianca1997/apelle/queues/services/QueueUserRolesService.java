@@ -11,7 +11,7 @@ import lombok.NonNull;
 public class QueueUserRolesService {
 
     @Inject
-    private QueueUserRolesConfig config;
+    QueueUserRolesConfig config;
 
     public QueueUserRole getDefaultRole() {
         try {
