@@ -1,0 +1,15 @@
+{
+    "login": {
+        "signinForm": {
+            "username": "Username",
+            "password": "Password",
+            "submit": "Signin"
+        },
+        "signupForm": {
+            "username": "Username",
+            "password": "Password",
+            "password-check": "Repeat password",
+            "submit": "Signup"
+        }
+    }
+}
