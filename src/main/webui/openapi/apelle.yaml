@@ -18,7 +18,7 @@ info:
   license:
     name: MIT
     url: https://opensource.org/license/mit
-  title: Apelle API
+  title: Apelle API (development)
   version: 0.0.1
 components:
   schemas:
@@ -468,10 +468,6 @@ paths:
             text/plain: {}
         "502":
           description: An unexpected response was given by the youtube api
-          content:
-            text/plain: {}
-        "409":
-          description: The song is already in the queue
           content:
             text/plain: {}
         "401":

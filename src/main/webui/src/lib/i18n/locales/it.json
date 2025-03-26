@@ -8,7 +8,7 @@
         "signupForm": {
             "username": "Username",
             "password": "Password",
-            "password-check": "Conferma password",
+            "passwordCheck": "Conferma password",
             "submit": "Registrati"
         }
     }
