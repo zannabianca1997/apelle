@@ -21,6 +21,23 @@
             }
         }
     },
+    "frontoffice": {
+        "title": "Welcome to Apelle",
+        "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
+        "choices": {
+            "host": {
+                "text": "HOST"
+            },
+            "join": {
+                "text": "JOIN",
+                "id": {
+                    "label": "Party code",
+                    "placeholder": " 0e75d5d3-2687-496f-8e2a-b5c52b9fa7bc "
+                },
+                "submit": "Enter"
+            }
+        }
+    },
     "errors": {
         "panic": "Something went wrong. Contact the administrators."
     }

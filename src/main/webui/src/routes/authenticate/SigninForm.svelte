@@ -45,9 +45,3 @@
 		error={passwordError}
 	/>
 </form>
-
-<style lang="scss">
-	form {
-		--form-color: var(--blue-pill);
-	}
-</style>
