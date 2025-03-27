@@ -20,5 +20,8 @@
                 "passwordDoesNotMatch": "The password does not match"
             }
         }
+    },
+    "errors": {
+        "panic": "Something went wrong. Contact the administrators."
     }
 }
