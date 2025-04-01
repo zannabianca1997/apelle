@@ -97,8 +97,11 @@
 			form.join {
 				width: 100%;
 				display: flex;
+				flex-direction: row;
 				gap: 12px;
 				align-items: last baseline;
+
+				--input-flex-grow: 1;
 
 				input[type='submit'] {
 					width: 100px;

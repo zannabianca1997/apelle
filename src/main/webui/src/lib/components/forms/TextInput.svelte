@@ -27,7 +27,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		width: 100%;
+		flex-grow: var(--input-flex-grow, 0);
 
 		label {
 			width: 100%;
