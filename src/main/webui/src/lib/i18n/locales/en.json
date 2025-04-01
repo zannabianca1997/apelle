@@ -31,7 +31,7 @@
         "choices": {
             "host": {
                 "text": "Host",
-                "youtube": "Youtube"
+                "anything": "Anything"
             },
             "join": {
                 "text": "Join",

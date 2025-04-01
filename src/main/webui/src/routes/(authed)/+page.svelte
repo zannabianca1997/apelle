@@ -36,7 +36,7 @@
 		>
 			{#snippet icon({ size })}<IconCrown height={size} width={size} />{/snippet}
 			<form class="host">
-				<input type="submit" value={$_('frontoffice.choices.host.youtube')} />
+				<button>{$_('frontoffice.choices.host.anything')}</button>
 			</form>
 		</ExpandingButton>
 		<ExpandingButton
@@ -51,7 +51,7 @@
 					label={$_('frontoffice.choices.join.id.label')}
 					placeholder={$_('frontoffice.choices.join.id.placeholder')}
 				/>
-				<input type="submit" value={$_('frontoffice.choices.join.submit')} />
+				<button>{$_('frontoffice.choices.join.submit')}</button>
 			</form>
 		</ExpandingButton>
 	</div>
@@ -112,7 +112,7 @@
 
 					gap: 12px;
 
-					input[type='submit'] {
+					button {
 						flex-grow: 1;
 					}
 				}
@@ -125,12 +125,12 @@
 
 					--input-flex-grow: 1;
 
-					input[type='submit'] {
+					button {
 						width: 100px;
 					}
 				}
 
-				input[type='submit'] {
+				button {
 					border: 1px solid white;
 					height: 48px;
 					border-radius: 4px;

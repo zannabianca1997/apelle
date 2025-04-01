@@ -40,7 +40,6 @@
 </script>
 
 <form {onsubmit}>
-	<input type="submit" value={$_('login.signupForm.submit')} />
 	<TextInput label={$_('login.signupForm.username')} bind:value={username} error={usernameError} />
 	<TextInput
 		label={$_('login.signupForm.password')}
@@ -54,4 +53,5 @@
 		bind:value={passwordCheck}
 		error={passwordCheckError}
 	/>
+	<button>{$_('login.signupForm.submit')}</button>
 </form>
