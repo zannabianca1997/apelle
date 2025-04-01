@@ -1,6 +1,8 @@
 # Program configuration
 apelle:
   queue:
+    code:
+      complexity: 5
     user:
       # The role that will be given by default to every user in any queue
       default-role: VOTER

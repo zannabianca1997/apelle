@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
@@ -26,6 +28,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.Min;
 
 @ApplicationScoped
 public class QueueService {
@@ -36,9 +39,6 @@ public class QueueService {
     UsersService usersService;
     @Inject
     QueueUserRolesService queueUserRolesService;
-
-    @Inject
-    StringUtils stringUtils;
 
     @Inject
     EventBus eventBus;
@@ -62,8 +62,15 @@ public class QueueService {
         return queue;
     }
 
+    @ConfigProperty(name = "apelle.queue.code.complexity")
+    @Min(1)
+    int codeComplexity;
+
+    @Inject
+    StringUtils stringUtils;
+
     private String generateQueueCode() {
-        return UUID.randomUUID().toString();
+        return stringUtils.randomHumanReadable(codeComplexity);
     }
 
     /**
