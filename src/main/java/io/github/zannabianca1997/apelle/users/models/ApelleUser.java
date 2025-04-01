@@ -1,5 +1,6 @@
 package io.github.zannabianca1997.apelle.users.models;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class ApelleUser extends PanacheEntityBase {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
     /// The queues this user voted on
-    private Set<QueueUser> queues;
+    private Collection<QueueUser> queues;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -93,5 +94,7 @@ public class ApelleUser extends PanacheEntityBase {
         this.name = name;
         this.password = BcryptUtil.bcryptHash(password);
         this.roles = roles;
+        this.queues = new ArrayList<>();
+        this.likes = new ArrayList<>();
     }
 }
