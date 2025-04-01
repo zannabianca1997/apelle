@@ -39,6 +39,7 @@ apelle:
       youtube:
         api-uri: &yt-api https://www.googleapis.com/youtube/v3
         watch-uri: https://www.youtube.com/watch
+
 # Quarkus configuration
 quarkus:
   # Database: the application for now support only PostgreSQL
@@ -79,6 +80,13 @@ quarkus:
     info-license-url: https://opensource.org/license/mit
   swagger-ui:
     deep-linking: true
+  quinoa:
+    build-dir: build
+    package-manager-install:
+      npm-version: 10.5.2
+      node-version: 20.13.1
+    enable-spa-routing: true
+
 # Setup during Dev
 "%dev":
   quarkus:
@@ -86,6 +94,10 @@ quarkus:
       database:
         # in dev mode only, create all the tables at startup
         generation: drop-and-create
+    quinoa:
+      dev-server:
+        index-page: /
+        port: 3000
     smallrye-openapi:
       info-title: Apelle API (development)
 # Setup during tests
