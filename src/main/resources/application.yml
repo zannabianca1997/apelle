@@ -49,6 +49,8 @@ quarkus:
   http:
     auth:
       basic: true
+  rest:
+    path: /api/v1
   # External APIs urls
   rest-client:
     youtube-api:
