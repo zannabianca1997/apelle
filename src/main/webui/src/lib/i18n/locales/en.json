@@ -30,7 +30,8 @@
         "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
         "choices": {
             "host": {
-                "text": "Host"
+                "text": "Host",
+                "youtube": "Youtube"
             },
             "join": {
                 "text": "Join",

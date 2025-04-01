@@ -470,10 +470,6 @@ paths:
           description: An unexpected response was given by the youtube api
           content:
             text/plain: {}
-        "409":
-          description: The song is already in the queue
-          content:
-            text/plain: {}
         "401":
           description: Not Authorized
         "403":

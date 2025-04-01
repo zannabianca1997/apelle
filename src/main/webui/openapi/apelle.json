@@ -548,12 +548,6 @@
               "text/plain" : { }
             }
           },
-          "409" : {
-            "description" : "The song is already in the queue",
-            "content" : {
-              "text/plain" : { }
-            }
-          },
           "401" : {
             "description" : "Not Authorized"
           },

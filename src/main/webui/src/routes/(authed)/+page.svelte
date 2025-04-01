@@ -35,7 +35,9 @@
 			bind:expanded
 		>
 			{#snippet icon({ size })}<IconCrown height={size} width={size} />{/snippet}
-			Host choices
+			<form class="host">
+				<input type="submit" value={$_('frontoffice.choices.host.youtube')} />
+			</form>
 		</ExpandingButton>
 		<ExpandingButton
 			id="join"
@@ -99,18 +101,36 @@
 			flex-direction: column;
 			gap: 10px;
 
-			form.join {
+			form {
 				width: 100%;
-				display: flex;
-				flex-direction: row;
-				gap: 12px;
-				align-items: last baseline;
+				margin-top: auto;
+				margin-bottom: auto;
 
-				--input-flex-grow: 1;
+				&.host {
+					display: flex;
+					justify-content: stretch;
+
+					gap: 12px;
+
+					input[type='submit'] {
+						flex-grow: 1;
+					}
+				}
+
+				&.join {
+					display: flex;
+					flex-direction: row;
+					gap: 12px;
+					align-items: last baseline;
+
+					--input-flex-grow: 1;
+
+					input[type='submit'] {
+						width: 100px;
+					}
+				}
 
 				input[type='submit'] {
-					width: 100px;
-
 					border: 1px solid white;
 					height: 48px;
 					border-radius: 4px;
