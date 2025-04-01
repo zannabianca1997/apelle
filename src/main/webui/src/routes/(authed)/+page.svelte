@@ -10,8 +10,8 @@
 	import ExpandingButton from '$lib/components/frontoffice/ExpandingButton.svelte';
 	import { _ } from 'svelte-i18n';
 
-	let expanded: string | null = $state(null);
-	export const snapshot: Snapshot<{ expanded: string | null }> = {
+	let expanded: string = $state('join');
+	export const snapshot: Snapshot<{ expanded: string }> = {
 		capture: () => {
 			return {
 				expanded
