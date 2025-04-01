@@ -11,8 +11,8 @@
 </script>
 
 <main>
-	<SigninForm {onsuccess} />
-	<SignupForm {onsuccess} />
+	<SigninForm {onsuccess} --form-color="var(--blue-pill)" />
+	<SignupForm {onsuccess} --form-color="var(--red-pill)" />
 </main>
 
 <style lang="scss">
