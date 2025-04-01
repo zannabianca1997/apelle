@@ -2,11 +2,15 @@
 	import { goto } from '$app/navigation';
 	import authService from '$lib/auth.svelte';
 	import IconMusicNote from '~icons/mdi/music-note';
+	import IconHome from '~icons/mdi/home';
 	import IconLogout from '~icons/mdi/logout-variant';
 	import { _ } from 'svelte-i18n';
 
 	let { collapsed = $bindable() }: { collapsed?: boolean } = $props();
 
+	async function home() {
+		await goto('/');
+	}
 	async function signout() {
 		await authService.signout();
 		await goto('/authenticate');
@@ -18,6 +22,9 @@
 		<IconMusicNote height="24px" width="24px" /><span>{$_('navbar.title')}</span>
 	</button>
 	{#if !collapsed}
+		<button onclick={home}>
+			<IconHome height="24px" width="24px" /><span>{$_('navbar.home')}</span>
+		</button>
 		<button onclick={signout}>
 			<IconLogout height="24px" width="24px" /><span>{$_('navbar.logout')}</span>
 		</button>
