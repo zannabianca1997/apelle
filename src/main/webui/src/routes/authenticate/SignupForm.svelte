@@ -1,6 +1,4 @@
 <script lang="ts">
-	import './form.scss';
-
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import { error } from '$lib/errors.svelte';
@@ -30,7 +28,7 @@
 		if (signupResult) {
 			switch (signupResult.error) {
 				case 'userExists':
-					error('login.signupForm.errors.userExists');
+					error($_('login.signupForm.errors.userExists'));
 					break;
 			}
 			return;
@@ -55,3 +53,7 @@
 	/>
 	<button>{$_('login.signupForm.submit')}</button>
 </form>
+
+<style lang="scss">
+	@import './form.scss';
+</style>

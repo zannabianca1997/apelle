@@ -1,6 +1,4 @@
 <script lang="ts">
-	import './form.scss';
-
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import authService from '$lib/auth.svelte';
@@ -26,7 +24,7 @@
 		if (signinResult) {
 			switch (signinResult.error) {
 				case 'badCredentials':
-					error('login.signinForm.errors.badCredentials');
+					error($_('login.signinForm.errors.badCredentials'));
 					break;
 			}
 			return;
@@ -45,3 +43,7 @@
 	/>
 	<button>{$_('login.signinForm.submit')}</button>
 </form>
+
+<style lang="scss">
+	@import './form.scss';
+</style>

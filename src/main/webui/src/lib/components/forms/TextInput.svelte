@@ -20,6 +20,9 @@
 <div class={{ errored: error != null }}>
 	<label for="input-{id}">{label}</label>
 	<input id="input-{id}" type={isPassword ? 'password' : 'text'} {name} {placeholder} bind:value />
+	{#if !!error}
+		<span class="error">{error}</span>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -58,6 +61,23 @@
 		&.errored {
 			input {
 				border: 1px solid red;
+			}
+
+			.error {
+				width: 100%;
+				text-align: center;
+
+				border: 1px solid red;
+				border-radius: 2px;
+
+				margin-top: auto;
+
+				font-style: normal;
+				color: red;
+				font-weight: 300;
+				font-size: 12px;
+				line-height: 150%;
+				letter-spacing: 1%;
 			}
 		}
 	}
