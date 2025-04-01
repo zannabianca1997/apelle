@@ -21,15 +21,19 @@
             }
         }
     },
+    "navbar": {
+        "title": "Apelle",
+        "logout": "Logout"
+    },
     "frontoffice": {
         "title": "Welcome to Apelle",
         "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
         "choices": {
             "host": {
-                "text": "HOST"
+                "text": "Host"
             },
             "join": {
-                "text": "JOIN",
+                "text": "Join",
                 "id": {
                     "label": "Party code",
                     "placeholder": " 0e75d5d3-2687-496f-8e2a-b5c52b9fa7bc "

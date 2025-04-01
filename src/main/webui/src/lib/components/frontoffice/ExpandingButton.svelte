@@ -6,8 +6,15 @@
 		id = assignedId,
 		text,
 		children,
-		expanded = $bindable(null)
-	}: { id?: string; text: string; children: Snippet; expanded?: string | null } = $props();
+		expanded = $bindable(null),
+		icon
+	}: {
+		id?: string;
+		text: string;
+		children: Snippet;
+		expanded?: string | null;
+		icon?: Snippet<[{ size?: string | number | null }]>;
+	} = $props();
 	const thisExpanded = $derived(expanded == id);
 
 	function onclick() {
@@ -16,7 +23,7 @@
 </script>
 
 <div class={{ expanded: thisExpanded }}>
-	<button {onclick}>{text}</button>
+	<button {onclick}>{@render icon?.({ size: '24px' })}<span>{text}</span></button>
 	{#if thisExpanded}
 		{@render children?.()}
 	{/if}
@@ -45,15 +52,28 @@
 			padding-bottom: 6px;
 			padding-left: 12px;
 
-			font-weight: 900;
-			font-size: 16px;
-			line-height: 100%;
-			letter-spacing: 0%;
-
 			background-color: var(--theme-color);
 			color: white;
 
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			gap: 20px;
+
 			cursor: pointer;
+
+			& > span {
+				text-transform: uppercase;
+
+				font-weight: 900;
+				font-size: 16px;
+				line-height: 100%;
+				letter-spacing: 0%;
+
+				min-width: 40px;
+				text-align: center;
+			}
 		}
 	}
 </style>

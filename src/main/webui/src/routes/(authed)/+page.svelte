@@ -4,6 +4,9 @@
 	import morpheus from '$lib/assets/morpheus.png';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 
+	import IconCrown from '~icons/mdi/crown';
+	import IconUserCircleOutline from '~icons/mdi/user-circle-outline';
+
 	import ExpandingButton from '$lib/components/frontoffice/ExpandingButton.svelte';
 	import { _ } from 'svelte-i18n';
 
@@ -31,6 +34,7 @@
 			--theme-color="var(--red-pill)"
 			bind:expanded
 		>
+			{#snippet icon({ size })}<IconCrown height={size} width={size} />{/snippet}
 			Host choices
 		</ExpandingButton>
 		<ExpandingButton
@@ -39,6 +43,7 @@
 			--theme-color="var(--blue-pill)"
 			bind:expanded
 		>
+			{#snippet icon({ size })}<IconUserCircleOutline height={size} width={size} />{/snippet}
 			<form class="join">
 				<TextInput
 					label={$_('frontoffice.choices.join.id.label')}
