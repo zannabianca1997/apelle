@@ -9,6 +9,8 @@
 
 	import ExpandingButton from '$lib/components/frontoffice/ExpandingButton.svelte';
 	import { _ } from 'svelte-i18n';
+	import { postApiV1Queues } from '$lib/apis/apelle';
+	import { goto } from '$app/navigation';
 
 	let expanded: string = $state('join');
 	export const snapshot: Snapshot<{ expanded: string }> = {
@@ -19,6 +21,15 @@
 		},
 		restore: (value) => (expanded = value.expanded)
 	};
+
+	async function host(partyKind: 'anything') {
+		// create the queue
+		const {
+			data: { id }
+		} = await postApiV1Queues();
+		// navigate to it's page
+		goto(`/queues/${id}`);
+	}
 </script>
 
 <header>
@@ -36,7 +47,7 @@
 		>
 			{#snippet icon({ size })}<IconCrown height={size} width={size} />{/snippet}
 			<form class="host">
-				<button>{$_('frontoffice.choices.host.anything')}</button>
+				<button onclick={() => host('anything')}>{$_('frontoffice.choices.host.anything')}</button>
 			</form>
 		</ExpandingButton>
 		<ExpandingButton
