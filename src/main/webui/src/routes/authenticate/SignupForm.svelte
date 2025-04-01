@@ -3,8 +3,8 @@
 
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
-	import { signup } from '$lib/auth.svelte';
 	import { error } from '$lib/errors.svelte';
+	import authService from '$lib/auth.svelte';
 
 	let { onsuccess = () => {} }: { onsuccess?: () => void } = $props();
 
@@ -26,7 +26,7 @@
 		if (!username || !password || password != passwordCheck) {
 			return;
 		}
-		const signupResult = await signup({ username, password });
+		const signupResult = await authService.signup({ username, password });
 		if (signupResult) {
 			switch (signupResult.error) {
 				case 'userExists':

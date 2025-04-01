@@ -1,9 +1,9 @@
 import type { LayoutLoad } from './$types'
-import { authenticated } from '$lib/auth.svelte'
 import { goto } from '$app/navigation'
+import authService from '$lib/auth.svelte'
 
 export const load: LayoutLoad = async () => {
-    if (authenticated()) {
+    if (authService.authenticated()) {
         goto('/')
     }
 }

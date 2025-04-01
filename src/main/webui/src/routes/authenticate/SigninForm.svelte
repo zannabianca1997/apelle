@@ -3,7 +3,7 @@
 
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
-	import { signin } from '$lib/auth.svelte';
+	import authService from '$lib/auth.svelte';
 	import { error } from '$lib/errors.svelte';
 
 	let { onsuccess = () => {} }: { onsuccess?: () => void } = $props();
@@ -22,7 +22,7 @@
 		if (!username || !password) {
 			return;
 		}
-		const signinResult = await signin({ username, password });
+		const signinResult = await authService.signin({ username, password });
 		if (signinResult) {
 			switch (signinResult.error) {
 				case 'badCredentials':
