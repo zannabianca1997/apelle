@@ -22,6 +22,11 @@ public class QueueQueryDto {
     @Schema(description = "Unique ID of the queue")
     private UUID id;
 
+    @NonNull
+    @JsonProperty(required = true)
+    @Schema(description = "Unique code of the queue")
+    private String code;
+
     @Schema(description = "The current playing song, if any")
     private CurrentSongQueryDto current;
 

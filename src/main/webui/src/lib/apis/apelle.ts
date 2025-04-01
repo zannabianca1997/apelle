@@ -67,6 +67,8 @@ export interface Permissions {
 export interface QueueQueryDto {
 	/** Unique ID of the queue */
 	id: Uuid;
+	/** Unique code of the queue */
+	code: string;
 	/** The current playing song, if any */
 	current?: CurrentSongQueryDto;
 	/** The songs in the queue */

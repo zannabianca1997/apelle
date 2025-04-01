@@ -4,4 +4,4 @@
 	let { data }: PageProps = $props();
 </script>
 
-<span>Page for queue: {data.queue.id}</span>
+<span>Page for queue: {data.queue.code}</span>
