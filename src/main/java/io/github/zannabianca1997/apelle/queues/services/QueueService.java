@@ -19,6 +19,7 @@ import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
@@ -28,15 +29,19 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class QueueService {
-
-    @Inject
-    EventBus eventBus;
     @Inject
     QueueMapper queueMapper;
+
     @Inject
     UsersService usersService;
     @Inject
     QueueUserRolesService queueUserRolesService;
+
+    @Inject
+    StringUtils stringUtils;
+
+    @Inject
+    EventBus eventBus;
 
     /**
      * Create a new queue
@@ -44,7 +49,9 @@ public class QueueService {
      * @return The created queue
      */
     public Queue create() {
-        var queue = Queue.builder().build();
+        var queue = Queue.builder()
+                .code(generateQueueCode())
+                .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(usersService.getCurrent())
@@ -53,6 +60,10 @@ public class QueueService {
                 .build());
         queue.persist();
         return queue;
+    }
+
+    private String generateQueueCode() {
+        return UUID.randomUUID().toString();
     }
 
     /**

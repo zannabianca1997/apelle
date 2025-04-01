@@ -16,6 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -49,6 +50,11 @@ public class Queue extends PanacheEntityBase {
     /// Unique ID of the queue
     private UUID id;
 
+    @NonNull
+    @Column(nullable = false, unique = true)
+    /// Unique remembrable queue code
+    private String code;
+
     @Embedded
     /// The current playing song, if any
     private CurrentSong current;
@@ -80,7 +86,7 @@ public class Queue extends PanacheEntityBase {
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
-    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs) {
+    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs, @NonNull String code) {
         super();
         // Sort the songs
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
@@ -89,6 +95,9 @@ public class Queue extends PanacheEntityBase {
         this.current = current;
         this.queuedSongs = queuedSongs;
         this.users = new ArrayList<>();
+        this.likes = new ArrayList<>();
+
+        this.code = code;
     }
 
     /**
