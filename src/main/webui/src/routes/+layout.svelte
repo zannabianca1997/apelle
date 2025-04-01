@@ -1,6 +1,10 @@
 <script>
+	import { isLoading } from 'svelte-i18n';
+
 	let { children } = $props();
 	import '../app.css';
 </script>
 
-{@render children()}
+{#if !$isLoading}
+	{@render children()}
+{/if}

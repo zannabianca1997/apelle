@@ -3,34 +3,43 @@
 
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
-	import { signup } from '$lib/authenticate/signup';
+	import { signup } from '$lib/auth.svelte';
+	import { error } from '$lib/errors.svelte';
 
-	let username: string | null = null;
-	let usernameError: string | null = null;
+	let { onsuccess = () => {} }: { onsuccess?: () => void } = $props();
 
-	let password: string | null = null;
-	let passwordError: string | null = null;
+	let username: string | null = $state(null);
+	let usernameError: string | null = $state(null);
 
-	let passwordCheck: string | null = null;
-	let passwordCheckError: string | null = null;
+	let password: string | null = $state(null);
+	let passwordError: string | null = $state(null);
 
-	let signupError: string | null = null;
+	let passwordCheck: string | null = $state(null);
+	let passwordCheckError: string | null = $state(null);
 
-	async function onSubmit() {
+	async function onsubmit(e: Event) {
+		e.preventDefault();
 		usernameError = !username ? $_('login.signupForm.errors.usernameRequired') : null;
 		passwordError = !password ? $_('login.signupForm.errors.passwordRequired') : null;
 		passwordCheckError =
 			password != passwordCheck ? $_('login.signupForm.errors.passwordDoesNotMatch') : null;
-		if (!!usernameError || !!passwordError || !!passwordCheckError) {
-			signupError = null;
+		if (!username || !password || password != passwordCheck) {
 			return;
 		}
-		const signupResult = await signup(username!, password!);
-		signupError = signupResult?.error || null;
+		const signupResult = await signup({ username, password });
+		if (signupResult) {
+			switch (signupResult.error) {
+				case 'userExists':
+					error('login.signupForm.errors.userExists');
+					break;
+			}
+			return;
+		}
+		onsuccess();
 	}
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form {onsubmit}>
 	<input type="submit" value={$_('login.signupForm.submit')} />
 	<TextInput label={$_('login.signupForm.username')} bind:value={username} error={usernameError} />
 	<TextInput
@@ -45,9 +54,6 @@
 		bind:value={passwordCheck}
 		error={passwordCheckError}
 	/>
-	{#if signupError}
-		<em class="error">{signupError}</em>
-	{/if}
 </form>
 
 <style lang="scss">

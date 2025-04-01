@@ -3,29 +3,39 @@
 
 	import { _ } from 'svelte-i18n';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
-	import { signin } from '$lib/authenticate/signin';
+	import { signin } from '$lib/auth.svelte';
+	import { error } from '$lib/errors.svelte';
 
-	let username: string | null = null;
-	let usernameError: string | null = null;
+	let { onsuccess = () => {} }: { onsuccess?: () => void } = $props();
 
-	let password: string | null = null;
-	let passwordError: string | null = null;
+	let username: string | null = $state(null);
+	let usernameError: string | null = $state(null);
 
-	let signinError: string | null = null;
+	let password: string | null = $state(null);
+	let passwordError: string | null = $state(null);
 
-	async function onSubmit() {
+	async function onsubmit(e: Event) {
+		e.preventDefault();
+
 		usernameError = !username ? $_('login.signinForm.errors.usernameRequired') : null;
 		passwordError = !password ? $_('login.signinForm.errors.passwordRequired') : null;
-		if (!!usernameError || !!passwordError) {
-			signinError = null;
+		if (!username || !password) {
 			return;
 		}
-		const signinResult = await signin(username!, password!);
-		signinError = signinResult?.error || null;
+		const signinResult = await signin({ username, password });
+		if (signinResult) {
+			switch (signinResult.error) {
+				case 'badCredentials':
+					error('login.signinForm.errors.badCredentials');
+					break;
+			}
+			return;
+		}
+		onsuccess();
 	}
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form {onsubmit}>
 	<input type="submit" value={$_('login.signinForm.submit')} />
 	<TextInput label={$_('login.signinForm.username')} bind:value={username} error={usernameError} />
 	<TextInput
@@ -34,9 +44,6 @@
 		bind:value={password}
 		error={passwordError}
 	/>
-	{#if signinError}
-		<em class="error">{signinError}</em>
-	{/if}
 </form>
 
 <style lang="scss">
