@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css?family=DM Sans');
+
+:root {
+    --blue-pill: #3C6B9A;
+    --red-pill: #911616;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body,
+html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    margin: 0px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: linear-gradient(#0A0A0A, #2B2B2B);
+
+    color: #FFFFFF;
+    font-family: DM Sans 18pt;
+}

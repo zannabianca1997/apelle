@@ -3,13 +3,22 @@
         "signinForm": {
             "username": "Username",
             "password": "Password",
-            "submit": "Signin"
+            "submit": "Signin",
+            "errors": {
+                "usernameRequired": "The username is required",
+                "passwordRequired": "The password is required"
+            }
         },
         "signupForm": {
             "username": "Username",
             "password": "Password",
-            "password-check": "Repeat password",
-            "submit": "Signup"
+            "passwordCheck": "Repeat password",
+            "submit": "Signup",
+            "errors": {
+                "usernameRequired": "The username is required",
+                "passwordRequired": "The password is required",
+                "passwordDoesNotMatch": "The password does not match"
+            }
         }
     }
 }
