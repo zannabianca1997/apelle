@@ -1,4 +1,4 @@
-import { AxiosError, type AxiosBasicCredentials } from 'axios';
+import axios, { AxiosError, type AxiosBasicCredentials } from 'axios';
 
 import { getApiV1UsersMe, postApiV1Users, type UserQueryDto } from '$lib/apis/apelle';
 import { browser } from '$app/environment';
@@ -43,6 +43,19 @@ class AuthServiceBrowser implements AuthService {
 	 */
 	public constructor() {
 		this._userData = JSON.parse(localStorage.getItem('apelleUser') ?? 'null');
+
+		console.info('Installing auth interceptors');
+		axios.interceptors.request.use((config) => {
+			// Add authentication if not provided
+			if (this.authenticated() && !config.auth) {
+				config.auth = {
+					username: this.userData!.username,
+					password: this.userData!.password
+				};
+			}
+
+			return config;
+		});
 	}
 
 	public get userData(): UserData | null {
