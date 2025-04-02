@@ -25,6 +25,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +38,9 @@ import lombok.Singular;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "queue")
+@Table(name = "queue", uniqueConstraints = {
+        @UniqueConstraint(name = Queue.CODE_UNIQUE_CONSTRAINT_NAME, columnNames = { "code" })
+})
 @Check(name = "song_is_either_started_or_stopped", constraints = """
         ((current_song IS NULL) AND (current_song_starts_at IS NULL) AND (current_song_position IS NULL))
         OR ((current_song IS NOT NULL) AND ((current_song_starts_at IS NULL) <> (current_song_position IS NULL)))
@@ -51,7 +54,7 @@ public class Queue extends PanacheEntityBase {
     private UUID id;
 
     @NonNull
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     /// Unique remembrable queue code
     private String code;
 
@@ -199,4 +202,6 @@ public class Queue extends PanacheEntityBase {
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
         setQueuedSongs(queuedSongs);
     }
+
+    public final static String CODE_UNIQUE_CONSTRAINT_NAME = "queue_code_unique_constraint";
 }

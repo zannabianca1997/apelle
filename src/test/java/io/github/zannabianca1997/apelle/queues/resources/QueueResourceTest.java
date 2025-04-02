@@ -49,7 +49,7 @@ class QueueResourceTest {
 
     @BeforeEach
     @Transactional
-    void createUsers() {
+    void createUsersAndQueues() {
         ApelleUser.deleteAll();
 
         ApelleUser admin = ApelleUser.builder()
@@ -67,7 +67,9 @@ class QueueResourceTest {
 
         Queue.deleteAll();
 
-        var queue = Queue.builder().build();
+        var queue = Queue.builder()
+                .code("code")
+                .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(admin)

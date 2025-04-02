@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.hibernate.exception.ConstraintViolationException;
 
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
@@ -23,12 +24,15 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
+import io.smallrye.config.WithDefault;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @ApplicationScoped
 public class QueueService {
@@ -49,8 +53,19 @@ public class QueueService {
      * @return The created queue
      */
     public Queue create() {
+
+        /*
+         * Evaluate needed code complexity.
+         * 
+         * A minimal lenght is required, then an estimate of how many bytes are needed
+         * to avoid collisions is made. If all queue codes are assigned this will bring
+         * to a logaritmical growth of the code lenght, keeping it under control.
+         */
+        var codeComplexity = Integer.max(minCodeComplexity,
+                codeComplexityMargin + (int) (Math.log1p(Queue.count()) / Math.log(256)));
+
         var queue = Queue.builder()
-                .code(generateQueueCode())
+                .code(generateQueueCode(codeComplexity))
                 .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
@@ -58,19 +73,46 @@ public class QueueService {
                 .role(queueUserRolesService.getCreatorRole())
                 .likesFilled(false)
                 .build());
-        queue.persist();
-        return queue;
+
+        /*
+         * Try to insert the queue.
+         * 
+         * In case of a code collision, generate a new code with an increase complexity
+         * and try again until it succeed. As each try has about 1/256 more possibility
+         * to suceed, this should very rarely exceed two tries.
+         */
+        for (;; codeComplexity++) {
+            try {
+                queue.persistAndFlush();
+                return queue;
+            } catch (ConstraintViolationException ex) {
+                if (ex.getConstraintName() != Queue.CODE_UNIQUE_CONSTRAINT_NAME) {
+                    // this is another problem
+                    throw ex;
+                }
+                queue.setCode(generateQueueCode(codeComplexity));
+            }
+        }
     }
 
-    @ConfigProperty(name = "apelle.queue.code.complexity")
+    @ConfigProperty(name = "apelle.queue.code.complexity.min", defaultValue = "3")
     @Min(1)
-    int codeComplexity;
+    int minCodeComplexity;
+
+    @ConfigProperty(name = "apelle.queue.code.complexity.margin", defaultValue = "1")
+    @Min(1)
+    int codeComplexityMargin;
+
+    @ConfigProperty(name = "apelle.queue.code.alphabet", defaultValue = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    @NotBlank
+    @Size(min = 2)
+    String codeAlphabet;
 
     @Inject
     StringUtils stringUtils;
 
-    private String generateQueueCode() {
-        return stringUtils.randomHumanReadable(codeComplexity);
+    private String generateQueueCode(int codeComplexity) {
+        return stringUtils.random(codeComplexity, codeAlphabet);
     }
 
     /**

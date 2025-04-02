@@ -480,7 +480,7 @@ export const deleteApiV1UsersNUserName = <TData = AxiosResponse<void>>(
  * Return the version of the server
  * @summary Version of the server
  */
-export const getApiV1Version = <TData = AxiosResponse<unknown>>(
+export const getApiV1Version = <TData = AxiosResponse<string>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/v1/version`, options);
@@ -504,4 +504,4 @@ export type GetApiV1UsersMeResult = AxiosResponse<UserQueryDto>;
 export type DeleteApiV1UsersMeResult = AxiosResponse<void>;
 export type GetApiV1UsersNUserNameResult = AxiosResponse<UserQueryDto>;
 export type DeleteApiV1UsersNUserNameResult = AxiosResponse<void>;
-export type GetApiV1VersionResult = AxiosResponse<unknown>;
+export type GetApiV1VersionResult = AxiosResponse<string>;
