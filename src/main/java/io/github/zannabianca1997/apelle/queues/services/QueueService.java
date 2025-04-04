@@ -24,7 +24,6 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
-import io.smallrye.config.WithDefault;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
