@@ -37,7 +37,7 @@ import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMo
 import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 
 @QuarkusTest
-@TestHTTPEndpoint(QueueResource.class)
+@TestHTTPEndpoint(QueueByIdResource.class)
 @Tag("queue")
 class QueueResourceTest {
 

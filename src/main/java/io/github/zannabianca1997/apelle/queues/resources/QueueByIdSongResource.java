@@ -28,10 +28,10 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 
-@Path("/queues/{queueId}/queue/{songId}")
+@Path("/queues/i/{queueId}/queue/{songId}")
 @Tag(name = "Queued song", description = "Interaction with a queued song")
 @Authenticated
-public class QueuedSongResource {
+public class QueueByIdSongResource {
 
     @Inject
     SongMapper songMapper;
@@ -71,7 +71,7 @@ public class QueuedSongResource {
     }
 
     @PermissionChecker("queue-like-song")
-    boolean canNextSong(SecurityIdentity identity, UUID queueId) {
+    boolean canLikeSong(SecurityIdentity identity, UUID queueId) {
         QueueUser queueUser;
         try {
             queueUser = queueUserService.getCurrent(queueId);

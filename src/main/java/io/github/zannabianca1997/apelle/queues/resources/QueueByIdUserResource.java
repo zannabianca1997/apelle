@@ -19,10 +19,10 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 
-@Path("/queues/{queueId}/users")
+@Path("/queues/i/{queueId}/users")
 @Tag(name = "Queue Users", description = "Management of the queue users")
 @Authenticated
-public class QueueUserResource {
+public class QueueByIdUserResource {
 
     @Inject
     QueueUserService queueUserService;

@@ -36,10 +36,10 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
 
-@Path("/queues/{queueId}")
+@Path("/queues/i/{queueId}")
 @Tag(name = "Queue", description = "Direct management of the queue")
 @Authenticated
-public class QueueResource {
+public class QueueByIdResource {
 
     @Inject
     QueueMapper queueMapper;

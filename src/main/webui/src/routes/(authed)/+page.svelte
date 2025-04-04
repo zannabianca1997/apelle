@@ -9,7 +9,7 @@
 
 	import ExpandingButton from '$lib/components/frontoffice/ExpandingButton.svelte';
 	import { _ } from 'svelte-i18n';
-	import { postApiV1Queues } from '$lib/apis/apelle';
+	import { postApiV1Queues as postQueues } from '$lib/apis/apelle';
 	import { goto } from '$app/navigation';
 
 	let expanded: string = $state('join');
@@ -26,7 +26,7 @@
 		// create the queue
 		const {
 			data: { id }
-		} = await postApiV1Queues();
+		} = await postQueues();
 		// navigate to it's page
 		goto(`/queues/${id}`);
 	}

@@ -19,7 +19,7 @@ import jakarta.inject.Inject;
 
 @WebSocket(path = "/ws/v1/queues/{queueId}")
 @Authenticated
-public class QueueWebsocket {
+public class QueueByIdWebsocket {
     @Inject
     EventBus eventBus;
     @Inject
