@@ -1,5 +1,7 @@
 package io.github.zannabianca1997.apelle.users.resources;
 
+import java.util.UUID;
+
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -10,6 +12,8 @@ import org.jboss.resteasy.reactive.RestResponse;
 import io.github.zannabianca1997.apelle.users.dtos.UserCreateDto;
 import io.github.zannabianca1997.apelle.users.dtos.UserQueryDto;
 import io.github.zannabianca1997.apelle.users.exceptions.UserAlreadyExistsException;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
@@ -28,6 +32,8 @@ public class UsersResource {
     UserMapper userMapper;
     @Inject
     UsersService usersService;
+    @Inject
+    UserResource userResource;
 
     @POST
     @PermitAll
@@ -40,5 +46,20 @@ public class UsersResource {
         ApelleUser user = userMapper.createUser(userCreateDto);
         usersService.signup(user);
         return RestResponse.<UserQueryDto>status(Status.CREATED, userMapper.toDto(user));
+    }
+
+    @Path("/me")
+    public UserResource me() {
+        return userResource.of(usersService.getCurrent());
+    }
+
+    @Path("/n/{userName}")
+    public UserResource byName(String userName) throws UserNotFoundByNameException {
+        return userResource.of(usersService.get(userName));
+    }
+
+    @Path("/i/{userId}")
+    public UserResource byId(UUID userId) throws UserNotFoundByIdException {
+        return userResource.of(usersService.get(userId));
     }
 }
