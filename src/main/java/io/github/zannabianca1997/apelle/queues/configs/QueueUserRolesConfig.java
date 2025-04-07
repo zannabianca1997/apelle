@@ -1,8 +1,11 @@
 package io.github.zannabianca1997.apelle.queues.configs;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 import jakarta.validation.constraints.PositiveOrZero;
 
 @ConfigMapping(prefix = "apelle.queue.user")
@@ -22,15 +25,44 @@ public interface QueueUserRolesConfig {
         Permissions permissions();
 
         public interface Permissions {
-            boolean startSong();
+            Queue queue();
 
-            boolean stopSong();
+            public interface Queue {
+                @WithDefault("false")
+                boolean start();
 
-            boolean nextSong();
+                @WithDefault("false")
+                boolean stop();
 
-            boolean likeSong();
+                @WithDefault("false")
+                boolean next();
 
-            boolean enqueue();
+                @WithDefault("false")
+                boolean like();
+
+                @WithDefault("false")
+                boolean enqueue();
+
+                @WithDefault("false")
+                boolean remove();
+
+                @WithDefault("false")
+                boolean ban();
+            }
+
+            QueueUsers queueUsers();
+
+            public interface QueueUsers {
+                Optional<Set<String>> grantRoles();
+
+                Optional<Set<String>> removeRoles();
+
+                @WithDefault("false")
+                boolean remove();
+
+                @WithDefault("false")
+                boolean ban();
+            }
         }
     }
 }

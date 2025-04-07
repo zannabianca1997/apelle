@@ -13,27 +13,27 @@ apelle:
         PLAYER:
           max-likes: 32767
           permissions:
-            start-song: true
-            stop-song: true
-            next-song: true
-            like-song: true
-            enqueue: true
+            queue:
+              start: true
+              stop: true
+              next: true
+              like: true
+              enqueue: true
+              remove: true
+              ban: true
+            queue-users:
+              grant-roles: PLAYER,VOTER,OBSERVER
+              remove-roles: VOTER,OBSERVER
+              remove: true
+              ban: true
         VOTER:
           max-likes: 4
           permissions:
-            start-song: false
-            stop-song: false
-            next-song: false
-            like-song: true
-            enqueue: true
+            queue:
+              like: true
+              enqueue: true
         OBSERVER:
           max-likes: 0
-          permissions:
-            start-song: false
-            stop-song: false
-            next-song: false
-            like-song: false
-            enqueue: false
   songs:
     sources:
       youtube:
