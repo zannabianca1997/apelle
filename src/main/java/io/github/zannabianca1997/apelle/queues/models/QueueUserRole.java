@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig;
 import io.github.zannabianca1997.apelle.queues.exceptions.RoleDoesNotExistException;
@@ -24,14 +26,19 @@ import lombok.NonNull;
 public class QueueUserRole {
     @Getter
     @NonNull
+    @Schema(examples = { "PLAYER", "VOTER", "OBSERVER" }, required = true)
     private String name;
+
     @NonNull
+    @JsonIgnore
     private QueueUserRoleConfig config;
 
+    @Schema(examples = { "4" }, required = true)
     public short getMaxLikes() {
         return config.maxLikes();
     }
 
+    @Schema(required = true)
     public QueueUserRoleConfig.Permissions getPermissions() {
         return config.permissions();
     }

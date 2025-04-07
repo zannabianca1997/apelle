@@ -15,7 +15,7 @@ public abstract class QueueUserMapper {
     @Inject
     UserMapper userMapper;
 
-    @Mapping(target = "queueRole", source = "queueUser.role")
+    @Mapping(target = "queueRole", source = "queueUser.role.name")
     protected abstract QueueUserQueryDto toDtoInner(QueueUser queueUser, UserQueryDto userQueryDto);
 
     public QueueUserQueryDto toDto(QueueUser queueUser) {
@@ -24,4 +24,5 @@ public abstract class QueueUserMapper {
         }
         return toDtoInner(queueUser, userMapper.toDto(queueUser.getUser()));
     }
+
 }

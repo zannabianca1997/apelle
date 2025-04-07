@@ -57,10 +57,6 @@ export type Duration = string;
 
 export type Instant = string;
 
-export interface Permissions {
-	[key: string]: unknown;
-}
-
 /**
  * A queue of songs
  */
@@ -104,22 +100,11 @@ export interface QueueUserQueryDto {
 	/** Comma separated list of roles the user has */
 	roles: ApelleUserRole[];
 	/** Role of the user in the queue */
-	queue_role: QueueUserRole;
+	queue_role: string;
 	/** Number of likes given in the queue */
 	likes: number;
 	/** Maximum number of likes that can be given */
 	max_likes: number;
-}
-
-export interface QueueUserRole {
-	name?: string;
-	config?: QueueUserRoleConfig;
-	maxLikes?: number;
-	permissions?: Permissions;
-}
-
-export interface QueueUserRoleConfig {
-	[key: string]: unknown;
 }
 
 /**

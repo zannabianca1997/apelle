@@ -15,7 +15,7 @@ public class QueueUserRolesService {
 
     public QueueUserRole getDefaultRole() {
         try {
-            return getRole(config.defaultRole());
+            return getRole(config.default_());
         } catch (RoleDoesNotExistException e) {
             throw new RuntimeException("The default role was not configured", e);
         }
@@ -23,7 +23,7 @@ public class QueueUserRolesService {
 
     public QueueUserRole getCreatorRole() {
         try {
-            return getRole(config.creatorRole());
+            return getRole(config.creator());
         } catch (RoleDoesNotExistException e) {
             throw new RuntimeException("The creator role was not configured", e);
         }
@@ -31,7 +31,7 @@ public class QueueUserRolesService {
 
     public QueueUserRole getBannedRole() {
         try {
-            return getRole(config.bannedRole());
+            return getRole(config.banned());
         } catch (RoleDoesNotExistException e) {
             throw new RuntimeException("The banned role was not configured", e);
         }
