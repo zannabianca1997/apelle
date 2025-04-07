@@ -377,7 +377,7 @@ export const postApiV1QueuesCQueueCodeStop = <TData = AxiosResponse<void>>(
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueCode: string,
 	userId: Uuid,
 	options?: AxiosRequestConfig
@@ -401,7 +401,7 @@ export const deleteApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<vo
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueCode: string,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
@@ -423,7 +423,7 @@ export const deleteApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<void>>(
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueCode: string,
 	userName: string,
 	options?: AxiosRequestConfig
@@ -538,7 +538,7 @@ export const postApiV1QueuesIQueueIdStop = <TData = AxiosResponse<void>>(
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueId: Uuid,
 	userId: Uuid,
 	options?: AxiosRequestConfig
@@ -562,7 +562,7 @@ export const deleteApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<void
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueId: Uuid,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
@@ -584,7 +584,7 @@ export const deleteApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<void>>(
  * Returns the data of the queue user
  * @summary The queue user data
  */
-export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
+export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<QueueUserQueryDto>>(
 	queueId: Uuid,
 	userName: string,
 	options?: AxiosRequestConfig
@@ -697,11 +697,11 @@ export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSong
 export type PostApiV1QueuesCQueueCodeQueueSongIdLikesResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStopResult = AxiosResponse<void>;
-export type GetApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<void>;
-export type GetApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<void>;
-export type GetApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdResult = AxiosResponse<QueueQueryDto>;
 export type PostApiV1QueuesIQueueIdNextResult = AxiosResponse<void>;
@@ -710,11 +710,11 @@ export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQu
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStopResult = AxiosResponse<void>;
-export type GetApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<void>;
-export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<void>;
-export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<UserQueryDto>;
+export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<void>;
 export type PostApiV1UsersResult = AxiosResponse<UserQueryDto>;
 export type GetApiV1UsersIUserIdResult = AxiosResponse<UserQueryDto>;

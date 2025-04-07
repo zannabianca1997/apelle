@@ -50,16 +50,16 @@ public class UsersResource {
 
     @Path("/me")
     public UserResource me() {
-        return userResource.ofMe(usersService.getCurrent());
+        return userResource.ofMe(usersService.getMe());
     }
 
     @Path("/n/{userName}")
     public UserResource byName(String userName) throws UserNotFoundByNameException {
-        return userResource.of(usersService.get(userName));
+        return userResource.of(usersService.getByName(userName));
     }
 
     @Path("/i/{userId}")
     public UserResource byId(UUID userId) throws UserNotFoundByIdException {
-        return userResource.of(usersService.get(userId));
+        return userResource.of(usersService.getById(userId));
     }
 }

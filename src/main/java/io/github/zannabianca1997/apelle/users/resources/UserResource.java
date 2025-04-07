@@ -5,6 +5,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import io.github.zannabianca1997.apelle.users.dtos.UserQueryDto;
+import io.github.zannabianca1997.apelle.users.exceptions.CannotDeleteUserException;
 import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
@@ -62,7 +63,7 @@ public class UserResource {
     @Transactional
     @Operation(summary = "Delete user", description = "Delete the user")
     @APIResponse(responseCode = "200", description = "The user was deleted")
-    public void delete() {
-        user.delete();
+    public void delete() throws CannotDeleteUserException {
+        usersService.delete(user);
     }
 }

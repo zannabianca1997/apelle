@@ -28,7 +28,7 @@ public class QueueUserService {
      * @return The queue user
      */
     public QueueUser getCurrent(Queue queue) {
-        return findOrCreate(queue, usersService.getCurrent());
+        return findOrCreate(queue, usersService.getMe());
     }
 
     /**
@@ -41,7 +41,7 @@ public class QueueUserService {
      */
     public QueueUser getByName(Queue queue, String userName)
             throws UserNotFoundByNameException {
-        return findOrCreate(queue, usersService.get(userName));
+        return findOrCreate(queue, usersService.getByName(userName));
     }
 
     /**
@@ -53,7 +53,7 @@ public class QueueUserService {
      * @throws UserNotFoundByIdException The user does not exist
      */
     public QueueUser getById(Queue queue, UUID userId) throws UserNotFoundByIdException {
-        return findOrCreate(queue, usersService.get(userId));
+        return findOrCreate(queue, usersService.getById(userId));
     }
 
     /**

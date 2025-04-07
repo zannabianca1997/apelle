@@ -68,7 +68,7 @@ public class QueueService {
                 .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
-                .user(usersService.getCurrent())
+                .user(usersService.getMe())
                 .role(queueUserRolesService.getCreatorRole())
                 .likesFilled(false)
                 .build());
