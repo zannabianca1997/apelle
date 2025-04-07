@@ -14,7 +14,7 @@ info:
 
     ### Websockets
     To avoid polling the REST API, `apelle` provide a websocket interface to each queue.
-    The relative URL is `/ws/v1/queues/{queueId}`. It needs basic auth to connect.
+    The relative URL is `/ws/v1/queues/i/{queueId}`. It needs basic auth to connect.
 
     The websocket does not listen for now to any message, but sends JSON messages at each queue change.
     See the `ServerMessage` schema for the schema.

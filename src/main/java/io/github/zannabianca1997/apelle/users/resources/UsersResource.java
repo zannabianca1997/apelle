@@ -50,7 +50,7 @@ public class UsersResource {
 
     @Path("/me")
     public UserResource me() {
-        return userResource.of(usersService.getCurrent());
+        return userResource.ofMe(usersService.getCurrent());
     }
 
     @Path("/n/{userName}")

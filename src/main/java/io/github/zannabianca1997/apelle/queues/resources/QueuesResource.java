@@ -1,5 +1,7 @@
 package io.github.zannabianca1997.apelle.queues.resources;
 
+import java.util.UUID;
+
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -15,7 +17,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response.Status;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
+import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
+import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
 
 @Path("/queues")
@@ -27,6 +31,8 @@ public class QueuesResource {
     QueueMapper queueMapper;
     @Inject
     QueueService queueService;
+    @Inject
+    QueueResource queueResource;
 
     @POST
     @Transactional
@@ -39,4 +45,15 @@ public class QueuesResource {
         return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
     }
 
+    @Path("/i/{queueId}")
+    public QueueResource byId(UUID queueId) throws QueueNotFoundException {
+        Queue queue = queueService.get(queueId);
+        return queueResource.of(queue);
+    }
+
+    @Path("/c/{queueCode}")
+    public QueueResource byCode(String queueCode) throws QueueNotFoundException {
+        Queue queue = queueService.get(queueCode);
+        return queueResource.of(queue);
+    }
 }

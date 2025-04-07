@@ -2,7 +2,7 @@ package io.github.zannabianca1997.apelle.queues.services;
 
 import java.util.UUID;
 
-import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
+import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
@@ -26,10 +26,9 @@ public class QueueUserService {
      * 
      * @param queueId The queue id
      * @return The queue user
-     * @throws QueueNotFoundException The queue does not exist
      */
-    public QueueUser getCurrent(UUID queueId) throws QueueNotFoundException {
-        return findOrCreate(queueId, usersService.getCurrent());
+    public QueueUser getCurrent(Queue queue) {
+        return findOrCreate(queue, usersService.getCurrent());
     }
 
     /**
@@ -39,11 +38,10 @@ public class QueueUserService {
      * @param userName The user name
      * @return The queue user
      * @throws UserNotFoundByNameException The user does not exist
-     * @throws QueueNotFoundException      The queue does not exist
      */
-    public QueueUser getByName(UUID queueId, String userName)
-            throws UserNotFoundByNameException, QueueNotFoundException {
-        return findOrCreate(queueId, usersService.get(userName));
+    public QueueUser getByName(Queue queue, String userName)
+            throws UserNotFoundByNameException {
+        return findOrCreate(queue, usersService.get(userName));
     }
 
     /**
@@ -53,10 +51,9 @@ public class QueueUserService {
      * @param userId  The user id
      * @return The queue user
      * @throws UserNotFoundByIdException The user does not exist
-     * @throws QueueNotFoundException    The queue does not exist
      */
-    public QueueUser getById(UUID queueId, UUID userId) throws QueueNotFoundException, UserNotFoundByIdException {
-        return findOrCreate(queueId, usersService.get(userId));
+    public QueueUser getById(Queue queue, UUID userId) throws UserNotFoundByIdException {
+        return findOrCreate(queue, usersService.get(userId));
     }
 
     /**
@@ -68,13 +65,12 @@ public class QueueUserService {
      * @param queueId The queue id
      * @param user    The user to link
      * @return The found or created queue user
-     * @throws QueueNotFoundException The queue does not exist
      */
-    private QueueUser findOrCreate(UUID queueId, ApelleUser user) throws QueueNotFoundException {
-        QueueUser queueUser = QueueUser.findById(user.getId(), queueId);
+    private QueueUser findOrCreate(Queue queue, ApelleUser user) {
+        QueueUser queueUser = QueueUser.findById(user.getId(), queue.getId());
         if (queueUser == null) {
             return QueueUser.builder()
-                    .queue(queueService.get(queueId))
+                    .queue(queue)
                     .user(user)
                     .role(queueUserRolesService.getDefaultRole())
                     .likesFilled(true)

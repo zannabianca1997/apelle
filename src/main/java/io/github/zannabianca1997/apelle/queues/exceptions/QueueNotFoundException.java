@@ -15,10 +15,18 @@ import lombok.Getter;
 @Getter
 public class QueueNotFoundException extends Exception {
     private final UUID queueId;
+    private final String queueCode;
 
     public QueueNotFoundException(UUID queueId) {
         super(String.format("Queue `%s` not found", queueId));
         this.queueId = queueId;
+        this.queueCode = null;
+    }
+
+    public QueueNotFoundException(String queueCode) {
+        super(String.format("Queue `%s` not found", queueCode));
+        this.queueCode = queueCode;
+        this.queueId = null;
     }
 
     @Provider

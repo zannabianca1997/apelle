@@ -37,8 +37,8 @@ import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMo
 import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 
 @QuarkusTest
-@TestHTTPEndpoint(QueueByIdResource.class)
 @Tag("queue")
+@TestHTTPEndpoint(QueuesResource.class)
 class QueueResourceTest {
 
     UUID queueId;
@@ -91,7 +91,7 @@ class QueueResourceTest {
     void shouldGetQueue() {
         QueueQueryDto created = given()
                 .auth().basic("zanna", "zanna")
-                .get("/", queueId).then()
+                .get("/i/{queueId}", queueId).then()
                 .statusCode(StatusCode.OK)
                 .contentType(ContentType.JSON)
                 .extract().as(QueueQueryDto.class);
@@ -108,7 +108,7 @@ class QueueResourceTest {
                 .auth().basic("zanna", "zanna")
                 .contentType(ContentType.JSON)
                 .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                .post("/queue", queueId).then()
+                .post("/i/{queueId}/queue", queueId).then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
                 .extract().as(QueuedSongShortQueryDto.class);
@@ -146,7 +146,7 @@ class QueueResourceTest {
                     .auth().basic("zanna", "zanna")
                     .contentType(ContentType.JSON)
                     .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                    .post("/queue", queueId).then()
+                    .post("/i/{queueId}/queue", queueId).then()
                     .statusCode(StatusCode.CREATED);
             // Minimal separation between requests to ensure they are correctly sorted
             Thread.sleep(10);

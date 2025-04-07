@@ -14,7 +14,7 @@ Users provides only the minimal necessary to identify the song (e.g. the youtube
 
 ### Websockets
 To avoid polling the REST API, `apelle` provide a websocket interface to each queue.
-The relative URL is `/ws/v1/queues/{queueId}`. It needs basic auth to connect.
+The relative URL is `/ws/v1/queues/i/{queueId}`. It needs basic auth to connect.
 
 The websocket does not listen for now to any message, but sends JSON messages at each queue change.
 See the `ServerMessage` schema for the schema.
@@ -258,6 +258,13 @@ export interface YoutubeSongAddDto {
 	video_id: string;
 }
 
+export type PostApiV1QueuesCQueueCodeQueueSongIdLikesParams = {
+	/**
+	 * How many time to like the song. If negative, nothing will happen.
+	 */
+	count?: number;
+};
+
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
 	/**
 	 * How many time to like the song. If negative, nothing will happen.
@@ -273,6 +280,167 @@ export const postApiV1Queues = <TData = AxiosResponse<QueueQueryDto>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.post(`/api/v1/queues`, undefined, options);
+};
+
+/**
+ * Get the queue state, with both the currently playing song and the list of songs to play next
+ * @summary Get the queue state
+ */
+export const getApiV1QueuesCQueueCode = <TData = AxiosResponse<QueueQueryDto>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}`, options);
+};
+
+/**
+ * Start the next song in the queue.
+The current one will be requeued as the last one, with no likes.
+ * @summary Start playing the next song
+ */
+export const postApiV1QueuesCQueueCodeNext = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/next`, undefined, options);
+};
+
+/**
+ * Add a song to the queue, with no likes.
+ * @summary Add a song to the queue
+ */
+export const postApiV1QueuesCQueueCodeQueue = <TData = AxiosResponse<QueuedSongShortQueryDto>>(
+	queueCode: string,
+	songAddDto: SongAddDto,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue`, songAddDto, options);
+};
+
+/**
+ * Get the full state of the queued song, with all data.
+
+TODO: Add query parameters to ask for thumbnails.
+ * @summary Get the queued song
+ */
+export const getApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<QueuedSongQueryDto>>(
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
+};
+
+/**
+ * Add a like to the song, pushing it upwards in the queue.
+
+If the maximum number of likes was already reached, the oldest like will be removed.
+This will happen trasparently even if a number of likes larger than available is specified,
+effectively removing all likes and moving them to the song.
+ * @summary Add a like to the song
+ */
+export const postApiV1QueuesCQueueCodeQueueSongIdLikes = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	songId: Uuid,
+	params?: PostApiV1QueuesCQueueCodeQueueSongIdLikesParams,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/likes`, undefined, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
+};
+
+/**
+ * Start playing music from the queue.
+ * @summary Start playing
+ */
+export const postApiV1QueuesCQueueCodeStart = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/start`, undefined, options);
+};
+
+/**
+ * Stop playing music from the queue.
+ * @summary Stop playing
+ */
+export const postApiV1QueuesCQueueCodeStop = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/stop`, undefined, options);
+};
+
+/**
+ * Returns the data of the queue user
+ * @summary The queue user data
+ */
+export const getApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
+	queueCode: string,
+	userId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
+};
+
+/**
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
+ */
+export const deleteApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	userId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
+};
+
+/**
+ * Returns the data of the queue user
+ * @summary The queue user data
+ */
+export const getApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<UserQueryDto>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/me`, options);
+};
+
+/**
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
+ */
+export const deleteApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/me`, options);
+};
+
+/**
+ * Returns the data of the queue user
+ * @summary The queue user data
+ */
+export const getApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
+	queueCode: string,
+	userName: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
+};
+
+/**
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
+ */
+export const deleteApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	userName: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
 };
 
 /**
@@ -367,10 +535,10 @@ export const postApiV1QueuesIQueueIdStop = <TData = AxiosResponse<void>>(
 };
 
 /**
- * Get the state of a queue user by id, with role and likes data.
- * @summary Get a queue user by id
+ * Returns the data of the queue user
+ * @summary The queue user data
  */
-export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<QueueUserQueryDto>>(
+export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
 	queueId: Uuid,
 	userId: Uuid,
 	options?: AxiosRequestConfig
@@ -379,10 +547,22 @@ export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<QueueUs
 };
 
 /**
- * Get the state of the current queue user, with role and likes data.
- * @summary Get the current queue user
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
  */
-export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<QueueUserQueryDto>>(
+export const deleteApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	userId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/i/${userId}`, options);
+};
+
+/**
+ * Returns the data of the queue user
+ * @summary The queue user data
+ */
+export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<UserQueryDto>>(
 	queueId: Uuid,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
@@ -390,15 +570,38 @@ export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<QueueUserQue
 };
 
 /**
- * Get the state of a queue user by name, with role and likes data.
- * @summary Get a queue user by name
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
  */
-export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<QueueUserQueryDto>>(
+export const deleteApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/me`, options);
+};
+
+/**
+ * Returns the data of the queue user
+ * @summary The queue user data
+ */
+export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
 	queueId: Uuid,
 	userName: string,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
+};
+
+/**
+ * Remove the user from the queue. This will also remove all likes he has given.
+ * @summary Remove the user from the queue
+ */
+export const deleteApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	userName: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
 };
 
 /**
@@ -413,8 +616,8 @@ export const postApiV1Users = <TData = AxiosResponse<UserQueryDto>>(
 };
 
 /**
- * Find a user by their universal id
- * @summary Find user by id
+ * Returns the data of the user
+ * @summary The user data
  */
 export const getApiV1UsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
 	userId: Uuid,
@@ -424,8 +627,8 @@ export const getApiV1UsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
 };
 
 /**
- * Delete a user by id. Need to have the role `admin`
- * @summary Delete a user by id
+ * Delete the user
+ * @summary Delete user
  */
 export const deleteApiV1UsersIUserId = <TData = AxiosResponse<void>>(
 	userId: Uuid,
@@ -435,8 +638,8 @@ export const deleteApiV1UsersIUserId = <TData = AxiosResponse<void>>(
 };
 
 /**
- * Returns the data of the user that is currently logged in
- * @summary Current user data
+ * Returns the data of the user
+ * @summary The user data
  */
 export const getApiV1UsersMe = <TData = AxiosResponse<UserQueryDto>>(
 	options?: AxiosRequestConfig
@@ -445,8 +648,8 @@ export const getApiV1UsersMe = <TData = AxiosResponse<UserQueryDto>>(
 };
 
 /**
- * Delete the current user
- * @summary Delete current user
+ * Delete the user
+ * @summary Delete user
  */
 export const deleteApiV1UsersMe = <TData = AxiosResponse<void>>(
 	options?: AxiosRequestConfig
@@ -455,8 +658,8 @@ export const deleteApiV1UsersMe = <TData = AxiosResponse<void>>(
 };
 
 /**
- * Find a user by their username
- * @summary Find user by name
+ * Returns the data of the user
+ * @summary The user data
  */
 export const getApiV1UsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
 	userName: string,
@@ -466,8 +669,8 @@ export const getApiV1UsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
 };
 
 /**
- * Delete a user by name. Need to have the role `admin`
- * @summary Delete a user by name
+ * Delete the user
+ * @summary Delete user
  */
 export const deleteApiV1UsersNUserName = <TData = AxiosResponse<void>>(
 	userName: string,
@@ -487,6 +690,19 @@ export const getApiV1Version = <TData = AxiosResponse<string>>(
 };
 
 export type PostApiV1QueuesResult = AxiosResponse<QueueQueryDto>;
+export type GetApiV1QueuesCQueueCodeResult = AxiosResponse<QueueQueryDto>;
+export type PostApiV1QueuesCQueueCodeNextResult = AxiosResponse<void>;
+export type PostApiV1QueuesCQueueCodeQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
+export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
+export type PostApiV1QueuesCQueueCodeQueueSongIdLikesResult = AxiosResponse<void>;
+export type PostApiV1QueuesCQueueCodeStartResult = AxiosResponse<void>;
+export type PostApiV1QueuesCQueueCodeStopResult = AxiosResponse<void>;
+export type GetApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<void>;
+export type GetApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<void>;
+export type GetApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdResult = AxiosResponse<QueueQueryDto>;
 export type PostApiV1QueuesIQueueIdNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
@@ -494,9 +710,12 @@ export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQu
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStopResult = AxiosResponse<void>;
-export type GetApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<QueueUserQueryDto>;
-export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<QueueUserQueryDto>;
-export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
+export type GetApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<void>;
+export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<void>;
+export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<UserQueryDto>;
+export type DeleteApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<void>;
 export type PostApiV1UsersResult = AxiosResponse<UserQueryDto>;
 export type GetApiV1UsersIUserIdResult = AxiosResponse<UserQueryDto>;
 export type DeleteApiV1UsersIUserIdResult = AxiosResponse<void>;

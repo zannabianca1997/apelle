@@ -10,10 +10,12 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.PermissionChecker;
-import io.quarkus.security.PermissionsAllowed;
-import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.PermitAll;
+import jakarta.enterprise.context.Initialized;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -23,8 +25,8 @@ import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
-import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
@@ -34,13 +36,13 @@ import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
+import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
 
-@Path("/queues/i/{queueId}")
-@Tag(name = "Queue", description = "Direct management of the queue")
 @Authenticated
-public class QueueByIdResource {
-
+@RequestScoped
+public class QueueResource {
     @Inject
     QueueMapper queueMapper;
     @Inject
@@ -51,14 +53,34 @@ public class QueueByIdResource {
     SongService songService;
     @Inject
     QueueUserService queueUserService;
+    @Inject
+    QueueSongResource queueSongResource;
+    @Inject
+    QueueUserResource queueUserResource;
+
+    Queue queue = null;
+    QueueUser user = null;
+
+    public QueueResource of(Queue queue) {
+        this.queue = queue;
+        this.user = queueUserService.getCurrent(queue);
+        return this;
+    }
+
+    @PermitAll
+    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
+        if (queue != null)
+            queue = Queue.getEntityManager().merge(queue);
+        if (user != null)
+            user = QueueUser.getEntityManager().merge(user);
+    }
 
     @GET
     @Operation(summary = "Get the queue state", description = "Get the queue state, with both the currently playing song and the list of songs to play next")
     @APIResponse(responseCode = "200", description = "The queue state", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
-    public QueueQueryDto get(UUID queueId) throws QueueNotFoundException {
-        Queue queue = queueService.get(queueId);
+    public QueueQueryDto get() {
         return queueMapper.toDto(queue);
     }
 
@@ -69,13 +91,18 @@ public class QueueByIdResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongShortQueryDto.class))
     })
     @Transactional
-    @PermissionsAllowed("queue-enqueue")
     @Tag(name = "Queued song")
-    public RestResponse<QueuedSongShortQueryDto> enqueue(UUID queueId, SongAddDto songAddDto)
-            throws QueueNotFoundException, BadYoutubeApiResponse, SongAlreadyQueued {
+    public RestResponse<QueuedSongShortQueryDto> enqueue(SongAddDto songAddDto)
+            throws BadYoutubeApiResponse, SongAlreadyQueued {
         Song song = songService.fromDto(songAddDto);
-        QueuedSong enqueued = queueService.enqueue(queueId, song);
+        QueuedSong enqueued = queueService.enqueue(queue, song);
         return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));
+    }
+
+    @Path("/queue/{songId}")
+    public QueueSongResource queueSong(UUID songId) throws SongNotQueued {
+        QueuedSong song = queueService.getQueuedSong(queue, songId);
+        return queueSongResource.of(song, user);
     }
 
     @POST
@@ -83,10 +110,9 @@ public class QueueByIdResource {
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-start-song")
-    public void start(UUID queueId)
-            throws QueueNotFoundException, CantPlayEmptyQueue {
-        queueService.start(queueId);
+    public void start()
+            throws CantPlayEmptyQueue {
+        queueService.start(queue);
     }
 
     @POST
@@ -94,10 +120,8 @@ public class QueueByIdResource {
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-stop-song")
-    public void stop(UUID queueId)
-            throws QueueNotFoundException {
-        queueService.stop(queueId);
+    public void stop() {
+        queueService.stop(queue);
     }
 
     @POST
@@ -107,53 +131,25 @@ public class QueueByIdResource {
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    @PermissionsAllowed("queue-next-song")
-    public void next(UUID queueId)
-            throws QueueNotFoundException, CantPlayEmptyQueue {
-        queueService.next(queueId);
+    public void next()
+            throws CantPlayEmptyQueue {
+        queueService.next(queue);
     }
 
-    @PermissionChecker("queue-start-song")
-    boolean canStartSong(SecurityIdentity identity, UUID queueId) {
-        QueueUser queueUser;
-        try {
-            queueUser = queueUserService.getCurrent(queueId);
-        } catch (QueueNotFoundException e) {
-            return true;
-        }
-        return queueUser.getPermissions().startSong();
+    @Path("/users/i/{userId}")
+    public QueueUserResource userById(UUID userId) throws UserNotFoundByIdException {
+        QueueUser otherUser = queueUserService.getById(queue, userId);
+        return queueUserResource.of(otherUser);
     }
 
-    @PermissionChecker("queue-stop-song")
-    boolean canStopSong(SecurityIdentity identity, UUID queueId) {
-        QueueUser queueUser;
-        try {
-            queueUser = queueUserService.getCurrent(queueId);
-        } catch (QueueNotFoundException e) {
-            return true;
-        }
-        return queueUser.getPermissions().stopSong();
+    @Path("/users/n/{userName}")
+    public QueueUserResource userByName(String userName) throws UserNotFoundByNameException {
+        QueueUser otherUser = queueUserService.getByName(queue, userName);
+        return queueUserResource.of(otherUser);
     }
 
-    @PermissionChecker("queue-next-song")
-    boolean canNextSong(SecurityIdentity identity, UUID queueId) {
-        QueueUser queueUser;
-        try {
-            queueUser = queueUserService.getCurrent(queueId);
-        } catch (QueueNotFoundException e) {
-            return true;
-        }
-        return queueUser.getPermissions().nextSong();
-    }
-
-    @PermissionChecker("queue-enqueue")
-    boolean canEnqueue(SecurityIdentity identity, UUID queueId) {
-        QueueUser queueUser;
-        try {
-            queueUser = queueUserService.getCurrent(queueId);
-        } catch (QueueNotFoundException e) {
-            return true;
-        }
-        return queueUser.getPermissions().enqueue();
+    @Path("/users/me")
+    public QueueUserResource userByName() {
+        return queueUserResource.ofMe(user);
     }
 }

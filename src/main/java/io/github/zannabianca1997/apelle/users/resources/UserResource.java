@@ -7,14 +7,14 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import io.github.zannabianca1997.apelle.users.dtos.UserQueryDto;
 import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
-import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.PermissionChecker;
-import io.quarkus.security.PermissionsAllowed;
-import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.PermitAll;
+import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -29,15 +29,29 @@ public class UserResource {
     UsersService usersService;
 
     ApelleUser user = null;
+    boolean isMe;
 
     public UserResource of(ApelleUser user) {
         this.user = user;
+        this.isMe = false;
         return this;
+    }
+
+    public UserResource ofMe(ApelleUser user) {
+        this.user = user;
+        this.isMe = true;
+        return this;
+    }
+
+    @PermitAll
+    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
+        if (user != null)
+            user = ApelleUser.getEntityManager().merge(user);
     }
 
     @GET
     @Operation(summary = "The user data", description = "Returns the data of the user")
-    @APIResponse(responseCode = "200", description = "The current user", content = {
+    @APIResponse(responseCode = "200", description = "The user", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
     public UserQueryDto get() {
@@ -45,20 +59,10 @@ public class UserResource {
     }
 
     @DELETE
-    @PermissionsAllowed("user-delete")
     @Transactional
     @Operation(summary = "Delete user", description = "Delete the user")
-    @APIResponse(responseCode = "200", description = "The current user was deleted")
+    @APIResponse(responseCode = "200", description = "The user was deleted")
     public void delete() {
         user.delete();
-    }
-
-    @PermissionChecker("user-delete")
-    boolean checkCanDelete(SecurityIdentity securityIdentity) {
-        return user.getRoles().contains(ApelleUserRole.ADMIN) || isCurrent(securityIdentity);
-    }
-
-    private boolean isCurrent(SecurityIdentity securityIdentity) {
-        return user.getId() == usersService.getCurrent().getId();
     }
 }

@@ -17,9 +17,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
 
-@WebSocket(path = "/ws/v1/queues/{queueId}")
+@WebSocket(path = "/ws/v1/queues/i/{queueId}")
 @Authenticated
-public class QueueByIdWebsocket {
+public class QueueWebsocket {
     @Inject
     EventBus eventBus;
     @Inject

@@ -130,18 +130,31 @@ public class QueueService {
     }
 
     /**
+     * Obtain a queue by code
+     * 
+     * @param queueId The id of the queue
+     * @return The found queue
+     * @throws QueueNotFoundException The queue does not exist
+     */
+    public Queue get(String queueCode) throws QueueNotFoundException {
+        Queue queue = Queue.findByCode(queueCode);
+        if (queue == null) {
+            throw new QueueNotFoundException(queueCode);
+        }
+        return queue;
+    }
+
+    /**
      * Start playing a queue
      * 
      * @param queueId The id of the queue
      * @throws QueueNotFoundException The queue does not exist
      * @throws CantPlayEmptyQueue     The queue is empty
      */
-    public void start(UUID queueId)
-            throws QueueNotFoundException, CantPlayEmptyQueue {
-        Queue queue = get(queueId);
+    public void start(Queue queue) throws CantPlayEmptyQueue {
         boolean startedNow = queue.start();
         if (startedNow) {
-            publish(QueueStartEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+            publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
             scheduleStopAtEnd(queue);
         }
     }
@@ -152,12 +165,10 @@ public class QueueService {
      * @param queueId The id on the queue
      * @throws QueueNotFoundException The queue does not exist
      */
-    public void stop(UUID queueId)
-            throws QueueNotFoundException {
-        Queue queue = get(queueId);
+    public void stop(Queue queue) {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
-            publish(QueueStopEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+            publish(QueueStopEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         }
     }
 
@@ -168,11 +179,10 @@ public class QueueService {
      * @throws QueueNotFoundException The queue does not exist
      * @throws CantPlayEmptyQueue     The queue is empty
      */
-    public void next(UUID queueId)
-            throws QueueNotFoundException, CantPlayEmptyQueue {
-        Queue queue = get(queueId);
+    public void next(Queue queue)
+            throws CantPlayEmptyQueue {
         queue.next();
-        publish(QueueNextEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+        publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         scheduleStopAtEnd(queue);
     }
 
@@ -182,17 +192,15 @@ public class QueueService {
      * @param queueId The id on the queue
      * @param song    The song to add
      * @return The queued song
-     * @throws QueueNotFoundException The queue does not exist
-     * @throws SongAlreadyQueued      The song is already in the queue
+     * @throws SongAlreadyQueued The song is already in the queue
      */
-    public QueuedSong enqueue(UUID queueId, Song song) throws QueueNotFoundException, SongAlreadyQueued {
-        Queue queue = get(queueId);
+    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueued {
         if (queue.getAllSongs().anyMatch(queued -> queued.isSame(song))) {
             throw new SongAlreadyQueued(queue.getId(), song);
         }
         QueuedSong enqueued = queue.enqueue(song);
         enqueued.persist();
-        publish(QueueEnqueueEvent.builder().queueId(queueId).state(queueMapper.toDto(queue)).build());
+        publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         return enqueued;
     }
 
@@ -270,13 +278,10 @@ public class QueueService {
         publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
     }
 
-    public QueuedSong getQueuedSong(UUID queueId, UUID songId) throws QueueNotFoundException, SongNotQueued {
-        QueuedSong queuedSong = QueuedSong.findById(queueId, songId);
+    public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueued {
+        QueuedSong queuedSong = QueuedSong.findById(queue.getId(), songId);
         if (queuedSong == null) {
-            if (!Queue.exists(queueId)) {
-                throw new QueueNotFoundException(queueId);
-            }
-            throw new SongNotQueued(queueId, songId);
+            throw new SongNotQueued(queue.getId(), songId);
         }
         return queuedSong;
     }
@@ -314,11 +319,7 @@ public class QueueService {
         Uni.combine().any().of(songEnded, stopEvent)
                 .subscribe().with(stopped -> {
                     if (!stopped) {
-                        try {
-                            stop(queueId);
-                        } catch (QueueNotFoundException e) {
-                            // Queue was deleted, nothing to do
-                        }
+                        stop(queue);
                     }
                 });
     }
