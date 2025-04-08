@@ -17,6 +17,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -24,6 +25,7 @@ import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
@@ -59,11 +61,9 @@ public class QueueResource {
     QueueUserResource queueUserResource;
 
     Queue queue = null;
-    QueueUser user = null;
 
     public QueueResource of(Queue queue) {
         this.queue = queue;
-        this.user = queueUserService.getCurrent(queue);
         return this;
     }
 
@@ -71,8 +71,6 @@ public class QueueResource {
     void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
         if (queue != null)
             queue = Queue.getEntityManager().merge(queue);
-        if (user != null)
-            user = QueueUser.getEntityManager().merge(user);
     }
 
     @GET
@@ -93,7 +91,7 @@ public class QueueResource {
     @Transactional
     @Tag(name = "Queued song")
     public RestResponse<QueuedSongShortQueryDto> enqueue(SongAddDto songAddDto)
-            throws BadYoutubeApiResponse, SongAlreadyQueued {
+            throws BadYoutubeApiResponse, SongAlreadyQueued, ActionNotPermitted {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
         return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));
@@ -102,6 +100,7 @@ public class QueueResource {
     @Path("/queue/{songId}")
     public QueueSongResource queueSong(UUID songId) throws SongNotQueued {
         QueuedSong song = queueService.getQueuedSong(queue, songId);
+        QueueUser user = queueUserService.getCurrent(queue);
         return queueSongResource.of(song, user);
     }
 
@@ -110,8 +109,7 @@ public class QueueResource {
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void start()
-            throws CantPlayEmptyQueue {
+    public void start() throws CantPlayEmptyQueue, ActionNotPermitted {
         queueService.start(queue);
     }
 
@@ -120,7 +118,7 @@ public class QueueResource {
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void stop() {
+    public void stop() throws ActionNotPermitted {
         queueService.stop(queue);
     }
 
@@ -131,8 +129,7 @@ public class QueueResource {
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void next()
-            throws CantPlayEmptyQueue {
+    public void next() throws CantPlayEmptyQueue, ActionNotPermitted {
         queueService.next(queue);
     }
 
@@ -150,6 +147,16 @@ public class QueueResource {
 
     @Path("/users/me")
     public QueueUserResource userByName() {
+        QueueUser user = queueUserService.getCurrent(queue);
         return queueUserResource.ofMe(user);
+    }
+
+    @DELETE
+    @Operation(summary = "Delete the queue", description = """
+            Delete the queue permanently""")
+    @APIResponse(responseCode = "204", description = "The queue was deleted.")
+    @Transactional
+    public void delete() throws ActionNotPermitted {
+        queueService.delete(queue);
     }
 }

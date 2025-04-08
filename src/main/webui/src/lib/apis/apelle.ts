@@ -57,6 +57,22 @@ export type Duration = string;
 
 export type Instant = string;
 
+export interface Permissions {
+	queue: Queue;
+	queueUsers: QueueUsers;
+	delete: boolean;
+}
+
+export interface Queue {
+	start: boolean;
+	stop: boolean;
+	next: boolean;
+	like: boolean;
+	enqueue: boolean;
+	remove: boolean;
+	ban: boolean;
+}
+
 /**
  * A queue of songs
  */
@@ -105,6 +121,30 @@ export interface QueueUserQueryDto {
 	likes: number;
 	/** Maximum number of likes that can be given */
 	max_likes: number;
+}
+
+export interface QueueUserRole {
+	name: string;
+	maxLikes: number;
+	permissions: Permissions;
+}
+
+export interface QueueUserRolesConfig {
+	default: string;
+	creator: string;
+	banned: string;
+	roles: string[];
+}
+
+export type QueueUsersGrantRoles = string[] | null;
+
+export type QueueUsersRemoveRoles = string[] | null;
+
+export interface QueueUsers {
+	grantRoles: QueueUsersGrantRoles;
+	removeRoles: QueueUsersRemoveRoles;
+	remove: boolean;
+	ban: boolean;
 }
 
 /**
@@ -258,6 +298,27 @@ export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
 };
 
 /**
+ * The list of all roles and the default ones.
+ * @summary Get the list of roles and the default ones
+ */
+export const getApiV1ConfigsQueueUserRoles = <TData = AxiosResponse<QueueUserRolesConfig>>(
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/configs/queue-user/roles`, options);
+};
+
+/**
+ * The extended configuration for a role.
+ * @summary Get the configuration for a role
+ */
+export const getApiV1ConfigsQueueUserRolesRoleName = <TData = AxiosResponse<QueueUserRole>>(
+	roleName: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/configs/queue-user/roles/${roleName}`, options);
+};
+
+/**
  * Create a new queue without any song inside it
  * @summary Create a new queue
  */
@@ -276,6 +337,17 @@ export const getApiV1QueuesCQueueCode = <TData = AxiosResponse<QueueQueryDto>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/v1/queues/c/${queueCode}`, options);
+};
+
+/**
+ * Delete the queue permanently
+ * @summary Delete the queue
+ */
+export const deleteApiV1QueuesCQueueCode = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/c/${queueCode}`, options);
 };
 
 /**
@@ -437,6 +509,17 @@ export const getApiV1QueuesIQueueId = <TData = AxiosResponse<QueueQueryDto>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/v1/queues/i/${queueId}`, options);
+};
+
+/**
+ * Delete the queue permanently
+ * @summary Delete the queue
+ */
+export const deleteApiV1QueuesIQueueId = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/i/${queueId}`, options);
 };
 
 /**
@@ -674,8 +757,11 @@ export const getApiV1Version = <TData = AxiosResponse<string>>(
 	return axios.get(`/api/v1/version`, options);
 };
 
+export type GetApiV1ConfigsQueueUserRolesResult = AxiosResponse<QueueUserRolesConfig>;
+export type GetApiV1ConfigsQueueUserRolesRoleNameResult = AxiosResponse<QueueUserRole>;
 export type PostApiV1QueuesResult = AxiosResponse<QueueQueryDto>;
 export type GetApiV1QueuesCQueueCodeResult = AxiosResponse<QueueQueryDto>;
+export type DeleteApiV1QueuesCQueueCodeResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
@@ -689,6 +775,7 @@ export type DeleteApiV1QueuesCQueueCodeUsersMeResult = AxiosResponse<void>;
 export type GetApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdResult = AxiosResponse<QueueQueryDto>;
+export type DeleteApiV1QueuesIQueueIdResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;

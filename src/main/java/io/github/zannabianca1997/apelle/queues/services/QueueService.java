@@ -6,12 +6,14 @@ import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.exception.ConstraintViolationException;
 
+import io.github.zannabianca1997.apelle.queues.events.QueueDeleteEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
@@ -42,6 +44,8 @@ public class QueueService {
     UsersService usersService;
     @Inject
     QueueUserRolesService queueUserRolesService;
+    @Inject
+    QueueUserService queueUserService;
 
     @Inject
     EventBus eventBus;
@@ -150,8 +154,14 @@ public class QueueService {
      * @param queueId The id of the queue
      * @throws QueueNotFoundException The queue does not exist
      * @throws CantPlayEmptyQueue     The queue is empty
+     * @throws ActionNotPermitted
      */
-    public void start(Queue queue) throws CantPlayEmptyQueue {
+    public void start(Queue queue) throws CantPlayEmptyQueue, ActionNotPermitted {
+        QueueUser user = queueUserService.getCurrent(queue);
+        if (!user.getPermissions().queue().start()) {
+            throw new ActionNotPermitted(user.getRole(), "start playing");
+        }
+
         boolean startedNow = queue.start();
         if (startedNow) {
             publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
@@ -163,9 +173,19 @@ public class QueueService {
      * Stop a playing queue
      * 
      * @param queueId The id on the queue
+     * @throws ActionNotPermitted
      * @throws QueueNotFoundException The queue does not exist
      */
-    public void stop(Queue queue) {
+    public void stop(Queue queue) throws ActionNotPermitted {
+        QueueUser user = queueUserService.getCurrent(queue);
+        if (!user.getPermissions().queue().stop()) {
+            throw new ActionNotPermitted(user.getRole(), "stop playing");
+        }
+
+        stopNoCheck(queue);
+    }
+
+    private void stopNoCheck(Queue queue) {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
             publish(QueueStopEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
@@ -178,9 +198,14 @@ public class QueueService {
      * @param queueId The id on the queue
      * @throws QueueNotFoundException The queue does not exist
      * @throws CantPlayEmptyQueue     The queue is empty
+     * @throws ActionNotPermitted
      */
-    public void next(Queue queue)
-            throws CantPlayEmptyQueue {
+    public void next(Queue queue) throws CantPlayEmptyQueue, ActionNotPermitted {
+        QueueUser user = queueUserService.getCurrent(queue);
+        if (!user.getPermissions().queue().next()) {
+            throw new ActionNotPermitted(user.getRole(), "move to next song");
+        }
+
         queue.next();
         publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         scheduleStopAtEnd(queue);
@@ -192,9 +217,15 @@ public class QueueService {
      * @param queueId The id on the queue
      * @param song    The song to add
      * @return The queued song
-     * @throws SongAlreadyQueued The song is already in the queue
+     * @throws SongAlreadyQueued  The song is already in the queue
+     * @throws ActionNotPermitted
      */
-    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueued {
+    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueued, ActionNotPermitted {
+        QueueUser user = queueUserService.getCurrent(queue);
+        if (!user.getPermissions().queue().enqueue()) {
+            throw new ActionNotPermitted(user.getRole(), "enqueue song");
+        }
+
         if (queue.getAllSongs().anyMatch(queued -> queued.isSame(song))) {
             throw new SongAlreadyQueued(queue.getId(), song);
         }
@@ -209,8 +240,9 @@ public class QueueService {
      * 
      * @param song   The song to like
      * @param userId The user liking the song
+     * @throws ActionNotPermitted
      */
-    public void like(QueuedSong song, QueueUser user) {
+    public void like(QueuedSong song, QueueUser user) throws ActionNotPermitted {
         like(song, user, (short) 1);
     }
 
@@ -220,8 +252,13 @@ public class QueueService {
      * @param song   The song to like
      * @param userId The user liking the song
      * @param count  The number of like to add
+     * @throws ActionNotPermitted
      */
-    public void like(QueuedSong song, QueueUser user, short count) {
+    public void like(QueuedSong song, QueueUser user, short count) throws ActionNotPermitted {
+        if (!user.getPermissions().queue().like()) {
+            throw new ActionNotPermitted(user.getRole(), "like song");
+        }
+
         if (count < 1) {
             // Nothing to do
             return;
@@ -286,6 +323,18 @@ public class QueueService {
         return queuedSong;
     }
 
+    public void delete(Queue queue) throws ActionNotPermitted {
+        QueueUser user = queueUserService.getCurrent(queue);
+        if (!user.getPermissions().delete()) {
+            throw new ActionNotPermitted(user.getRole(), "delete queue");
+        }
+
+        queue.delete();
+
+        // Annunce the queue was deleted
+        publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
+    }
+
     /**
      * Send a queue event.
      * 
@@ -319,7 +368,7 @@ public class QueueService {
         Uni.combine().any().of(songEnded, stopEvent)
                 .subscribe().with(stopped -> {
                     if (!stopped) {
-                        stop(queue);
+                        stopNoCheck(queue);
                     }
                 });
     }

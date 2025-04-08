@@ -49,6 +49,10 @@ public interface QueueUserRolesConfig {
             @JsonProperty(required = true)
             QueueUsers queueUsers();
 
+            @WithDefault("false")
+            @JsonProperty(required = true)
+            boolean delete();
+
             public interface Queue {
                 @WithDefault("false")
                 @JsonProperty(required = true)
