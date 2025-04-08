@@ -42,7 +42,7 @@
 			data: { id }
 		} = await postQueues();
 		// navigate to its page
-		goto(`/queues/${id}`);
+		goto(`/queues/${id}?player=true`);
 	}
 
 	async function join(queueCode: string | null) {

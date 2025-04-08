@@ -48,7 +48,15 @@
             }
         }
     },
-    "errors": {
-        "panic": "Something went wrong. Contact the administrators."
+    "backoffice": {
+        "partyName": "Party name: ",
+        "currentSong": {
+            "nothingPlaying": "Nothing currently playing"
+        },
+        "addSong": {
+            "label": "Search for a song",
+            "placeholder": "kt2mtS7VTG4",
+            "submit": "Search"
+        }
     }
 }
