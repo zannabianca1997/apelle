@@ -38,9 +38,13 @@
                 "text": "Join",
                 "id": {
                     "label": "Party code",
-                    "placeholder": " 0e75d5d3-2687-496f-8e2a-b5c52b9fa7bc "
+                    "placeholder": "HASTGA"
                 },
-                "submit": "Enter"
+                "submit": "Enter",
+                "errors": {
+                    "queueCodeRequired": "The queue code is required",
+                    "queueNotFound": "Queue {queueCode} does not exist"
+                }
             }
         }
     },

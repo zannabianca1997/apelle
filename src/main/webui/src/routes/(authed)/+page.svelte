@@ -9,17 +9,31 @@
 
 	import ExpandingButton from '$lib/components/frontoffice/ExpandingButton.svelte';
 	import { _ } from 'svelte-i18n';
-	import { postApiV1Queues as postQueues } from '$lib/apis/apelle';
+	import {
+		postApiV1Queues as postQueues,
+		getApiV1QueuesIQueueId as getQueueById,
+		getApiV1QueuesCQueueCode as getQueueByCode,
+		type Uuid
+	} from '$lib/apis/apelle';
 	import { goto } from '$app/navigation';
+	import { isUuid } from '$lib/matchers';
+	import { AxiosError } from 'axios';
+	import { error } from '$lib/errors.svelte';
 
 	let expanded: string = $state('join');
-	export const snapshot: Snapshot<{ expanded: string }> = {
-		capture: () => {
-			return {
-				expanded
-			};
-		},
-		restore: (value) => (expanded = value.expanded)
+
+	let queueCode: string | null = $state(null);
+	let queueCodeError: string | null = $state(null);
+
+	export const snapshot: Snapshot<{ expanded: string; queueCode: string | null }> = {
+		capture: () => ({
+			expanded,
+			queueCode
+		}),
+		restore: (value) => {
+			expanded = value.expanded;
+			queueCode = value.queueCode;
+		}
 	};
 
 	async function host(partyKind: 'anything') {
@@ -27,7 +41,49 @@
 		const {
 			data: { id }
 		} = await postQueues();
-		// navigate to it's page
+		// navigate to its page
+		goto(`/queues/${id}`);
+	}
+
+	async function join(queueCode: string | null) {
+		if (!queueCode) {
+			queueCodeError = $_('frontoffice.choices.join.errors.queueCodeRequired');
+			return;
+		}
+
+		let id: Uuid | null = null;
+		if (isUuid(queueCode)) {
+			try {
+				const {
+					data: { id: returnedId }
+				} = await getQueueById(queueCode);
+				id = returnedId;
+			} catch (e: unknown) {
+				if (!(e instanceof AxiosError) || e.status != 404) {
+					throw e;
+				}
+				// continue assuming it is a code that matches a uuid
+			}
+		}
+		if (!id) {
+			try {
+				const {
+					data: { id: returnedId }
+				} = await getQueueByCode(queueCode);
+				id = returnedId;
+			} catch (e: unknown) {
+				if (!(e instanceof AxiosError) || e.status != 404) {
+					throw e;
+				}
+				// This code does not exist
+				queueCodeError = $_('frontoffice.choices.join.errors.queueNotFound', {
+					values: { queueCode }
+				});
+				return;
+			}
+		}
+
+		// navigate to the queue page
 		goto(`/queues/${id}`);
 	}
 </script>
@@ -47,7 +103,12 @@
 		>
 			{#snippet icon({ size })}<IconCrown height={size} width={size} />{/snippet}
 			<form class="host">
-				<button onclick={() => host('anything')}>{$_('frontoffice.choices.host.anything')}</button>
+				<button
+					onclick={(e) => {
+						e.preventDefault();
+						host('anything');
+					}}>{$_('frontoffice.choices.host.anything')}</button
+				>
 			</form>
 		</ExpandingButton>
 		<ExpandingButton
@@ -59,10 +120,17 @@
 			{#snippet icon({ size })}<IconUserCircleOutline height={size} width={size} />{/snippet}
 			<form class="join">
 				<TextInput
+					bind:value={queueCode}
+					error={queueCodeError}
 					label={$_('frontoffice.choices.join.id.label')}
 					placeholder={$_('frontoffice.choices.join.id.placeholder')}
 				/>
-				<button>{$_('frontoffice.choices.join.submit')}</button>
+				<button
+					onclick={(e) => {
+						e.preventDefault();
+						join(queueCode);
+					}}>{$_('frontoffice.choices.join.submit')}</button
+				>
 			</form>
 		</ExpandingButton>
 	</div>
