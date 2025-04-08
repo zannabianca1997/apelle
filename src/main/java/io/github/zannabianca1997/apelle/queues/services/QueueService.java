@@ -3,9 +3,9 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.exception.ConstraintViolationException;
 
+import io.github.zannabianca1997.apelle.queues.configs.QueueCodeConfigs;
 import io.github.zannabianca1997.apelle.queues.events.QueueDeleteEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
@@ -31,9 +31,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @ApplicationScoped
 public class QueueService {
@@ -50,6 +47,12 @@ public class QueueService {
     @Inject
     EventBus eventBus;
 
+    @Inject
+    QueueCodeConfigs queueCodeConfigs;
+
+    @Inject
+    StringUtils stringUtils;
+
     /**
      * Create a new queue
      * 
@@ -64,8 +67,8 @@ public class QueueService {
          * to avoid collisions is made. If all queue codes are assigned this will bring
          * to a logaritmical growth of the code lenght, keeping it under control.
          */
-        var codeComplexity = Integer.max(minCodeComplexity,
-                codeComplexityMargin + (int) (Math.log1p(Queue.count()) / Math.log(256)));
+        var codeComplexity = Integer.max(queueCodeConfigs.complexity().min(),
+                queueCodeConfigs.complexity().margin() + (int) (Math.log1p(Queue.count()) / Math.log(256)));
 
         var queue = Queue.builder()
                 .code(generateQueueCode(codeComplexity))
@@ -98,24 +101,8 @@ public class QueueService {
         }
     }
 
-    @ConfigProperty(name = "apelle.queue.code.complexity.min", defaultValue = "3")
-    @Min(1)
-    int minCodeComplexity;
-
-    @ConfigProperty(name = "apelle.queue.code.complexity.margin", defaultValue = "1")
-    @Min(1)
-    int codeComplexityMargin;
-
-    @ConfigProperty(name = "apelle.queue.code.alphabet", defaultValue = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-    @NotBlank
-    @Size(min = 2)
-    String codeAlphabet;
-
-    @Inject
-    StringUtils stringUtils;
-
     private String generateQueueCode(int codeComplexity) {
-        return stringUtils.random(codeComplexity, codeAlphabet);
+        return stringUtils.random(codeComplexity, queueCodeConfigs.alphabet());
     }
 
     /**
