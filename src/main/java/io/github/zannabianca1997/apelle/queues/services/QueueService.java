@@ -26,6 +26,7 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
+import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -87,18 +88,13 @@ public class QueueService {
          * and try again until it succeed. As each try has about 1/256 more possibility
          * to suceed, this should very rarely exceed two tries.
          */
-        for (;; codeComplexity++) {
-            try {
-                queue.persistAndFlush();
-                return queue;
-            } catch (ConstraintViolationException ex) {
-                if (ex.getConstraintName() != Queue.CODE_UNIQUE_CONSTRAINT_NAME) {
-                    // this is another problem
-                    throw ex;
-                }
-                queue.setCode(generateQueueCode(codeComplexity));
-            }
+        while (Queue.existByCode(queue.getCode())) {
+            codeComplexity += 1;
+            queue.setCode(generateQueueCode(codeComplexity));
         }
+
+        queue.persist();
+        return queue;
     }
 
     private String generateQueueCode(int codeComplexity) {
@@ -303,7 +299,7 @@ public class QueueService {
     }
 
     public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueued {
-        QueuedSong queuedSong = QueuedSong.findById(queue.getId(), songId);
+        QueuedSong queuedSong = QueuedSong.findById(songId, queue.getId());
         if (queuedSong == null) {
             throw new SongNotQueued(queue.getId(), songId);
         }

@@ -208,4 +208,8 @@ public class Queue extends PanacheEntityBase {
     public static Queue findByCode(String queueCode) {
         return Queue.<Queue>find("code", queueCode).singleResultOptional().orElse(null);
     }
+
+    public static boolean existByCode(String queueCode) {
+        return Queue.find("code", queueCode).count() > 0;
+    }
 }
