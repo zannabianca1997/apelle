@@ -1,29 +1,56 @@
 <script lang="ts">
-	import type { QueueQueryDto } from '$lib/apis/apelle';
+	import {
+		postApiV1QueuesIQueueIdQueue as enqueueSong,
+		type QueueQueryDto
+	} from '$lib/apis/apelle';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import type { PageProps } from './$types';
 	import type { QueueUserQueryWithRoleDto } from './+page';
 	import { _ } from 'svelte-i18n';
-	import Player from '$lib/components/backoffice/Player.svelte';
+	import Player from '$lib/components/backoffice/players/Container.svelte';
+	import QueuedSongCard from '$lib/components/backoffice/QueuedSongCard.svelte';
 
 	const { data }: PageProps = $props();
 	const queue: QueueQueryDto = $state(data.queue);
 	let isPlayer: boolean = $state(data.isPlayer);
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
+
+	let songQuery: string | null = $state(null);
+
+	async function addToQueue(e: SubmitEvent) {
+		e.preventDefault();
+		const videoId = songQuery?.trim();
+		if (!videoId) {
+			return;
+		}
+		console.log(videoId);
+		enqueueSong(queue.id, { kind: 'Youtube', video_id: videoId });
+	}
 </script>
 
 <main>
 	{#if isPlayer}
 		<Player current={queue.current} />
 	{/if}
-	<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
-	<form>
-		<TextInput
-			label={$_('backoffice.addSong.label')}
-			placeholder={$_('backoffice.addSong.placeholder')}
-		/>
-		<button>{$_('backoffice.addSong.submit')}</button>
-	</form>
+	<section>
+		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
+		<form onsubmit={addToQueue}>
+			<TextInput
+				bind:value={songQuery}
+				label={$_('backoffice.addSong.label')}
+				placeholder={$_('backoffice.addSong.placeholder')}
+			/>
+			<button>{$_('backoffice.addSong.submit')}</button>
+		</form>
+	</section>
+	<section>
+		<h1>Queue</h1>
+		<ol class="queue">
+			{#each queue.queue as song (song.id)}
+				<QueuedSongCard {song} queue={queue.id} />
+			{/each}
+		</ol>
+	</section>
 </main>
 
 <style lang="scss">
@@ -46,6 +73,7 @@
 				color: white;
 			}
 		}
+
 		form {
 			width: 100%;
 
@@ -75,6 +103,12 @@
 
 				cursor: pointer;
 			}
+		}
+
+		ol.queue {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
 		}
 	}
 </style>

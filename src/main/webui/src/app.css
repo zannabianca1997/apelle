@@ -13,6 +13,7 @@ body,
 html {
     height: 100%;
     width: 100%;
+    overflow:scroll;
 }
 
 body {
@@ -23,11 +24,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 118px;
 
     background: linear-gradient(#0A0A0A, #2B2B2B);
 
     color: #FFFFFF;
     font-family: 'DM Sans';
+
 }

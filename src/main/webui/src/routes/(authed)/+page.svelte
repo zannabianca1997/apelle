@@ -18,7 +18,6 @@
 	import { goto } from '$app/navigation';
 	import { isUuid } from '$lib/matchers';
 	import { AxiosError } from 'axios';
-	import { error } from '$lib/errors.svelte';
 
 	let expanded: string = $state('join');
 
