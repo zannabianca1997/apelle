@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -33,6 +34,7 @@ public class SongQueryDto {
     @NonNull
     @JsonProperty(required = true)
     @Schema(description = "Duration of the song")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Duration duration;
 
     @NonNull
