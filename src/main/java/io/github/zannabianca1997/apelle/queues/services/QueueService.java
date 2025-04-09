@@ -3,8 +3,6 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.hibernate.exception.ConstraintViolationException;
-
 import io.github.zannabianca1997.apelle.queues.configs.QueueCodeConfigs;
 import io.github.zannabianca1997.apelle.queues.events.QueueDeleteEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
@@ -26,7 +24,6 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
-import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
