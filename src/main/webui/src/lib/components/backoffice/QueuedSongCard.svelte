@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { QueuedSongQueryDto, QueuedSongShortQueryDto, Uuid } from '$lib/apis/apelle';
 	import { getApiV1QueuesIQueueIdQueueSongId as getFullSong } from '$lib/apis/apelle';
-	import {} from 'dayjs';
+	import { dayjs } from '$lib/time';
+	import { _ } from 'svelte-i18n';
 
 	const {
 		queue,
@@ -22,7 +23,7 @@
 	<div class="iframePlaceholder"></div>
 	<div class="card">
 		<h2>{song.name}</h2>
-		<h3>{song.duration}</h3>
+		<h3>{dayjs.duration(song.duration).format($_('backoffice.song.durationFormat'))}</h3>
 	</div>
 </li>
 

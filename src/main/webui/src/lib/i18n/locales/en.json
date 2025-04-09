@@ -57,6 +57,9 @@
             "label": "Search for a song",
             "placeholder": "kt2mtS7VTG4",
             "submit": "Search"
+        },
+        "song": {
+            "durationFormat": "HH:mm:ss"
         }
     }
 }
