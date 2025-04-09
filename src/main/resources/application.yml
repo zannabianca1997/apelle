@@ -64,11 +64,9 @@ quarkus:
     store-schema-file-name: apelle
   swagger-ui:
     deep-linking: true
+  # Frontend integration
   quinoa:
     build-dir: build
-    package-manager-install:
-      npm-version: 11.0.0
-      node-version: 23.6.0
     enable-spa-routing: true
 
 # Setup during Dev
