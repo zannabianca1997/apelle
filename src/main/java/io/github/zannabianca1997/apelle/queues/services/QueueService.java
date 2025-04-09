@@ -24,6 +24,7 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -332,17 +333,15 @@ public class QueueService {
      * @param queue The queue to stop
      */
     private void scheduleStopAtEnd(Queue queue) {
-        final UUID queueId = queue.getId();
         // Fire when the song would end
         Uni<Boolean> songEnded = Uni.createFrom().voidItem()
                 .onItem().delayIt().by(queue.getCurrent().timeLeft())
                 .replaceWith(false);
         // Fire if something stop the song
-        Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queueId.toString())
+        Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queue.getId().toString())
                 .toMulti()
                 .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
-                .filter(event -> event instanceof QueueStopEvent)
-                .onItem().castTo(QueueStopEvent.class)
+                .filter(QueueEvent::preventsAutoStop)
                 .toUni().replaceWith(true);
         // On song completion, if nothing stopped it before, stop the song
         Uni.combine().any().of(songEnded, stopEvent)
@@ -351,6 +350,12 @@ public class QueueService {
                         stopNoCheck(queue);
                     }
                 });
+    }
+
+    public Multi<QueueEvent> events(Queue queue) {
+        return eventBus.<JsonObject>consumer(queue.getId().toString())
+                .toMulti()
+                .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class));
     }
 
 }

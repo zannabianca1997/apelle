@@ -13,4 +13,8 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 public final class QueueDeleteEvent extends QueueEvent {
+    @Override
+    public boolean preventsAutoStop() {
+        return true;
+    }
 }

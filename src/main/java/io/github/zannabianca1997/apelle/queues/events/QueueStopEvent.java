@@ -15,4 +15,9 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public final class QueueStopEvent extends QueueEvent {
     private QueueQueryDto state;
+
+    @Override
+    public boolean preventsAutoStop() {
+        return true;
+    }
 }

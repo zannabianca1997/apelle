@@ -20,4 +20,10 @@ public abstract class QueueEvent {
      */
     @NonNull
     private UUID queueId;
+
+    /**
+     * 
+     * @return If this event prevents the autostop of a running queue
+     */
+    public abstract boolean preventsAutoStop();
 }

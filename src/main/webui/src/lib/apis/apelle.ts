@@ -66,6 +66,30 @@ export interface Queue {
 	ban: boolean;
 }
 
+export type QueueDeleteEventDtoKind =
+	(typeof QueueDeleteEventDtoKind)[keyof typeof QueueDeleteEventDtoKind];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const QueueDeleteEventDtoKind = {
+	'queue-state': 'queue-state'
+} as const;
+
+/**
+ * Signal that the queue was deleted.
+
+This message also signal the closure of the event stream.
+ */
+export interface QueueDeleteEventDto {
+	kind?: QueueDeleteEventDtoKind;
+}
+
+/**
+ * A message from the server.
+
+The `kind` property discriminates between the different messages.
+ */
+export type QueueEventDto = QueueStateEventDto | QueueDeleteEventDto;
+
 /**
  * A queue of songs
  */
@@ -80,11 +104,11 @@ export interface QueueQueryDto {
 	queue: QueuedSongShortQueryDto[];
 }
 
-export type QueueStateMessageKind =
-	(typeof QueueStateMessageKind)[keyof typeof QueueStateMessageKind];
+export type QueueStateEventDtoKind =
+	(typeof QueueStateEventDtoKind)[keyof typeof QueueStateEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const QueueStateMessageKind = {
+export const QueueStateEventDtoKind = {
 	'queue-state': 'queue-state'
 } as const;
 
@@ -93,8 +117,8 @@ export const QueueStateMessageKind = {
 
 After receiving this message a client must assume the queue is in the provided state.
  */
-export interface QueueStateMessage {
-	kind?: QueueStateMessageKind;
+export interface QueueStateEventDto {
+	kind?: QueueStateEventDtoKind;
 	queue?: QueueQueryDto;
 }
 
@@ -177,13 +201,6 @@ export interface QueuedSongShortQueryDto {
 }
 
 /**
- * A message from the server.
-
-The `kind` property discriminates between the different messages.
- */
-export type ServerMessage = QueueStateMessage | UnknowQueueMessage;
-
-/**
  * Data defining a song to add
  */
 export type SongAddDto = YoutubeSongAddDto;
@@ -215,27 +232,6 @@ export interface SongQueryDto {
  * @pattern [a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}
  */
 export type Uuid = string;
-
-export type UnknowQueueMessageKind =
-	(typeof UnknowQueueMessageKind)[keyof typeof UnknowQueueMessageKind];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UnknowQueueMessageKind = {
-	'unknow-queue': 'unknow-queue'
-} as const;
-
-/**
- * The queue id is invalid.
-
-Either the queue does not exist, it was cancelled.
-
-After this message the socket will be closed.
-
- */
-export interface UnknowQueueMessage {
-	kind?: UnknowQueueMessageKind;
-	queueId?: string;
-}
 
 /**
  * User creation data
@@ -341,6 +337,16 @@ export const deleteApiV1QueuesCQueueCode = <TData = AxiosResponse<void>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.delete(`/api/v1/queues/c/${queueCode}`, options);
+};
+
+/**
+ * @summary Obtain a stream of events regarding this queue.
+ */
+export const getApiV1QueuesCQueueCodeEvents = <TData = AxiosResponse<QueueEventDto[]>>(
+	queueCode: string,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/c/${queueCode}/events`, options);
 };
 
 /**
@@ -513,6 +519,16 @@ export const deleteApiV1QueuesIQueueId = <TData = AxiosResponse<void>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.delete(`/api/v1/queues/i/${queueId}`, options);
+};
+
+/**
+ * @summary Obtain a stream of events regarding this queue.
+ */
+export const getApiV1QueuesIQueueIdEvents = <TData = AxiosResponse<QueueEventDto[]>>(
+	queueId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/i/${queueId}/events`, options);
 };
 
 /**
@@ -755,6 +771,7 @@ export type GetApiV1ConfigsQueueUserRolesRoleNameResult = AxiosResponse<QueueUse
 export type PostApiV1QueuesResult = AxiosResponse<QueueQueryDto>;
 export type GetApiV1QueuesCQueueCodeResult = AxiosResponse<QueueQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeResult = AxiosResponse<void>;
+export type GetApiV1QueuesCQueueCodeEventsResult = AxiosResponse<QueueEventDto[]>;
 export type PostApiV1QueuesCQueueCodeNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
@@ -769,6 +786,7 @@ export type GetApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<QueueUs
 export type DeleteApiV1QueuesCQueueCodeUsersNUserNameResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdResult = AxiosResponse<QueueQueryDto>;
 export type DeleteApiV1QueuesIQueueIdResult = AxiosResponse<void>;
+export type GetApiV1QueuesIQueueIdEventsResult = AxiosResponse<QueueEventDto[]>;
 export type PostApiV1QueuesIQueueIdNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;

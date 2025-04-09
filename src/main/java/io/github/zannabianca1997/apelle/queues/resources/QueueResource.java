@@ -8,8 +8,10 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.RestStreamElementType;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.mutiny.Multi;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
@@ -21,14 +23,18 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
+import io.github.zannabianca1997.apelle.queues.dtos.events.QueueEventDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
+import io.github.zannabianca1997.apelle.queues.mappers.EventMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
@@ -50,11 +56,15 @@ public class QueueResource {
     @Inject
     SongMapper songMapper;
     @Inject
+    EventMapper eventMapper;
+
+    @Inject
     QueueService queueService;
     @Inject
     SongService songService;
     @Inject
     QueueUserService queueUserService;
+
     @Inject
     QueueSongResource queueSongResource;
     @Inject
@@ -158,5 +168,13 @@ public class QueueResource {
     @Transactional
     public void delete() throws ActionNotPermitted {
         queueService.delete(queue);
+    }
+
+    @GET
+    @RestStreamElementType(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Obtain a stream of events regarding this queue.")
+    @Path("/events")
+    public Multi<QueueEventDto> events() {
+        return queueService.events(queue).map(eventMapper::toDto);
     }
 }
