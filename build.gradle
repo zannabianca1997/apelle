@@ -13,8 +13,7 @@ dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     
     implementation 'io.quarkus:quarkus-config-yaml'
-
-    implementation 'io.quarkus:quarkus-websockets-next'
+    
     implementation 'io.quarkus:quarkus-vertx'
 
     implementation 'io.quarkus:quarkus-rest-jackson'
