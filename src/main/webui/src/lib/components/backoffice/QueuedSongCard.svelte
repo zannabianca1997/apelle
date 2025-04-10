@@ -120,6 +120,7 @@
 
 			em {
 				color: #379b46;
+				font-style: normal;
 			}
 		}
 	}

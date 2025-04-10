@@ -116,9 +116,10 @@
 			--input-flex-grow: 1;
 
 			button {
-				width: 100px;
-				border: 1px solid white;
+				width: 175px;
 				height: 48px;
+				top: 26px;
+				left: 758px;
 				border-radius: 4px;
 				padding-top: 6px;
 				padding-right: 12px;
@@ -130,8 +131,10 @@
 				line-height: 100%;
 				letter-spacing: 0%;
 
+				text-transform: uppercase;
+
 				color: white;
-				background-color: transparent;
+				background: #911616;
 
 				cursor: pointer;
 			}
