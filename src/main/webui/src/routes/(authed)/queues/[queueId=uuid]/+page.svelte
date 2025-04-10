@@ -13,6 +13,7 @@
 	import { source } from 'sveltekit-sse';
 	import authService from '$lib/auth.svelte';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	const { data }: PageProps = $props();
 
@@ -23,31 +24,33 @@
 
 	let songQuery: string | null = $state(null);
 
-	source(`/api/v1/queues/i/${queueId}/events`, {
-		options: {
-			method: 'GET',
-			headers: {
-				Authorization:
-					'Basic ' + btoa(`${authService.userData?.username}:${authService.userData?.password}`)
+	onMount(() =>
+		source(`/api/v1/queues/i/${queueId}/events`, {
+			options: {
+				method: 'GET',
+				headers: {
+					Authorization:
+						'Basic ' + btoa(`${authService.userData?.username}:${authService.userData?.password}`)
+				}
 			}
-		}
-	})
-		.select('')
-		.json<QueueEventDto | null>()
-		.subscribe((event) => {
-			if (!event) {
-				return;
-			}
+		})
+			.select('')
+			.json<QueueEventDto | null>()
+			.subscribe((event) => {
+				if (!event) {
+					return;
+				}
 
-			switch (event.kind) {
-				case 'queue-state':
-					queue = event.queue;
-					break;
-				case 'queue-delete':
-					goto('/');
-					break;
-			}
-		});
+				switch (event.kind) {
+					case 'queue-state':
+						queue = event.queue;
+						break;
+					case 'queue-delete':
+						goto('/');
+						break;
+				}
+			})
+	);
 
 	async function addToQueue(e: SubmitEvent) {
 		e.preventDefault();
@@ -62,18 +65,20 @@
 
 <main>
 	{#if isPlayer}
-		<Player {queueId} current={queue.current} {user} />
+		<Player {queueId} bind:current={queue.current} {user} />
 	{/if}
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
-		<form onsubmit={addToQueue}>
-			<TextInput
-				bind:value={songQuery}
-				label={$_('backoffice.addSong.label')}
-				placeholder={$_('backoffice.addSong.placeholder')}
-			/>
-			<button>{$_('backoffice.addSong.submit')}</button>
-		</form>
+		{#if user.queue_role.permissions.queue.enqueue}
+			<form onsubmit={addToQueue}>
+				<TextInput
+					bind:value={songQuery}
+					label={$_('backoffice.addSong.label')}
+					placeholder={$_('backoffice.addSong.placeholder')}
+				/>
+				<button>{$_('backoffice.addSong.submit')}</button>
+			</form>
+		{/if}
 	</section>
 	<section>
 		<h1>{$_('backoffice.queue.title')}</h1>

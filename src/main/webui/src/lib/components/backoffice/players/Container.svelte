@@ -13,9 +13,9 @@
 	import IconPause from '~icons/mdi/pause';
 	import IconNext from '~icons/mdi/skip-next';
 
-	const {
+	let {
 		queueId,
-		current,
+		current = $bindable(),
 		user
 	}: { queueId: Uuid; current?: CurrentSongQueryDto; user: QueueUserQueryWithRoleDto } = $props();
 
@@ -32,17 +32,21 @@
 
 <section>
 	{#if current}
-		<Player {current} />
+		<Player bind:current />
 	{:else}
 		<h1>{$_('backoffice.currentSong.nothingPlaying')}</h1>
 	{/if}
 	<div class="playControls">
 		{#if !current || current.stopped}
-			<button onclick={start}><IconPlay height={75} width={75} /></button>
-		{:else}
+			{#if user.queue_role.permissions.queue.start}
+				<button onclick={start}><IconPlay height={75} width={75} /></button>
+			{/if}
+		{:else if user.queue_role.permissions.queue.stop}
 			<button onclick={stop}><IconPause height={75} width={75} /></button>
 		{/if}
-		<button onclick={next}><IconNext height={75} width={75} /></button>
+		{#if user.queue_role.permissions.queue.next}
+			<button onclick={next}><IconNext height={75} width={75} /></button>
+		{/if}
 	</div>
 </section>
 
