@@ -113,9 +113,8 @@ public class Likes extends PanacheEntityBase {
         return findById(new Link(user, song.getQueue(), song.getSong(), givenAt));
     }
 
-    public static Likes findOldests(UUID user, QueuedSong.Link song) {
-        return find("user_id = ?1 AND queue_id = ?2 AND song_id = ?3 ORDER BY given_at ASC",
-                user, song.getQueue(), song.getSong())
+    public static Likes findOldests(QueueUser user) {
+        return find("user = ?1 AND queue = ?2 AND count > 0 ORDER BY link.givenAt ASC", user.getUser(), user.getQueue())
                 .firstResult();
     }
 

@@ -254,7 +254,7 @@ public class QueueService {
         int toRemove = Math.max(count - (user.getMaxLikes() - user.getLikes()), 0);
         while (toRemove > 0) {
             // Find the oldest group of likes
-            Likes oldests = Likes.findOldests(user.getUser().getId(), song.getLink());
+            Likes oldests = Likes.findOldests(user);
 
             // calculate how many to remove
             var removing = Math.min(toRemove, oldests.getCount());
@@ -268,7 +268,7 @@ public class QueueService {
 
             // Remove likes from the queue in memory
             QueuedSong removingFrom = queue.getQueuedSongs().stream()
-                    .filter(song2 -> song2.getLink().getSong() == oldests.getLink().getSong())
+                    .filter(song2 -> song2.getLink().getSong().equals(oldests.getLink().getSong()))
                     .findAny().orElseThrow();
             removingFrom.setLikes((short) (removingFrom.getLikes() - removing));
         }
@@ -285,7 +285,7 @@ public class QueueService {
 
         // Adding likes to the queue in memory
         QueuedSong addingTo = queue.getQueuedSongs().stream()
-                .filter(song2 -> song2.getLink().getSong() == song.getLink().getSong())
+                .filter(song2 -> song2.getLink().getSong().equals(song.getLink().getSong()))
                 .findAny().orElseThrow();
         addingTo.setLikes((short) (addingTo.getLikes() + count));
 

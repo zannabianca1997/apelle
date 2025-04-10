@@ -12,7 +12,7 @@ apelle:
         # Config of the roles
         roles:
           PLAYER:
-            max-likes: 32767
+            max-likes: 4
             permissions:
               queue:
                 start: true
