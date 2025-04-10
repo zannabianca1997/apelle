@@ -140,6 +140,7 @@
 		table.queue {
 			width: 100%;
 			table-layout: fixed;
+			border-spacing: 12px;
 		}
 	}
 </style>
