@@ -82,6 +82,15 @@ quarkus:
         port: 3000
     smallrye-openapi:
       info-title: Apelle API (development)
+# Setup in prod
+"%prod":
+  quarkus:
+    flyway:
+      migrate-at-start: true
+    hibernate-orm:
+      database:
+        generation: none
+      sql-load-script: no-file
 # Setup during tests
 "%test":
   quarkus:
