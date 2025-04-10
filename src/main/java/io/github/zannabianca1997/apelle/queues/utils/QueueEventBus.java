@@ -1,5 +1,7 @@
 package io.github.zannabianca1997.apelle.queues.utils;
 
+import java.util.UUID;
+
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.smallrye.mutiny.Multi;
@@ -20,6 +22,22 @@ public class QueueEventBus {
     EventBus eventBus;
 
     /**
+     * Calculate the address to send a queue event to
+     * 
+     * @param queueId The id of the target queue
+     * @return The calculated address
+     */
+    private static String address(UUID queueId) {
+        var builder = new StringBuilder();
+        // Start each queue get its own ID
+        builder.append(queueId);
+        builder.append('@');
+        // Use the full qualified class name to avoid collisions with other event buses
+        builder.append(QueueEventBus.class.getName());
+        return builder.toString();
+    }
+
+    /**
      * Send a queue event.
      * 
      * The event is published on the address equal to the queue ID.
@@ -27,7 +45,7 @@ public class QueueEventBus {
      * @param event The event to publish
      */
     public void publish(QueueEvent event) {
-        eventBus.publish(event.getQueueId().toString(), JsonObject.mapFrom(event));
+        eventBus.publish(address(event.getQueueId()), JsonObject.mapFrom(event));
     }
 
     /**
@@ -37,7 +55,7 @@ public class QueueEventBus {
      * @return A stream of events
      */
     public Multi<QueueEvent> events(Queue queue) {
-        return eventBus.<JsonObject>consumer(queue.getId().toString())
+        return eventBus.<JsonObject>consumer(address(queue.getId()))
                 .toMulti().map(message -> message.body().mapTo(QueueEvent.class));
     }
 }

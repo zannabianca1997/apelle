@@ -62,7 +62,7 @@
 
 <main>
 	{#if isPlayer}
-		<Player current={queue.current} {user} />
+		<Player {queueId} current={queue.current} {user} />
 	{/if}
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>

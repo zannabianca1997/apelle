@@ -1,5 +1,11 @@
 <script lang="ts">
-	import type { CurrentSongQueryDto } from '$lib/apis/apelle';
+	import type { Uuid } from '$lib/apis/apelle.ts';
+	import {
+		type CurrentSongQueryDto,
+		postApiV1QueuesIQueueIdStart as postStart,
+		postApiV1QueuesIQueueIdStop as postStop,
+		postApiV1QueuesIQueueIdNext as postNext
+	} from '$lib/apis/apelle';
 	import { _ } from 'svelte-i18n';
 	import Player from './Player.svelte';
 	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
@@ -7,8 +13,21 @@
 	import IconPause from '~icons/mdi/pause';
 	import IconNext from '~icons/mdi/skip-next';
 
-	const { current, user }: { current?: CurrentSongQueryDto; user: QueueUserQueryWithRoleDto } =
-		$props();
+	const {
+		queueId,
+		current,
+		user
+	}: { queueId: Uuid; current?: CurrentSongQueryDto; user: QueueUserQueryWithRoleDto } = $props();
+
+	async function start() {
+		await postStart(queueId);
+	}
+	async function stop() {
+		await postStop(queueId);
+	}
+	async function next() {
+		await postNext(queueId);
+	}
 </script>
 
 <section>
@@ -19,11 +38,11 @@
 	{/if}
 	<div class="playControls">
 		{#if !current || current.stopped}
-			<button><IconPlay height={75} width={75} /></button>
+			<button onclick={start}><IconPlay height={75} width={75} /></button>
 		{:else}
-			<button><IconPause height={75} width={75} /></button>
+			<button onclick={stop}><IconPause height={75} width={75} /></button>
 		{/if}
-		<button><IconNext height={75} width={75} /></button>
+		<button onclick={next}><IconNext height={75} width={75} /></button>
 	</div>
 </section>
 
