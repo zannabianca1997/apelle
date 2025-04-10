@@ -21,8 +21,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongQueryDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
-import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
-import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
@@ -66,8 +64,8 @@ public class QueueSongResource {
     @APIResponse(responseCode = "200", description = "The queued song", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
     })
-    public QueuedSongQueryDto get() throws QueueNotFoundException, SongNotQueued {
-        return songMapper.toDto(song);
+    public QueuedSongQueryDto get() {
+        return songMapper.toDto(song, queueUserService.likes(user, song));
     }
 
     @POST
@@ -81,7 +79,7 @@ public class QueueSongResource {
     @Parameter(name = "count", description = "How many time to like the song. If negative, nothing will happen.")
     @Transactional
     public void like(@QueryParam("count") @DefaultValue("1") short count)
-            throws SongNotQueued, QueueNotFoundException, ActionNotPermitted {
+            throws ActionNotPermitted {
         queueService.like(song, user, count);
     }
 

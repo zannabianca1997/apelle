@@ -33,10 +33,10 @@ public abstract class SongMapper {
     @Mapping(source = "song.uri", target = "url")
     public abstract QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong);
 
-    @Mapping(source = "likes", target = "likes")
-    @Mapping(source = "song", target = ".")
-    @Mapping(source = "song.uri", target = "url")
-    public abstract QueuedSongQueryDto toDto(QueuedSong queuedSong);
+    @Mapping(source = "queuedSong.likes", target = "likes")
+    @Mapping(source = "queuedSong.song", target = ".")
+    @Mapping(source = "queuedSong.song.uri", target = "url")
+    public abstract QueuedSongQueryDto toDto(QueuedSong queuedSong, short userLikes);
 
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")

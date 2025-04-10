@@ -3,8 +3,10 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
+import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
+import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
@@ -86,5 +88,9 @@ public class QueueUserService {
             throw new ActionNotPermitted(current.getRole(), "remove user");
         }
         user.delete();
+    }
+
+    public short likes(QueueUser user, QueuedSong song) {
+        return Likes.givenBy(user.getUser().getId(), song.getLink());
     }
 }

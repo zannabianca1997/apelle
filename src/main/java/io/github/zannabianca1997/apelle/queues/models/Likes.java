@@ -11,6 +11,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ import lombok.NonNull;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "likes")
+@NamedNativeQuery(name = "Likes.countUserLikes", query = "SELECT COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = :queue_id AND l.song_id = :song_id AND l.user_id = :user_id), 0)", resultClass = Short.class)
 /// A number of likes given on a song
 public class Likes extends PanacheEntityBase {
 
@@ -89,9 +91,10 @@ public class Likes extends PanacheEntityBase {
      */
     @Builder
     public Likes(
-            ApelleUser user, QueuedSong song, Instant givenAt, short count) {
+            @NonNull ApelleUser user, @NonNull QueuedSong song, Instant givenAt, short count) {
         this();
-        this.link = new Link(null, null, null, givenAt);
+        this.link = new Link(user.getId(), song.getLink().getQueue(), song.getLink().getSong(),
+                givenAt != null ? givenAt : Instant.now());
         this.user = user;
         this.queue = song.getQueue();
         this.song = song.getSong();
@@ -114,6 +117,15 @@ public class Likes extends PanacheEntityBase {
         return find("user_id = ?1 AND queue_id = ?2 AND song_id = ?3 ORDER BY given_at ASC",
                 user, song.getQueue(), song.getSong())
                 .firstResult();
+    }
+
+    public static short givenBy(UUID user, QueuedSong.Link song) {
+        return getSession()
+                .createNamedQuery("Likes.countUserLikes", Short.class)
+                .setParameter("queue_id", song.getQueue())
+                .setParameter("song_id", song.getSong())
+                .setParameter("user_id", user)
+                .getSingleResult();
     }
 
     public static long deleteReferringTo(QueuedSong.Link link) {
