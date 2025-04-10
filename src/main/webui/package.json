@@ -31,6 +31,7 @@
         "sass": "^1.86.0",
         "svelte": "^5.25.3",
         "svelte-check": "^4.0.0",
+        "sveltekit-sse": "^0.13.16",
         "typescript": "^5.0.0",
         "typescript-eslint": "^8.20.0",
         "unplugin-icons": "^22.1.0",

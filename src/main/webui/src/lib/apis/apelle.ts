@@ -71,7 +71,7 @@ export type QueueDeleteEventDtoKind =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueueDeleteEventDtoKind = {
-	'queue-state': 'queue-state'
+	'queue-delete': 'queue-delete'
 } as const;
 
 /**
@@ -80,7 +80,7 @@ export const QueueDeleteEventDtoKind = {
 This message also signal the closure of the event stream.
  */
 export interface QueueDeleteEventDto {
-	kind?: QueueDeleteEventDtoKind;
+	kind: QueueDeleteEventDtoKind;
 }
 
 /**
@@ -118,8 +118,8 @@ export const QueueStateEventDtoKind = {
 After receiving this message a client must assume the queue is in the provided state.
  */
 export interface QueueStateEventDto {
-	kind?: QueueStateEventDtoKind;
-	queue?: QueueQueryDto;
+	kind: QueueStateEventDtoKind;
+	queue: QueueQueryDto;
 }
 
 /**

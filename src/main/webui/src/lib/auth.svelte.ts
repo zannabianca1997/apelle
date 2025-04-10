@@ -30,6 +30,8 @@ export interface AuthService {
 	 * Check if the current user is authenticated.
 	 */
 	authenticated(): boolean;
+
+	get userData(): UserData | null;
 }
 
 class AuthServiceBrowser implements AuthService {
@@ -163,15 +165,18 @@ class AuthServiceBrowser implements AuthService {
  */
 class AuthServiceStub implements AuthService {
 	public async signin(): Promise<void> {
-		return Promise.reject(new Error('Auth is not implemented outside the browser'));
+		throw new Error('Auth is not implemented outside the browser');
 	}
 	public async signup(): Promise<void> {
-		return Promise.reject(new Error('Auth is not implemented outside the browser'));
+		throw new Error('Auth is not implemented outside the browser');
 	}
 	public async signout(): Promise<void> {
-		return Promise.reject(new Error('Auth is not implemented outside the browser'));
+		throw new Error('Auth is not implemented outside the browser');
 	}
 	public authenticated(): boolean {
+		throw new Error('Auth is not implemented outside the browser');
+	}
+	get userData(): UserData | null {
 		throw new Error('Auth is not implemented outside the browser');
 	}
 }

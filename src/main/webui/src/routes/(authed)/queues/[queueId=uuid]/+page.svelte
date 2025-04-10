@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		postApiV1QueuesIQueueIdQueue as enqueueSong,
+		type QueueEventDto,
 		type QueueQueryDto
 	} from '$lib/apis/apelle';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
@@ -9,13 +10,44 @@
 	import { _ } from 'svelte-i18n';
 	import Player from '$lib/components/backoffice/players/Container.svelte';
 	import QueuedSongCard from '$lib/components/backoffice/QueuedSongCard.svelte';
+	import { source } from 'sveltekit-sse';
+	import authService from '$lib/auth.svelte';
+	import { goto } from '$app/navigation';
 
 	const { data }: PageProps = $props();
-	const queue: QueueQueryDto = $state(data.queue);
+
+	const queueId = data.queue.id;
+	let queue: QueueQueryDto = $state(data.queue);
 	let isPlayer: boolean = $state(data.isPlayer);
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
 
 	let songQuery: string | null = $state(null);
+
+	source(`/api/v1/queues/i/${queueId}/events`, {
+		options: {
+			method: 'GET',
+			headers: {
+				Authorization:
+					'Basic ' + btoa(`${authService.userData?.username}:${authService.userData?.password}`)
+			}
+		}
+	})
+		.select('')
+		.json<QueueEventDto | null>()
+		.subscribe((event) => {
+			if (!event) {
+				return;
+			}
+
+			switch (event.kind) {
+				case 'queue-state':
+					queue = event.queue;
+					break;
+				case 'queue-delete':
+					goto('/');
+					break;
+			}
+		});
 
 	async function addToQueue(e: SubmitEvent) {
 		e.preventDefault();
@@ -23,8 +55,7 @@
 		if (!videoId) {
 			return;
 		}
-		console.log(videoId);
-		enqueueSong(queue.id, { kind: 'Youtube', video_id: videoId });
+		enqueueSong(queueId, { kind: 'Youtube', video_id: videoId });
 	}
 </script>
 

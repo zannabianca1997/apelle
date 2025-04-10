@@ -21,7 +21,7 @@ import lombok.extern.jackson.Jacksonized;
 
         This message also signal the closure of the event stream.""", properties = {
         @SchemaProperty(name = "kind", type = SchemaType.STRING, enumeration = { QueueDeleteEventDto.JSON_TYPE_NAME })
-})
+}, requiredProperties = { "kind" })
 public final class QueueDeleteEventDto extends QueueEventDto {
     final static String JSON_TYPE_NAME = "queue-delete";
 }

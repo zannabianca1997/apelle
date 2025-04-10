@@ -23,13 +23,13 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueueEventDto;
+import io.github.zannabianca1997.apelle.queues.dtos.events.QueueStateEventDto;
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
@@ -175,6 +175,7 @@ public class QueueResource {
     @Operation(summary = "Obtain a stream of events regarding this queue.")
     @Path("/events")
     public Multi<QueueEventDto> events() {
-        return queueService.events(queue).map(eventMapper::toDto);
+        return Multi.createFrom().<QueueEventDto>item(QueueStateEventDto.builder().queue(get()).build())
+                .onCompletion().switchTo(queueService.events(queue).map(eventMapper::toDto));
     }
 }

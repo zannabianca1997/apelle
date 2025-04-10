@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
         A message from the server.
 
         The `kind` property discriminates between the different messages.""", oneOf = { QueueStateEventDto.class,
-        QueueDeleteEventDto.class })
+        QueueDeleteEventDto.class }, requiredProperties = { "kind" })
 public abstract class QueueEventDto {
 
 }

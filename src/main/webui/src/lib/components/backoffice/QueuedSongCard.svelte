@@ -12,10 +12,11 @@
 		song: QueuedSongShortQueryDto;
 	} = $props();
 
+	const songId = songShort.id;
 	let song: QueuedSongShortQueryDto | QueuedSongQueryDto = $state(songShort);
 
 	$effect(() => {
-		getFullSong(queue, song.id).then(({ data }) => (song = data));
+		getFullSong(queue, songId).then(({ data }) => (song = data));
 	});
 </script>
 
