@@ -6,7 +6,7 @@
 	} from '$lib/apis/apelle';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import type { PageProps } from './$types';
-	import type { QueueUserQueryWithRoleDto } from './+page';
+	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
 	import { _ } from 'svelte-i18n';
 	import Player from '$lib/components/backoffice/players/Container.svelte';
 	import QueuedSongCard from '$lib/components/backoffice/QueuedSongCard.svelte';
@@ -62,7 +62,7 @@
 
 <main>
 	{#if isPlayer}
-		<Player current={queue.current} />
+		<Player current={queue.current} {user} />
 	{/if}
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
@@ -132,6 +132,7 @@
 				letter-spacing: 0%;
 
 				text-transform: uppercase;
+				border: 0;
 
 				color: white;
 				background: #911616;

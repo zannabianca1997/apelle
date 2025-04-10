@@ -26,4 +26,8 @@
 
 		background-color: #d6d6d6;
 	}
+
+	.card {
+		flex-grow: 1;
+	}
 </style>

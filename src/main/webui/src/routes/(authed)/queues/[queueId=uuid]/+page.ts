@@ -3,16 +3,12 @@ import {
 	getApiV1QueuesIQueueIdUsersMe as getQueueUser,
 	getApiV1ConfigsQueueUserRolesRoleName as getRoleConfig,
 	type QueueQueryDto,
-	type QueueUserQueryDto,
-	type QueueUserRole
+	type QueueUserQueryDto
 } from '$lib/apis/apelle';
 import { AxiosError } from 'axios';
 import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
-
-export type QueueUserQueryWithRoleDto = Omit<QueueUserQueryDto, 'queue_role'> & {
-	queue_role: QueueUserRole;
-};
+import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
 
 async function fillUserRole(user: QueueUserQueryDto): Promise<QueueUserQueryWithRoleDto> {
 	const { data: queue_role } = await getRoleConfig(user.queue_role);
