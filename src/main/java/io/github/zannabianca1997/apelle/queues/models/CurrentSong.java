@@ -1,13 +1,9 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.apache.http.client.utils.URIBuilder;
-
-import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
@@ -117,18 +113,7 @@ public class CurrentSong {
      * @return The URI, or null if not available.
      */
     public URI getUri() {
-        switch (song) {
-            case YoutubeSong youtubeSong:
-                try {
-                    return new URIBuilder(youtubeSong.getUri())
-                            .addParameter("t", Long.toString(getPosition().toSeconds()))
-                            .build();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException("The built url should be valid", e);
-                }
-            default:
-                return song.getUri();
-        }
+        return song.getUri(getPosition());
     }
 
     public static CurrentSongBuilder builder() {

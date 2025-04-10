@@ -16,7 +16,7 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @Builder
 @Jacksonized
-public class VideoDataDto {
+public class YoutubeVideoDataDto {
     @NonNull
     private String id;
     @NonNull

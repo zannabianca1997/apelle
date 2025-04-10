@@ -12,10 +12,10 @@ import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-public class VideoNotFoundException extends Exception {
+public class YoutubeVideoNotFoundException extends Exception {
     private final String videoId;
 
-    public VideoNotFoundException(@NonNull String videoId) {
+    public YoutubeVideoNotFoundException(@NonNull String videoId) {
         super("The video `%s` does not exist".formatted(videoId));
         this.videoId = videoId;
     }
@@ -24,9 +24,9 @@ public class VideoNotFoundException extends Exception {
     @APIResponse(responseCode = "404", description = "The requested video does not exist", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<VideoNotFoundException> {
+    public static class Mapper implements ExceptionMapper<YoutubeVideoNotFoundException> {
         @Override
-        public Response toResponse(VideoNotFoundException exception) {
+        public Response toResponse(YoutubeVideoNotFoundException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

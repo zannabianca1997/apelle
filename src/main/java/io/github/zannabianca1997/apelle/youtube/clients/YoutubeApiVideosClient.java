@@ -8,8 +8,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import lombok.NonNull;
 
-import io.github.zannabianca1997.apelle.youtube.dtos.PaginatedDto;
-import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubePaginatedDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 
 @Path("/videos")
 @RegisterRestClient(configKey = "youtube-api")
@@ -17,5 +17,5 @@ import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 public interface YoutubeApiVideosClient {
     @GET
     @ClientQueryParam(name = "part", value = "snippet,contentDetails")
-    PaginatedDto<VideoDataDto> getDataById(@NonNull @QueryParam("id") String videoId);
+    YoutubePaginatedDto<YoutubeVideoDataDto> getDataById(@NonNull @QueryParam("id") String videoId);
 }

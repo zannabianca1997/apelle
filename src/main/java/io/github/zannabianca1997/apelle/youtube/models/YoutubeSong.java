@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.queues.models.sources.youtube;
+package io.github.zannabianca1997.apelle.youtube.models;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,6 +45,17 @@ public class YoutubeSong extends Song {
                     .build();
         } catch (URISyntaxException e) {
             throw new RuntimeException("The youtube uri should always form a valid uri", e);
+        }
+    }
+
+    @Override
+    public URI getUri(Duration position) {
+        try {
+            return new URIBuilder(getUri())
+                    .addParameter("t", Long.toString(position.toSeconds()))
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("The built url should be valid", e);
         }
     }
 

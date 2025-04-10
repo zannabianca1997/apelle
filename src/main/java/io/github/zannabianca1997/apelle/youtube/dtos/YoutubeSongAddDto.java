@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.queues.dtos.sources.youtube;
+package io.github.zannabianca1997.apelle.youtube.dtos;
 
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

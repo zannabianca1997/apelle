@@ -47,7 +47,7 @@ import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
-import io.github.zannabianca1997.apelle.youtube.exceptions.VideoNotFoundException;
+import io.github.zannabianca1997.apelle.youtube.exceptions.YoutubeVideoNotFoundException;
 
 @Authenticated
 @RequestScoped
@@ -103,7 +103,7 @@ public class QueueResource {
     @Tag(name = "Queued song")
     public RestResponse<QueuedSongShortQueryDto> enqueue(SongAddDto songAddDto)
             throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
-            VideoNotFoundException {
+            YoutubeVideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
         return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));

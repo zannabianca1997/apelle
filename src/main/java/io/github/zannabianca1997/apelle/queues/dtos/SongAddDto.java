@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
-import io.github.zannabianca1997.apelle.queues.dtos.sources.youtube.YoutubeSongAddDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 

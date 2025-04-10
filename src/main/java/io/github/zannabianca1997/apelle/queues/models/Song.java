@@ -77,6 +77,15 @@ public abstract class Song extends PanacheEntityBase {
         return null;
     }
 
+    /**
+     * The uri for this song at the given time, if available
+     * 
+     * @return The uri, or null if not available
+     */
+    public URI getUri(Duration time) {
+        return getUri();
+    }
+
     protected Song(
             @NonNull String name,
             @NonNull Duration duration) {

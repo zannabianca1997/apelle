@@ -7,10 +7,10 @@ import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import io.github.zannabianca1997.apelle.youtube.dtos.PaginatedDto;
-import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
-import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto.ContentDetails;
-import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto.Snippet;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubePaginatedDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto.ContentDetails;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto.Snippet;
 import io.quarkus.test.junit.QuarkusMock;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -33,11 +33,11 @@ public class YoutubeApiVideosClientMock implements YoutubeApiVideosClient {
             new MockedVideo("y33obNyDHY5", "Oh, a test video", Duration.ofMinutes(29).plusSeconds(21))
     };
 
-    public static final Map<String, PaginatedDto<VideoDataDto>> RESPONSES = Arrays.stream(VIDEOS).collect(
+    public static final Map<String, YoutubePaginatedDto<YoutubeVideoDataDto>> RESPONSES = Arrays.stream(VIDEOS).collect(
             Collectors.toMap(
                     MockedVideo::id,
-                    mockedVideo -> PaginatedDto.ofOne(
-                            VideoDataDto.builder()
+                    mockedVideo -> YoutubePaginatedDto.ofOne(
+                            YoutubeVideoDataDto.builder()
                                     .id(mockedVideo.id())
                                     .snippet(Snippet.builder()
                                             .title(mockedVideo.title())
@@ -48,10 +48,10 @@ public class YoutubeApiVideosClientMock implements YoutubeApiVideosClient {
                                             .build())
                                     .build())));
 
-    public static final PaginatedDto<VideoDataDto> NOT_FOUND = PaginatedDto.ofNone();
+    public static final YoutubePaginatedDto<YoutubeVideoDataDto> NOT_FOUND = YoutubePaginatedDto.ofNone();
 
     @Override
-    public PaginatedDto<VideoDataDto> getDataById(String videoId) {
+    public YoutubePaginatedDto<YoutubeVideoDataDto> getDataById(String videoId) {
         return RESPONSES.getOrDefault(videoId, NOT_FOUND);
     }
 

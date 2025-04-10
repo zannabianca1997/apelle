@@ -11,7 +11,7 @@ import lombok.NonNull;
  */
 @Data
 @AllArgsConstructor
-public class PaginatedDto<T> {
+public class YoutubePaginatedDto<T> {
     @NonNull
     private PageInfo pageInfo;
     @NonNull
@@ -38,12 +38,12 @@ public class PaginatedDto<T> {
         return items.get(0);
     }
 
-    public static <T> PaginatedDto<T> ofOne(T t) {
-        return new PaginatedDto<T>(new PageInfo(1), List.of(t));
+    public static <T> YoutubePaginatedDto<T> ofOne(T t) {
+        return new YoutubePaginatedDto<T>(new PageInfo(1), List.of(t));
     }
 
-    public static <T> PaginatedDto<T> ofNone() {
-        return new PaginatedDto<T>(new PageInfo(0), List.of());
+    public static <T> YoutubePaginatedDto<T> ofNone() {
+        return new YoutubePaginatedDto<T>(new PageInfo(0), List.of());
     }
 
 }
