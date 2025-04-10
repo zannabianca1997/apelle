@@ -88,7 +88,7 @@ public class QueuedSong extends PanacheEntityBase {
     @Override
     public void delete() {
         // Remove all likes
-        Likes.deleteReferringTo(getLink());
+        Likes.deleteReferringTo(this);
         // Delete the entity
         super.delete();
     }

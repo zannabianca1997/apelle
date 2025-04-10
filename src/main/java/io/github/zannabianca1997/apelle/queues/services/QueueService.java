@@ -22,12 +22,11 @@ import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.queues.utils.QueueEventBus;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -44,10 +43,10 @@ public class QueueService {
     QueueUserService queueUserService;
 
     @Inject
-    EventBus eventBus;
+    QueueCodeConfigs queueCodeConfigs;
 
     @Inject
-    QueueCodeConfigs queueCodeConfigs;
+    QueueEventBus queueEventBus;
 
     @Inject
     StringUtils stringUtils;
@@ -145,7 +144,8 @@ public class QueueService {
 
         boolean startedNow = queue.start();
         if (startedNow) {
-            publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+            queueEventBus
+                    .publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
             scheduleStopAtEnd(queue);
         }
     }
@@ -169,7 +169,8 @@ public class QueueService {
     private void stopNoCheck(Queue queue) {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
-            publish(QueueStopEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+            queueEventBus
+                    .publish(QueueStopEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         }
     }
 
@@ -188,7 +189,7 @@ public class QueueService {
         }
 
         queue.next();
-        publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+        queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         scheduleStopAtEnd(queue);
     }
 
@@ -212,7 +213,8 @@ public class QueueService {
         }
         QueuedSong enqueued = queue.enqueue(song);
         enqueued.persist();
-        publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+        queueEventBus
+                .publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
         return enqueued;
     }
 
@@ -293,7 +295,7 @@ public class QueueService {
         queue.sortSongs();
 
         // Signal songs have changed
-        publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+        queueEventBus.publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
     }
 
     public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueued {
@@ -313,18 +315,7 @@ public class QueueService {
         queue.delete();
 
         // Annunce the queue was deleted
-        publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
-    }
-
-    /**
-     * Send a queue event.
-     * 
-     * The event is published on the address equal to the queue ID.
-     * 
-     * @param event The event to publish
-     */
-    private void publish(QueueEvent event) {
-        eventBus.publish(event.getQueueId().toString(), JsonObject.mapFrom(event));
+        queueEventBus.publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
     }
 
     /**
@@ -338,9 +329,7 @@ public class QueueService {
                 .onItem().delayIt().by(queue.getCurrent().timeLeft())
                 .replaceWith(false);
         // Fire if something stop the song
-        Uni<Boolean> stopEvent = eventBus.<JsonObject>consumer(queue.getId().toString())
-                .toMulti()
-                .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class))
+        Uni<Boolean> stopEvent = queueEventBus.events(queue)
                 .filter(QueueEvent::preventsAutoStop)
                 .toUni().replaceWith(true);
         // On song completion, if nothing stopped it before, stop the song
@@ -353,9 +342,7 @@ public class QueueService {
     }
 
     public Multi<QueueEvent> events(Queue queue) {
-        return eventBus.<JsonObject>consumer(queue.getId().toString())
-                .toMulti()
-                .map(jsonObject -> jsonObject.body().mapTo(QueueEvent.class));
+        return queueEventBus.events(queue);
     }
 
 }

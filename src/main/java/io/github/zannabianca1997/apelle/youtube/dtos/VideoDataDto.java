@@ -8,12 +8,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Response of the youtube api
  */
 @Data
 @Builder
+@Jacksonized
 public class VideoDataDto {
     @NonNull
     private String id;
@@ -24,6 +26,7 @@ public class VideoDataDto {
 
     @Data
     @Builder
+    @Jacksonized
     public static class Snippet {
         @NonNull
         private String title;
@@ -31,6 +34,7 @@ public class VideoDataDto {
 
         @Data
         @Builder
+        @Jacksonized
         public static class Thumbnails {
             @JsonProperty("default")
             private Thumbnail default_;
@@ -41,6 +45,7 @@ public class VideoDataDto {
 
             @Data
             @Builder
+            @Jacksonized
             public static class Thumbnail {
                 private URL url;
                 private int width;
@@ -51,6 +56,7 @@ public class VideoDataDto {
 
     @Data
     @Builder
+    @Jacksonized
     public static class ContentDetails {
         @NonNull
         private Duration duration;

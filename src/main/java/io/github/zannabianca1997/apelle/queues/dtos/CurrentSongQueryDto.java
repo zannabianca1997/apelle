@@ -11,10 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
+@Jacksonized
 @Schema(description = "The song currently being played")
 public class CurrentSongQueryDto extends SongQueryDto {
     @JsonProperty(required = true)
