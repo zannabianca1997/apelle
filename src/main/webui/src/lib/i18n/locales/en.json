@@ -54,9 +54,13 @@
             "nothingPlaying": "Nothing currently playing"
         },
         "addSong": {
-            "label": "Search for a song",
+            "label": "Insert a youtube video ID",
             "placeholder": "kt2mtS7VTG4",
             "submit": "Search"
+        },
+        "queue": {
+            "title": "Queue",
+            "like": "Move up"
         },
         "song": {
             "durationFormat": "HH:mm:ss"

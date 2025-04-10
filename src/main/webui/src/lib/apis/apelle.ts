@@ -180,6 +180,8 @@ export interface QueuedSongQueryDto {
 	url?: string;
 	/** The number of likes this song received */
 	likes: number;
+	/** The number of likes this song received by this user */
+	user_likes: number;
 }
 
 /**

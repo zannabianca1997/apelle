@@ -55,7 +55,8 @@
 		if (!videoId) {
 			return;
 		}
-		enqueueSong(queueId, { kind: 'Youtube', video_id: videoId });
+		await enqueueSong(queueId, { kind: 'Youtube', video_id: videoId });
+		songQuery = null;
 	}
 </script>
 
@@ -75,12 +76,12 @@
 		</form>
 	</section>
 	<section>
-		<h1>Queue</h1>
-		<ol class="queue">
+		<h1>{$_('backoffice.queue.title')}</h1>
+		<table class="queue">
 			{#each queue.queue as song (song.id)}
 				<QueuedSongCard {song} queue={queue.id} />
 			{/each}
-		</ol>
+		</table>
 	</section>
 </main>
 
@@ -136,14 +137,9 @@
 			}
 		}
 
-		ol.queue {
-			display: flex;
-			flex-direction: column;
-			gap: 5px;
-
-			list-style-type: none;
-			margin: 0;
-			padding: 0;
+		table.queue {
+			width: 100%;
+			table-layout: fixed;
 		}
 	}
 </style>
