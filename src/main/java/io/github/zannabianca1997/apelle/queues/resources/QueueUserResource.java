@@ -16,7 +16,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueUserQueryDto;
-import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueUserMapper;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
@@ -65,7 +65,7 @@ public class QueueUserResource {
     @Transactional
     @Operation(summary = "Remove the user from the queue", description = "Remove the user from the queue. This will also remove all likes he has given.")
     @APIResponse(responseCode = "200", description = "The user was removed")
-    public void delete() throws ActionNotPermitted {
+    public void delete() throws ActionNotPermittedException {
         queueUserService.delete(user);
     }
 }

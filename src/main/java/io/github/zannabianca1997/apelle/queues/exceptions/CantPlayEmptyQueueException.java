@@ -13,10 +13,10 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.Getter;
 
 @Getter
-public class CantPlayEmptyQueue extends Exception {
+public class CantPlayEmptyQueueException extends Exception {
     private final UUID queueId;
 
-    public CantPlayEmptyQueue(UUID queueId) {
+    public CantPlayEmptyQueueException(UUID queueId) {
         super(String.format("Queue `%s` is empty, no song to play", queueId));
         this.queueId = queueId;
     }
@@ -25,9 +25,9 @@ public class CantPlayEmptyQueue extends Exception {
     @APIResponse(responseCode = "400", description = "Cannot play an empty queue", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<CantPlayEmptyQueue> {
+    public static class Mapper implements ExceptionMapper<CantPlayEmptyQueueException> {
         @Override
-        public Response toResponse(CantPlayEmptyQueue exception) {
+        public Response toResponse(CantPlayEmptyQueueException exception) {
             return RestResponse.status(Status.BAD_REQUEST, exception.getMessage()).toResponse();
         }
     }

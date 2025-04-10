@@ -7,7 +7,8 @@ import jakarta.inject.Inject;
 
 import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClient;
 import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
-import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
+import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
+import io.github.zannabianca1997.apelle.youtube.exceptions.VideoNotFoundException;
 
 @ApplicationScoped
 public class YoutubeService {
@@ -16,10 +17,13 @@ public class YoutubeService {
     @RestClient
     YoutubeApiVideosClient youtubeApiVideosClient;
 
-    public VideoDataDto getVideoData(String videoId) throws BadYoutubeApiResponse {
+    public VideoDataDto getVideoData(String videoId) throws BadYoutubeApiResponseException, VideoNotFoundException {
         var videos = youtubeApiVideosClient.getDataById(videoId);
         if (videos.getItems().size() > 1) {
-            throw new BadYoutubeApiResponse("Multiple videos returned for a single id");
+            throw new BadYoutubeApiResponseException("Multiple videos returned for a single id");
+        }
+        if (videos.getItems().isEmpty()) {
+            throw new VideoNotFoundException(videoId);
         }
         return videos.unwrapSingle();
     }

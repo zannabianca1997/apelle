@@ -30,10 +30,10 @@ import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueueEventDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueueStateEventDto;
-import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
-import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
-import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
-import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueueException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueuedException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueuedException;
 import io.github.zannabianca1997.apelle.queues.mappers.EventMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
@@ -46,7 +46,8 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
-import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponse;
+import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
+import io.github.zannabianca1997.apelle.youtube.exceptions.VideoNotFoundException;
 
 @Authenticated
 @RequestScoped
@@ -101,14 +102,15 @@ public class QueueResource {
     @Transactional
     @Tag(name = "Queued song")
     public RestResponse<QueuedSongShortQueryDto> enqueue(SongAddDto songAddDto)
-            throws BadYoutubeApiResponse, SongAlreadyQueued, ActionNotPermitted {
+            throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
+            VideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
         return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));
     }
 
     @Path("/queue/{songId}")
-    public QueueSongResource queueSong(UUID songId) throws SongNotQueued {
+    public QueueSongResource queueSong(UUID songId) throws SongNotQueuedException {
         QueuedSong song = queueService.getQueuedSong(queue, songId);
         QueueUser user = queueUserService.getCurrent(queue);
         return queueSongResource.of(song, user);
@@ -119,7 +121,7 @@ public class QueueResource {
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void start() throws CantPlayEmptyQueue, ActionNotPermitted {
+    public void start() throws CantPlayEmptyQueueException, ActionNotPermittedException {
         queueService.start(queue);
     }
 
@@ -128,7 +130,7 @@ public class QueueResource {
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void stop() throws ActionNotPermitted {
+    public void stop() throws ActionNotPermittedException {
         queueService.stop(queue);
     }
 
@@ -139,7 +141,7 @@ public class QueueResource {
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started")
     @Transactional
-    public void next() throws CantPlayEmptyQueue, ActionNotPermitted {
+    public void next() throws CantPlayEmptyQueueException, ActionNotPermittedException {
         queueService.next(queue);
     }
 
@@ -166,7 +168,7 @@ public class QueueResource {
             Delete the queue permanently""")
     @APIResponse(responseCode = "204", description = "The queue was deleted.")
     @Transactional
-    public void delete() throws ActionNotPermitted {
+    public void delete() throws ActionNotPermittedException {
         queueService.delete(queue);
     }
 

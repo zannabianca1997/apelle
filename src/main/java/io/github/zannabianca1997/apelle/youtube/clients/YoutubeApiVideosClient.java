@@ -13,7 +13,7 @@ import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
 
 @Path("/videos")
 @RegisterRestClient(configKey = "youtube-api")
-@ClientQueryParam(name = "key", value = "${apelle.youtube.api.key}")
+@ClientQueryParam(name = "key", value = "${apelle.songs.sources.youtube.api-key}")
 public interface YoutubeApiVideosClient {
     @GET
     @ClientQueryParam(name = "part", value = "snippet,contentDetails")

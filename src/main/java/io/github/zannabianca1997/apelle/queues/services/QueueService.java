@@ -11,11 +11,11 @@ import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
-import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
-import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueueException;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
-import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueued;
-import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueued;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueuedException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueuedException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
@@ -132,14 +132,14 @@ public class QueueService {
      * Start playing a queue
      * 
      * @param queueId The id of the queue
-     * @throws QueueNotFoundException The queue does not exist
-     * @throws CantPlayEmptyQueue     The queue is empty
-     * @throws ActionNotPermitted
+     * @throws QueueNotFoundException      The queue does not exist
+     * @throws CantPlayEmptyQueueException The queue is empty
+     * @throws ActionNotPermittedException
      */
-    public void start(Queue queue) throws CantPlayEmptyQueue, ActionNotPermitted {
+    public void start(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().queue().start()) {
-            throw new ActionNotPermitted(user.getRole(), "start playing");
+            throw new ActionNotPermittedException(user.getRole(), "start playing");
         }
 
         boolean startedNow = queue.start();
@@ -154,13 +154,13 @@ public class QueueService {
      * Stop a playing queue
      * 
      * @param queueId The id on the queue
-     * @throws ActionNotPermitted
-     * @throws QueueNotFoundException The queue does not exist
+     * @throws ActionNotPermittedException
+     * @throws QueueNotFoundException      The queue does not exist
      */
-    public void stop(Queue queue) throws ActionNotPermitted {
+    public void stop(Queue queue) throws ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().queue().stop()) {
-            throw new ActionNotPermitted(user.getRole(), "stop playing");
+            throw new ActionNotPermittedException(user.getRole(), "stop playing");
         }
 
         stopNoCheck(queue);
@@ -178,14 +178,14 @@ public class QueueService {
      * Skip to the next song
      * 
      * @param queueId The id on the queue
-     * @throws QueueNotFoundException The queue does not exist
-     * @throws CantPlayEmptyQueue     The queue is empty
-     * @throws ActionNotPermitted
+     * @throws QueueNotFoundException      The queue does not exist
+     * @throws CantPlayEmptyQueueException The queue is empty
+     * @throws ActionNotPermittedException
      */
-    public void next(Queue queue) throws CantPlayEmptyQueue, ActionNotPermitted {
+    public void next(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().queue().next()) {
-            throw new ActionNotPermitted(user.getRole(), "move to next song");
+            throw new ActionNotPermittedException(user.getRole(), "move to next song");
         }
 
         queue.next();
@@ -199,17 +199,17 @@ public class QueueService {
      * @param queueId The id on the queue
      * @param song    The song to add
      * @return The queued song
-     * @throws SongAlreadyQueued  The song is already in the queue
-     * @throws ActionNotPermitted
+     * @throws SongAlreadyQueuedException  The song is already in the queue
+     * @throws ActionNotPermittedException
      */
-    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueued, ActionNotPermitted {
+    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueuedException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().queue().enqueue()) {
-            throw new ActionNotPermitted(user.getRole(), "enqueue song");
+            throw new ActionNotPermittedException(user.getRole(), "enqueue song");
         }
 
         if (queue.getAllSongs().anyMatch(queued -> queued.isSame(song))) {
-            throw new SongAlreadyQueued(queue.getId(), song);
+            throw new SongAlreadyQueuedException(queue.getId(), song);
         }
         QueuedSong enqueued = queue.enqueue(song);
         enqueued.persist();
@@ -223,9 +223,9 @@ public class QueueService {
      * 
      * @param song   The song to like
      * @param userId The user liking the song
-     * @throws ActionNotPermitted
+     * @throws ActionNotPermittedException
      */
-    public void like(QueuedSong song, QueueUser user) throws ActionNotPermitted {
+    public void like(QueuedSong song, QueueUser user) throws ActionNotPermittedException {
         like(song, user, (short) 1);
     }
 
@@ -235,11 +235,11 @@ public class QueueService {
      * @param song   The song to like
      * @param userId The user liking the song
      * @param count  The number of like to add
-     * @throws ActionNotPermitted
+     * @throws ActionNotPermittedException
      */
-    public void like(QueuedSong song, QueueUser user, short count) throws ActionNotPermitted {
+    public void like(QueuedSong song, QueueUser user, short count) throws ActionNotPermittedException {
         if (!user.getPermissions().queue().like()) {
-            throw new ActionNotPermitted(user.getRole(), "like song");
+            throw new ActionNotPermittedException(user.getRole(), "like song");
         }
 
         if (count < 1) {
@@ -298,18 +298,18 @@ public class QueueService {
         queueEventBus.publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
     }
 
-    public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueued {
+    public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueuedException {
         QueuedSong queuedSong = QueuedSong.findById(songId, queue.getId());
         if (queuedSong == null) {
-            throw new SongNotQueued(queue.getId(), songId);
+            throw new SongNotQueuedException(queue.getId(), songId);
         }
         return queuedSong;
     }
 
-    public void delete(Queue queue) throws ActionNotPermitted {
+    public void delete(Queue queue) throws ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().delete()) {
-            throw new ActionNotPermitted(user.getRole(), "delete queue");
+            throw new ActionNotPermittedException(user.getRole(), "delete queue");
         }
 
         queue.delete();

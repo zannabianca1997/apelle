@@ -13,11 +13,11 @@ import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-public class ActionNotPermitted extends Exception {
+public class ActionNotPermittedException extends Exception {
     private final String roleName;
     private final String action;
 
-    public ActionNotPermitted(@NonNull QueueUserRole role, @NonNull String action) {
+    public ActionNotPermittedException(@NonNull QueueUserRole role, @NonNull String action) {
         super(String.format("Action `%s` is not permitted for role `%s`", action, role.getName()));
         this.roleName = role.getName();
         this.action = action;
@@ -27,9 +27,9 @@ public class ActionNotPermitted extends Exception {
     @APIResponse(responseCode = "403", description = "The action is forbidden", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<ActionNotPermitted> {
+    public static class Mapper implements ExceptionMapper<ActionNotPermittedException> {
         @Override
-        public Response toResponse(ActionNotPermitted exception) {
+        public Response toResponse(ActionNotPermittedException exception) {
             return RestResponse.status(Status.FORBIDDEN, exception.getMessage()).toResponse();
         }
     }

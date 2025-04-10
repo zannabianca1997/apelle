@@ -2,7 +2,7 @@ package io.github.zannabianca1997.apelle.queues.services;
 
 import java.util.UUID;
 
-import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermitted;
+import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
@@ -82,10 +82,10 @@ public class QueueUserService {
         return queueUser;
     }
 
-    public void delete(QueueUser user) throws ActionNotPermitted {
+    public void delete(QueueUser user) throws ActionNotPermittedException {
         QueueUser current = getCurrent(user.getQueue());
         if (!current.getPermissions().queueUsers().remove()) {
-            throw new ActionNotPermitted(current.getRole(), "remove user");
+            throw new ActionNotPermittedException(current.getRole(), "remove user");
         }
         user.delete();
     }

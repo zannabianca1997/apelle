@@ -13,7 +13,7 @@ import org.hibernate.annotations.Check;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueueException;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -131,9 +131,9 @@ public class Queue extends PanacheEntityBase {
      * Start to play music
      * 
      * @return If the queue was stopped before
-     * @throws CantPlayEmptyQueue The queue is empty
+     * @throws CantPlayEmptyQueueException The queue is empty
      */
-    public boolean start() throws CantPlayEmptyQueue {
+    public boolean start() throws CantPlayEmptyQueueException {
         // If a song is running, start playing
         if (getCurrent() != null) {
             return getCurrent().play();
@@ -141,7 +141,7 @@ public class Queue extends PanacheEntityBase {
 
         // Pop a song from the queue
         if (getQueuedSongs().isEmpty()) {
-            throw new CantPlayEmptyQueue(getId());
+            throw new CantPlayEmptyQueueException(getId());
         }
 
         QueuedSong next = getQueuedSongs().remove(0);
@@ -171,9 +171,9 @@ public class Queue extends PanacheEntityBase {
      * Move to the next song
      * 
      * @return If the queue was playing before
-     * @throws CantPlayEmptyQueue The queue is empty
+     * @throws CantPlayEmptyQueueException The queue is empty
      */
-    public void next() throws CantPlayEmptyQueue {
+    public void next() throws CantPlayEmptyQueueException {
         if (getCurrent() != null) {
             var current = getCurrent().getSong();
             setCurrent(null);

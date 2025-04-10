@@ -16,11 +16,11 @@ Users provides only the minimal necessary to identify the song (e.g. the youtube
 
 ### Google
 
-`apelle` needs access to Google Youtube API to fetch the video data. Provide the key in the property `apelle.youtube.api.key`.
+`apelle` needs access to Google Youtube API to fetch the video data. Provide the key in the property `apelle.songs.sources.youtube.api-key`.
 For example, using a `.env` in the project root:
 
 ```env
-apelle.youtube.api.key=<your-key-here>
+apelle.songs.sources.youtube.api-key=<your-key-here>
 ```
 
 The key need to be able to query the youtube API v3.

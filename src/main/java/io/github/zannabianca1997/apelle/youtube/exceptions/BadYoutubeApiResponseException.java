@@ -11,15 +11,15 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.experimental.StandardException;
 
 @StandardException
-public class BadYoutubeApiResponse extends Exception {
+public class BadYoutubeApiResponseException extends Exception {
 
     @Provider
     @APIResponse(responseCode = "502", description = "An unexpected response was given by the youtube api", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<BadYoutubeApiResponse> {
+    public static class Mapper implements ExceptionMapper<BadYoutubeApiResponseException> {
         @Override
-        public Response toResponse(BadYoutubeApiResponse exception) {
+        public Response toResponse(BadYoutubeApiResponseException exception) {
             return RestResponse.status(Status.BAD_GATEWAY, exception.getMessage()).toResponse();
         }
     }
