@@ -60,7 +60,11 @@
         },
         "queue": {
             "title": "Queue",
-            "like": "Move up"
+            "like": "Move up",
+            "liked": {
+                "pre": "Liked",
+                "unit": "times"
+            }
         },
         "song": {
             "durationFormat": "HH:mm:ss"

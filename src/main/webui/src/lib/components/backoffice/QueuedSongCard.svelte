@@ -42,12 +42,14 @@
 			Likes: {song.likes}
 		</span>
 	</td>
-	<td class="likeButton"
-		><button onclick={() => likeSong(song)}>{$_('backoffice.queue.like')}</button></td
-	>
+	<td class="likeButton">
+		<button onclick={() => likeSong(song)}>{$_('backoffice.queue.like')}</button>
+	</td>
 	<td class="likesCount">
-		{#if isFullLoaded(song)}
-			Liked <em>{song.user_likes} times</em>
+		{#if isFullLoaded(song) && song.user_likes > 0}
+			{$_('backoffice.queue.liked.pre', { default: '' })}
+			<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
+			{$_('backoffice.queue.liked.post', { default: '' })}
 		{/if}
 	</td>
 </tr>
