@@ -127,7 +127,7 @@ public class Likes extends PanacheEntityBase {
                 .getSingleResult();
     }
 
-    public static long deleteReferringTo(QueuedSong.Link link) {
-        return delete("queue_id = ?1 AND song_id = ?2", link.getQueue(), link.getSong());
+    public static long deleteReferringTo(QueuedSong song) {
+        return delete("queue = ?1 AND song = ?2", song.getQueue(), song.getSong());
     }
 }

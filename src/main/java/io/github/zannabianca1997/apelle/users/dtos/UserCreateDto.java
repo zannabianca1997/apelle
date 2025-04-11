@@ -8,10 +8,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Builder
+@Jacksonized
 @Schema(description = "User creation data")
 public class UserCreateDto {
     @NonNull

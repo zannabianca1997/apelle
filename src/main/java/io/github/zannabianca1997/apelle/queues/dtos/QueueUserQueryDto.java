@@ -9,10 +9,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
+@Jacksonized
 @Schema(description = "Data about a user of a queue")
 public class QueueUserQueryDto extends UserQueryDto {
     @NonNull

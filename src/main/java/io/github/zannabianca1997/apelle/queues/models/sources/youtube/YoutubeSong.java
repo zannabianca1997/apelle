@@ -66,7 +66,7 @@ public class YoutubeSong extends Song {
     public boolean isSame(Song b) {
         switch (b) {
             case YoutubeSong bYoutubeSong:
-                return getVideoId() == bYoutubeSong.getVideoId();
+                return getVideoId().equals(bYoutubeSong.getVideoId());
             default:
                 return false;
         }

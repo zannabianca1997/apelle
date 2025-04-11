@@ -65,7 +65,7 @@ public class QueueUserRole {
             if (x == null || y == null) {
                 return x == null && y == null;
             }
-            return x.getName() == y.getName();
+            return x.getName().equals(y.getName());
         }
 
         @Override

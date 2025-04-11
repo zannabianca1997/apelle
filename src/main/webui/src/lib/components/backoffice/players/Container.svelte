@@ -1,24 +1,60 @@
 <script lang="ts">
-	import type { CurrentSongQueryDto } from '$lib/apis/apelle';
+	import type { Uuid } from '$lib/apis/apelle.ts';
+	import {
+		type CurrentSongQueryDto,
+		postApiV1QueuesIQueueIdStart as postStart,
+		postApiV1QueuesIQueueIdStop as postStop,
+		postApiV1QueuesIQueueIdNext as postNext
+	} from '$lib/apis/apelle';
 	import { _ } from 'svelte-i18n';
 	import Player from './Player.svelte';
+	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
+	import IconPlay from '~icons/mdi/play';
+	import IconPause from '~icons/mdi/pause';
+	import IconNext from '~icons/mdi/skip-next';
 
-	const { current }: { current?: CurrentSongQueryDto } = $props();
+	let {
+		queueId,
+		current = $bindable(),
+		user
+	}: { queueId: Uuid; current?: CurrentSongQueryDto; user: QueueUserQueryWithRoleDto } = $props();
+
+	async function start() {
+		await postStart(queueId);
+	}
+	async function stop() {
+		await postStop(queueId);
+	}
+	async function next() {
+		await postNext(queueId);
+	}
 </script>
 
 <section>
 	{#if current}
-		<Player {current} />
+		<Player bind:current />
 	{:else}
 		<h1>{$_('backoffice.currentSong.nothingPlaying')}</h1>
 	{/if}
+	<div class="playControls">
+		{#if !current || current.stopped}
+			{#if user.queue_role.permissions.queue.start}
+				<button onclick={start}><IconPlay height={75} width={75} /></button>
+			{/if}
+		{:else if user.queue_role.permissions.queue.stop}
+			<button onclick={stop}><IconPause height={75} width={75} /></button>
+		{/if}
+		{#if user.queue_role.permissions.queue.next}
+			<button onclick={next}><IconNext height={75} width={75} /></button>
+		{/if}
+	</div>
 </section>
 
 <style lang="scss">
 	section {
 		display: flex;
 		flex-direction: row;
-		justify-content: center;
+		justify-content: space-evenly;
 		align-items: center;
 		gap: 24px;
 
@@ -31,6 +67,25 @@
 
 		h1 {
 			margin: 0;
+			flex-grow: 1;
+
+			text-align: center;
+		}
+
+		.playControls {
+			display: flex;
+			gap: 55px;
+			flex-grow: 0;
+
+			button {
+				background: transparent;
+				border: 0;
+				color: white;
+
+				&:hover {
+					background: radial-gradient(closest-side, #00000088, #00000000);
+				}
+			}
 		}
 	}
 </style>

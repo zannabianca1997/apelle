@@ -19,6 +19,7 @@ html {
 body {
     margin: 0px;
     padding: 25px;
+    padding-top: 131px;
 
 
     display: flex;
