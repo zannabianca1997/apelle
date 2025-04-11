@@ -25,7 +25,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -42,6 +41,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "queue")
 @Check(name = "song_is_either_started_or_stopped", constraints = """
         -- Either the current song is started or it's stopped
         (
