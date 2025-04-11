@@ -35,9 +35,8 @@ jobs:
             -Dquarkus.container-image.registry=ghcr.io \
             -Dquarkus.container-image.group=${{ secrets.CR_USERNAME }} \
             -Dquarkus.container-image.name=apelle \
-            -Dquarkus.container-image.tag=${GITHUB_REF_NAME}
-            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21 \
-            -Dquarkus.container-image.base-jvm-image=quay.io/quarkus/quarkus-micro-image:2.0
+            -Dquarkus.container-image.tag=${GITHUB_REF_NAME} \
+            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21
   
       - name: Show pushed image info
         run: echo "Image pushed to ghcr.io."
