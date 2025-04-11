@@ -3,7 +3,7 @@ CREATE TABLE
         id UUID NOT NULL,
         NAME VARCHAR(255) NOT NULL UNIQUE,
         PASSWORD VARCHAR(255) NOT NULL,
-        roles jsonb NOT NULL,
+        roles VARCHAR(255) ARRAY NOT NULL,
         PRIMARY KEY (id)
     );
 

@@ -5,10 +5,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.type.SqlTypes;
 
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
@@ -17,6 +15,8 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -61,8 +61,8 @@ public class ApelleUser extends PanacheEntityBase {
 
     @NonNull
     @Roles
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     /// Comma separated list of roles
     private Set<ApelleUserRole> roles;
 
