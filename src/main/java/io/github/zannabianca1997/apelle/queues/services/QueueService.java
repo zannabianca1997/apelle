@@ -211,10 +211,9 @@ public class QueueService {
         if (queue.getAllSongs().anyMatch(queued -> queued.isSame(song))) {
             throw new SongAlreadyQueuedException(queue.getId(), song);
         }
-        QueuedSong enqueued = queue.enqueue(song);
-
         song.persist();
-        enqueued.persist();
+
+        QueuedSong enqueued = queue.enqueue(song);
 
         queueEventBus
                 .publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());

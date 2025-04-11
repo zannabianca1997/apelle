@@ -34,18 +34,21 @@ public class Likes extends PanacheEntityBase {
     @NonNull
     @ManyToOne
     @Id
+    @ToString.Exclude
     private ApelleUser user;
 
     /// The queue
     @NonNull
     @ManyToOne
     @Id
+    @ToString.Exclude
     private Queue queue;
 
     /// The queued song
     @NonNull
     @ManyToOne
     @Id
+    @ToString.Exclude
     private Song song;
 
     /// When these likes where assigned
@@ -92,7 +95,7 @@ public class Likes extends PanacheEntityBase {
     }
 
     public static Likes findOldests(QueueUser user) {
-        return find("user = ?1 AND queue = ?2 AND count > 0 ORDER BY link.givenAt ASC", user.getUser(), user.getQueue())
+        return find("user = ?1 AND queue = ?2 AND count > 0 ORDER BY givenAt ASC", user.getUser(), user.getQueue())
                 .firstResult();
     }
 

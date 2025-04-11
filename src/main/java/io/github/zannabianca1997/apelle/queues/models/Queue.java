@@ -76,14 +76,14 @@ public class Queue extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue", orphanRemoval = true)
     @OrderBy("likes DESC, queued_at ASC")
     /// The songs in the queue
     private List<QueuedSong> queuedSongs;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue", orphanRemoval = true)
     /// The users of this queue
     private Collection<QueueUser> users;
 
@@ -97,7 +97,9 @@ public class Queue extends PanacheEntityBase {
      * Order of the queued songs
      */
     private static final Comparator<QueuedSong> QUEUED_SONGS_COMPARATOR = Comparator
+            // First order by likes
             .comparing(QueuedSong::getLikes).reversed()
+            // Then order by time of insertion
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
@@ -129,13 +131,17 @@ public class Queue extends PanacheEntityBase {
                 .build();
         // Add the song in the correct position
         int index = Collections.binarySearch(this.queuedSongs, enqueued, QUEUED_SONGS_COMPARATOR);
-        if (index < 0) {
-            index = -index - 1;
+        if (index >= 0) {
+            throw new RuntimeException(
+                    "Tried to add a song that is already in the queue. This need to be checked before");
         }
+        index = -index - 1;
 
         List<QueuedSong> editQueuedSongs = getQueuedSongs();
         editQueuedSongs.add(index, enqueued);
         setQueuedSongs(editQueuedSongs);
+
+        enqueued.persist();
 
         return enqueued;
     }
@@ -158,11 +164,11 @@ public class Queue extends PanacheEntityBase {
         }
 
         QueuedSong next = getQueuedSongs().remove(0);
+        Likes.deleteReferringTo(next);
         setCurrent(CurrentSong.builder()
                 .song(next.getSong())
                 .playing().startsAt(Instant.now())
                 .build());
-        next.delete();
 
         return true;
     }

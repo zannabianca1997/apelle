@@ -39,6 +39,7 @@ public class YoutubeThumbnail extends PanacheEntityBase {
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @Id
+    @ToString.Exclude
     private YoutubeSong song;
 
     @NonNull

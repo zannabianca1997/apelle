@@ -48,6 +48,7 @@ public class QueueUser extends PanacheEntityBase {
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @Id
+    @ToString.Exclude
     private Queue queue;
 
     @NonNull

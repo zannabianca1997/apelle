@@ -56,13 +56,14 @@ public abstract class Song extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "song")
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "song")
     /// The likes on this song, on any queue
     private Collection<Likes> likes;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "song")
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "song")
+    @ToString.Exclude
     /// The queues this song is inside
     private Collection<QueuedSong> queues;
 
