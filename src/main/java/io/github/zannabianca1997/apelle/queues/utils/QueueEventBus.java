@@ -21,6 +21,9 @@ public class QueueEventBus {
     @Inject
     EventBus eventBus;
 
+    // Use the full qualified class name to avoid collisions with other event buses
+    final static String ADDRESS_SUFFIX = "@" + QueueEventBus.class.getName();
+
     /**
      * Calculate the address to send a queue event to
      * 
@@ -28,12 +31,9 @@ public class QueueEventBus {
      * @return The calculated address
      */
     private static String address(UUID queueId) {
-        var builder = new StringBuilder();
-        // Start each queue get its own ID
+        var builder = new StringBuilder(36 + ADDRESS_SUFFIX.length());
         builder.append(queueId);
-        builder.append('@');
-        // Use the full qualified class name to avoid collisions with other event buses
-        builder.append(QueueEventBus.class.getName());
+        builder.append(ADDRESS_SUFFIX);
         return builder.toString();
     }
 

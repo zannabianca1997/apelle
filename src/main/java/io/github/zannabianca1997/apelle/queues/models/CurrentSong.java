@@ -1,6 +1,7 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
 import java.net.URI;
+import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -16,9 +17,17 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Data about a song currently playing
+ * 
+ * The API exposed by this class emulate an important property: the song
+ * position is always between the two extremes. Even if never stopped, this
+ * class will show as if it naturally stopped after it came to his natural end.
+ * This also means that the state of the database needs not to be updated as
+ * songs stops, as songs that are completed will naturally be considered
+ * stopped.
+ */
 @Embeddable
-@Getter
-@Setter
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,6 +35,8 @@ public class CurrentSong {
     @NonNull
     @ManyToOne
     @JoinColumn(name = "current_song")
+    @Getter
+    @Setter
     /// The song that is being played
     private Song song;
 
@@ -39,10 +50,15 @@ public class CurrentSong {
     private Instant startsAt;
 
     public Instant getStartsAt() {
-        if (startsAt != null) {
-            return startsAt;
+        Instant now = Instant.now();
+
+        if (startsAt == null) {
+            return now.minus(position);
         }
-        return Instant.now().minus(position);
+        // Check: if it passed the end, it is considered stopped
+        Duration timePassed = Duration.between(startsAt, now);
+        Duration duration = getSong().getDuration();
+        return timePassed.compareTo(duration) < 0 ? startsAt : now.minus(duration);
     }
 
     /// Position in the song. Valid only for stopped songs
@@ -54,20 +70,19 @@ public class CurrentSong {
         if (position != null) {
             return position;
         }
-        return Duration.between(this.startsAt, Instant.now());
+        // If a song passed the end, is considered stopped by default
+        Duration timePassed = Duration.between(startsAt, Instant.now());
+        Duration duration = getSong().getDuration();
+        return timePassed.compareTo(duration) < 0 ? timePassed : duration;
     }
+
+    // Stopped information
 
     public boolean isStopped() {
-        return position != null;
+        return position != null || startsAt.plus(getSong().getDuration()).isAfter(Instant.now());
     }
 
-    public void setStopped(boolean stopping) {
-        if (stopping) {
-            stop();
-        } else {
-            play();
-        }
-    }
+    // Action on the current song
 
     /**
      * Stop the song
@@ -134,7 +149,7 @@ public class CurrentSong {
         }
 
         public Stopped stopped() {
-            return new Stopped().song(song);
+            return new Stopped().song(this.song);
         }
 
         public static class Stopped extends CurrentSongBuilder {
@@ -152,23 +167,25 @@ public class CurrentSong {
             }
 
             public CurrentSong build() {
-                if (song == null) {
+                if (this.song == null) {
                     throw new NullPointerException("field song is marked non-null but is null");
                 }
-                if (position == null) {
-                    position = Duration.ZERO;
+                if (this.position == null) {
+                    this.position = Duration.ZERO;
+                } else if (this.position.compareTo(this.song.getDuration()) < 0) {
+                    throw new InvalidParameterException("Cannot make a song positioned after its end");
                 }
 
                 var built = new CurrentSong();
-                built.song = song;
-                built.position = position;
+                built.song = this.song;
+                built.position = this.position;
                 built.startsAt = null;
                 return built;
             }
         }
 
         public Playing playing() {
-            return new Playing().song(song);
+            return new Playing().song(this.song);
         }
 
         public static class Playing extends CurrentSongBuilder {
@@ -185,17 +202,20 @@ public class CurrentSong {
             }
 
             public CurrentSong build() {
-                if (song == null) {
+                if (this.song == null) {
                     throw new NullPointerException("field song is marked non-null but is null");
                 }
-                if (startsAt == null) {
-                    startsAt = Instant.now();
+                Instant now = Instant.now();
+                if (this.startsAt == null) {
+                    this.startsAt = now;
+                } else if (startsAt.isAfter(now)) {
+                    throw new InvalidParameterException("Cannot make a song starting in the future");
                 }
 
                 var built = new CurrentSong();
-                built.song = song;
+                built.song = this.song;
                 built.position = null;
-                built.startsAt = startsAt;
+                built.startsAt = this.startsAt;
                 return built;
             }
         }
