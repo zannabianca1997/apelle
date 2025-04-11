@@ -1,23 +1,21 @@
 CREATE TYPE YoutubeThumbnailSize AS ENUM('DEFAULT', 'HIGH', 'MAXRES', 'MEDIUM', 'STANDARD');
 
 CREATE CAST (VARCHAR AS YoutubeThumbnailSize)
-WITH
-    INOUT AS IMPLICIT;
+WITH INOUT AS IMPLICIT;
 
 CREATE CAST (YoutubeThumbnailSize AS VARCHAR)
-WITH
-    INOUT AS IMPLICIT;
+WITH INOUT AS IMPLICIT;
 
 CREATE TABLE apelle_user (
     id UUID NOT NULL,
-    NAME VARCHAR(255) NOT NULL UNIQUE,
-    PASSWORD VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
     roles VARCHAR(255) ARRAY NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE likes (
-    COUNT SMALLINT NOT NULL,
+    count SMALLINT NOT NULL,
     given_at TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     queue_id UUID NOT NULL,
     song_id UUID NOT NULL,
@@ -30,9 +28,8 @@ CREATE TABLE queue (
     current_song_starts_at TIMESTAMP(6) WITH TIME ZONE,
     current_song UUID,
     id UUID NOT NULL,
-    code VARCHAR(255) NOT NULL,
+    code VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (id),
-    CONSTRAINT queue_code_unique_constraint UNIQUE (code),
     CONSTRAINT song_is_either_started_or_stopped CHECK ( -- Either the current song is started or it's stopped
         (
             -- The current song is null
@@ -53,7 +50,7 @@ CREATE TABLE queue (
 CREATE TABLE queue_user (
     queue_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    ROLE VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL,
     PRIMARY KEY (queue_id, user_id)
 );
 
@@ -67,7 +64,7 @@ CREATE TABLE queued_song (
 CREATE TABLE song (
     duration NUMERIC(21, 0) NOT NULL,
     id UUID NOT NULL,
-    NAME VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -78,8 +75,8 @@ CREATE TABLE youtube_song (
 );
 
 CREATE TABLE youtube_thumbnail (
-    HEIGHT INTEGER NOT NULL,
-    WIDTH INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    width INTEGER NOT NULL,
     song_id UUID NOT NULL,
     url VARCHAR(255) NOT NULL,
     size YoutubeThumbnailSize NOT NULL,
@@ -111,7 +108,7 @@ ALTER TABLE IF EXISTS queued_song
 ADD CONSTRAINT FKs4rh77j2p2wuya8h3kqxwqh0p FOREIGN KEY (song_id) REFERENCES song ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS youtube_song
-ADD CONSTRAINT FKsg3r111rp1qq6i5l0lt27sm6x FOREIGN KEY (id) REFERENCES song;
+ADD CONSTRAINT FKsg3r111rp1qq6i5l0lt27sm6x FOREIGN KEY (id) REFERENCES song ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS youtube_thumbnail
-ADD CONSTRAINT FKmjlg5uf39kkfr55q1m0riwhub FOREIGN KEY (song_id) REFERENCES youtube_song;
+ADD CONSTRAINT FKmjlg5uf39kkfr55q1m0riwhub FOREIGN KEY (song_id) REFERENCES youtube_song ON DELETE CASCADE;

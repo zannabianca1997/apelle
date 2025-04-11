@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -18,18 +20,23 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = true, of = {})
 @Entity
 @Table(name = "youtube_song")
+@OnDelete(action = OnDeleteAction.CASCADE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 /**
  * A song backed up by a youtube video
@@ -42,9 +49,11 @@ public class YoutubeSong extends Song {
     private String videoId;
 
     @OneToMany(cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "song_id")
     @MapKey(name = "size")
-    private EnumMap<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails;
+    @NonNull
+    private Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails;
 
     @Override
     public URI getUri() {
@@ -60,7 +69,7 @@ public class YoutubeSong extends Song {
     }
 
     @Override
-    public URI getUri(Duration position) {
+    public URI getUri(@NonNull Duration position) {
         try {
             return new URIBuilder(getUri())
                     .addParameter("t", Long.toString(position.toSeconds()))
@@ -80,10 +89,12 @@ public class YoutubeSong extends Song {
             @NonNull String name,
             @NonNull Duration duration,
             @NonNull String videoId,
-            @NonNull Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails) {
+            Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails) {
         super(name, duration);
         this.videoId = videoId;
-        this.thumbnails = new EnumMap<>(thumbnails);
+        this.thumbnails = thumbnails != null
+                ? new EnumMap<>(thumbnails)
+                : new EnumMap<>(YoutubeThumbnailSize.class);
     }
 
     @Override
@@ -94,5 +105,9 @@ public class YoutubeSong extends Song {
             default:
                 return false;
         }
+    }
+
+    public static YoutubeSong findByVideoId(@NonNull String videoId) {
+        return YoutubeSong.<YoutubeSong>find("videoId", videoId).singleResultOptional().orElse(null);
     }
 }

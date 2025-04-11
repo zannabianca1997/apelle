@@ -70,7 +70,7 @@ public class QueueUserService {
      * @return The found or created queue user
      */
     private QueueUser findOrCreate(Queue queue, ApelleUser user) {
-        QueueUser queueUser = QueueUser.findById(user.getId(), queue.getId());
+        QueueUser queueUser = QueueUser.findById(user, queue);
         if (queueUser == null) {
             return QueueUser.builder()
                     .queue(queue)
@@ -91,6 +91,6 @@ public class QueueUserService {
     }
 
     public short likes(QueueUser user, QueuedSong song) {
-        return Likes.givenBy(user.getUser().getId(), song.getLink());
+        return Likes.givenBy(user.getUser().getId(), song);
     }
 }

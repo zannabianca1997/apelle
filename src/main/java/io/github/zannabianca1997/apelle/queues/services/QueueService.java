@@ -212,9 +212,13 @@ public class QueueService {
             throw new SongAlreadyQueuedException(queue.getId(), song);
         }
         QueuedSong enqueued = queue.enqueue(song);
+
+        song.persist();
         enqueued.persist();
+
         queueEventBus
                 .publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+
         return enqueued;
     }
 
@@ -270,13 +274,13 @@ public class QueueService {
 
             // Remove likes from the queue in memory
             QueuedSong removingFrom = queue.getQueuedSongs().stream()
-                    .filter(song2 -> song2.getLink().getSong().equals(oldests.getLink().getSong()))
+                    .filter(song2 -> song2.getSong().getId().equals(oldests.getSong().getId()))
                     .findAny().orElseThrow();
             removingFrom.setLikes((short) (removingFrom.getLikes() - removing));
         }
 
         Instant now = Instant.now();
-        Likes likes = Likes.findById(user.getUser().getId(), song.getLink(), now);
+        Likes likes = Likes.findById(user.getUser(), song, now);
 
         if (likes == null) {
             likes = Likes.builder().user(user.getUser()).song(song).givenAt(now).count(count).build();
@@ -287,7 +291,7 @@ public class QueueService {
 
         // Adding likes to the queue in memory
         QueuedSong addingTo = queue.getQueuedSongs().stream()
-                .filter(song2 -> song2.getLink().getSong().equals(song.getLink().getSong()))
+                .filter(song2 -> song2.getSong().getId().equals(song.getSong().getId()))
                 .findAny().orElseThrow();
         addingTo.setLikes((short) (addingTo.getLikes() + count));
 
@@ -299,9 +303,9 @@ public class QueueService {
     }
 
     public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueuedException {
-        QueuedSong queuedSong = QueuedSong.findById(songId, queue.getId());
+        QueuedSong queuedSong = QueuedSong.findById(songId, queue);
         if (queuedSong == null) {
-            throw new SongNotQueuedException(queue.getId(), songId);
+            throw new SongNotQueuedException(queue, songId);
         }
         return queuedSong;
     }

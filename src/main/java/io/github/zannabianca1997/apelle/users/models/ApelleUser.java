@@ -24,8 +24,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Singular;
@@ -34,8 +36,10 @@ import io.quarkus.security.jpa.Roles;
 import io.quarkus.security.jpa.UserDefinition;
 import io.quarkus.security.jpa.Username;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "apelle_user")
@@ -68,13 +72,13 @@ public class ApelleUser extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     /// The queues this user voted on
     private Collection<QueueUser> queues;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.user")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     /// The likes given by this user
     private Collection<Likes> likes;
 

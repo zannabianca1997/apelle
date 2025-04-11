@@ -19,16 +19,20 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -52,13 +56,13 @@ public abstract class Song extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "song")
     /// The likes on this song, on any queue
     private Collection<Likes> likes;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "song")
     /// The queues this song is inside
     private Collection<QueuedSong> queues;
 

@@ -28,19 +28,20 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.Singular;
+import lombok.ToString;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "queue", uniqueConstraints = {
-        @UniqueConstraint(name = Queue.CODE_UNIQUE_CONSTRAINT_NAME, columnNames = { "code" })
-})
 @Check(name = "song_is_either_started_or_stopped", constraints = """
         -- Either the current song is started or it's stopped
         (
@@ -65,7 +66,7 @@ public class Queue extends PanacheEntityBase {
     private UUID id;
 
     @NonNull
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     /// Unique remembrable queue code
     private String code;
 
@@ -75,20 +76,20 @@ public class Queue extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
     @OrderBy("likes DESC, queued_at ASC")
     /// The songs in the queue
     private List<QueuedSong> queuedSongs;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
     /// The users of this queue
     private Collection<QueueUser> users;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
     /// The likes on this queue
     private Collection<Likes> likes;
 
@@ -214,8 +215,6 @@ public class Queue extends PanacheEntityBase {
         sortingQueuedSongs.sort(QUEUED_SONGS_COMPARATOR);
         setQueuedSongs(sortingQueuedSongs);
     }
-
-    public final static String CODE_UNIQUE_CONSTRAINT_NAME = "queue_code_unique_constraint";
 
     public static Queue findByCode(String queueCode) {
         return Queue.<Queue>find("code", queueCode).singleResultOptional().orElse(null);

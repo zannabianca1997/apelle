@@ -6,6 +6,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import io.github.zannabianca1997.apelle.queues.models.Queue;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -17,9 +18,9 @@ public class SongNotQueuedException extends Exception {
     private final UUID queueId;
     private final UUID songId;
 
-    public SongNotQueuedException(UUID queueId, UUID songId) {
-        super(String.format("Song `%s` is not queued inside queue %s", songId, queueId));
-        this.queueId = queueId;
+    public SongNotQueuedException(Queue queue, UUID songId) {
+        super(String.format("Song `%s` is not queued inside queue %s", songId, queue.getId()));
+        this.queueId = queue.getId();
         this.songId = songId;
     }
 

@@ -3,30 +3,32 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.util.UUID;
 
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig.Permissions;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "user", "queue" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queue_user")
@@ -34,36 +36,18 @@ import lombok.Setter;
 /// A user relationship with a queue
 public class QueueUser extends PanacheEntityBase {
 
-    @Embeddable
-    @Data
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Link {
-        @NonNull
-        @Column(nullable = false)
-        /// The user
-        private UUID user;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queue
-        private UUID queue;
-    }
-
-    @EmbeddedId
-    @NonNull
-    private Link link;
-
+    /// The user of the queue
     @NonNull
     @ManyToOne
-    @MapsId("user")
-    /// The user of the queue
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Id
     private ApelleUser user;
 
+    /// The queue
     @NonNull
     @ManyToOne
-    @MapsId("queue")
-    /// The queue
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Id
     private Queue queue;
 
     @NonNull
@@ -85,7 +69,6 @@ public class QueueUser extends PanacheEntityBase {
             boolean likesFilled) {
         super();
 
-        this.link = new Link();
         this.user = user;
         this.queue = queue;
         this.role = role;
@@ -101,8 +84,11 @@ public class QueueUser extends PanacheEntityBase {
         }
     }
 
-    public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
-        return findById(new Link(userId, queueId));
+    public static QueueUser findById(@NonNull ApelleUser user, @NonNull Queue queue) {
+        var id = new QueueUser();
+        id.user = user;
+        id.queue = queue;
+        return findById(id);
     }
 
     public short getMaxLikes() {

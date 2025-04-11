@@ -164,8 +164,7 @@ public class QueueResource {
     }
 
     @DELETE
-    @Operation(summary = "Delete the queue", description = """
-            Delete the queue permanently""")
+    @Operation(summary = "Delete the queue", description = "Delete the queue permanently")
     @APIResponse(responseCode = "204", description = "The queue was deleted.")
     @Transactional
     public void delete() throws ActionNotPermittedException {

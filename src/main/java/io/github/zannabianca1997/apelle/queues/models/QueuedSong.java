@@ -6,59 +6,41 @@ import java.util.UUID;
 import org.hibernate.annotations.Formula;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "queue", "song" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queued_song")
 /// A queued song
 public class QueuedSong extends PanacheEntityBase {
 
-    @Embeddable
-    @Data
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Link {
-        @NonNull
-        @Column(nullable = false)
-        /// The queued song
-        private UUID song;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queue
-        private UUID queue;
-    }
-
-    @EmbeddedId
-    @NonNull
-    private Link link;
-
-    @NonNull
-    @ManyToOne
-    @MapsId("song")
     /// The queued song
+    @NonNull
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @Id
     private Song song;
 
+    /// The queue
     @NonNull
     @ManyToOne
-    @MapsId("queue")
-    /// The queue
+    @Id
     private Queue queue;
 
     @NonNull
@@ -75,14 +57,20 @@ public class QueuedSong extends PanacheEntityBase {
             @NonNull Queue queue,
             @NonNull Instant queuedAt) {
         super();
-        this.link = new Link();
         this.queuedAt = queuedAt;
         this.song = song;
         this.queue = queue;
     }
 
-    public static QueuedSong findById(@NonNull UUID songId, @NonNull UUID queueId) {
-        return findById(new Link(songId, queueId));
+    public static QueuedSong findById(@NonNull UUID songId, @NonNull Queue queue) {
+        return Song.<Song>findByIdOptional(songId).map(song -> findById(song, queue)).orElse(null);
+    }
+
+    public static QueuedSong findById(@NonNull Song song, @NonNull Queue queue) {
+        var id = new QueuedSong();
+        id.song = song;
+        id.queue = queue;
+        return findById(id);
     }
 
     @Override
