@@ -10,8 +10,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.hibernate.annotations.Check;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.Comments;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -133,9 +131,10 @@ public class Queue extends PanacheEntityBase {
         if (index < 0) {
             index = -index - 1;
         }
-        List<QueuedSong> queuedSongs = getQueuedSongs();
-        queuedSongs.add(index, enqueued);
-        setQueuedSongs(queuedSongs);
+
+        List<QueuedSong> editQueuedSongs = getQueuedSongs();
+        editQueuedSongs.add(index, enqueued);
+        setQueuedSongs(editQueuedSongs);
 
         return enqueued;
     }
@@ -188,9 +187,9 @@ public class Queue extends PanacheEntityBase {
      */
     public void next() throws CantPlayEmptyQueueException {
         if (getCurrent() != null) {
-            var current = getCurrent().getSong();
+            var removingCurrent = getCurrent().getSong();
             setCurrent(null);
-            enqueue(current);
+            enqueue(removingCurrent);
         }
         start();
     }
@@ -211,9 +210,9 @@ public class Queue extends PanacheEntityBase {
     }
 
     public void sortSongs() {
-        List<QueuedSong> queuedSongs = getQueuedSongs();
-        queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
-        setQueuedSongs(queuedSongs);
+        List<QueuedSong> sortingQueuedSongs = getQueuedSongs();
+        sortingQueuedSongs.sort(QUEUED_SONGS_COMPARATOR);
+        setQueuedSongs(sortingQueuedSongs);
     }
 
     public final static String CODE_UNIQUE_CONSTRAINT_NAME = "queue_code_unique_constraint";
