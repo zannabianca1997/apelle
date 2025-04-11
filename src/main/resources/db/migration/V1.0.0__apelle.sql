@@ -76,7 +76,7 @@ CREATE TABLE
 CREATE TABLE
     youtube_song (
         id UUID NOT NULL,
-        video_id VARCHAR(255) NOT NULL,
+        video_id VARCHAR(255) NOT NULL UNIQUE,
         PRIMARY KEY (id)
     );
 

@@ -31,7 +31,7 @@ import io.github.zannabianca1997.apelle.queues.models.Song;
 public class YoutubeSong extends Song {
 
     @NonNull
-    @Column(name = "video_id", nullable = false)
+    @Column(name = "video_id", nullable = false, unique = true)
     /// Code of the song
     private String videoId;
 
