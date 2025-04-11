@@ -96,6 +96,12 @@ quarkus:
   quarkus:
     smallrye-openapi:
       info-title: Apelle API (test)
+    flyway:
+      migrate-at-start: true
+    hibernate-orm:
+      database:
+        generation: none
+      sql-load-script: no-file
     rest-client:
       youtube-api:
         # Do not contact youtube during tests
