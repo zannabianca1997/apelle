@@ -35,7 +35,7 @@ public class CurrentSong {
     /// This might not correspond to an actual starting time. For example,
     /// if the user jumps forward or backward, this value changes.
     @Column(name = "current_song_starts_at")
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private Instant startsAt;
 
     public Instant getStartsAt() {
@@ -47,7 +47,7 @@ public class CurrentSong {
 
     /// Position in the song. Valid only for stopped songs
     @Column(name = "current_song_position")
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private Duration position;
 
     public Duration getPosition() {
@@ -81,8 +81,8 @@ public class CurrentSong {
 
         var stopPosition = getPosition();
 
-        position = stopPosition;
-        startsAt = null;
+        setPosition(stopPosition);
+        setStartsAt(null);
 
         return true;
     }
@@ -104,8 +104,8 @@ public class CurrentSong {
             return false;
         }
 
-        position = null;
-        startsAt = playStartsAt;
+        setPosition(null);
+        setStartsAt(playStartsAt);
 
         return true;
     }
@@ -206,7 +206,7 @@ public class CurrentSong {
      * 
      * @return The time left
      */
-    public Duration timeLeft() {
+    public Duration getTimeLeft() {
         return getSong().getDuration().minus(getPosition());
     }
 }

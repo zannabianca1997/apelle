@@ -330,7 +330,7 @@ public class QueueService {
     private void scheduleStopAtEnd(Queue queue) {
         // Fire when the song would end
         Uni<Boolean> songEnded = Uni.createFrom().voidItem()
-                .onItem().delayIt().by(queue.getCurrent().timeLeft())
+                .onItem().delayIt().by(queue.getCurrent().getTimeLeft())
                 .replaceWith(false);
         // Fire if something stop the song
         Uni<Boolean> stopEvent = queueEventBus.events(queue)
