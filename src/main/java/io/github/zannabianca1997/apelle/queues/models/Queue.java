@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Comments;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -42,8 +44,19 @@ import lombok.Singular;
         @UniqueConstraint(name = Queue.CODE_UNIQUE_CONSTRAINT_NAME, columnNames = { "code" })
 })
 @Check(name = "song_is_either_started_or_stopped", constraints = """
-        ((current_song IS NULL) AND (current_song_starts_at IS NULL) AND (current_song_position IS NULL))
-        OR ((current_song IS NOT NULL) AND ((current_song_starts_at IS NULL) <> (current_song_position IS NULL)))
+        -- Either the current song is started or it's stopped
+        (
+            -- The current song is null
+            (current_song IS NULL)
+            AND (current_song_starts_at IS NULL)
+            AND (current_song_position IS NULL)
+        ) OR (
+            -- Only one of the time reference is filled in
+            (current_song IS NOT NULL)
+            AND (
+                (current_song_starts_at IS NULL) <> (current_song_position IS NULL)
+            )
+        )
         """)
 /// A queue of songs
 public class Queue extends PanacheEntityBase {

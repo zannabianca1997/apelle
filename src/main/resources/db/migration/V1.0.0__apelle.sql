@@ -30,13 +30,15 @@ CREATE TABLE
             code VARCHAR(255) NOT NULL,
             PRIMARY KEY (id),
             CONSTRAINT queue_code_unique_constraint UNIQUE (code),
-            CONSTRAINT song_is_either_started_or_stopped CHECK (
+            CONSTRAINT song_is_either_started_or_stopped CHECK ( -- Either the current song is started or it's stopped
                 (
+                    -- The current song is null
                     (current_song IS NULL)
                     AND (current_song_starts_at IS NULL)
                     AND (current_song_position IS NULL)
                 )
                 OR (
+                    -- Only one of the time reference is filled in
                     (current_song IS NOT NULL)
                     AND (
                         (current_song_starts_at IS NULL) <> (current_song_position IS NULL)
