@@ -45,6 +45,11 @@ public class YoutubeService {
      */
     public YoutubeSong fromDto(YoutubeSongAddDto youtubeSongAddDto)
             throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
+        YoutubeSong cached = YoutubeSong.findByVideoId(youtubeSongAddDto.getVideoId());
+        if (cached != null) {
+            return cached;
+        }
+
         var videoData = getVideoData(youtubeSongAddDto.getVideoId());
         return songMapper.fromDto(youtubeSongAddDto, videoData);
     }

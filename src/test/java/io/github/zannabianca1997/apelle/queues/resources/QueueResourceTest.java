@@ -28,6 +28,7 @@ import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
+import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserRolesService;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
@@ -51,6 +52,8 @@ class QueueResourceTest {
     @Transactional
     void createUsersAndQueues() {
         ApelleUser.deleteAll();
+        Queue.deleteAll();
+        Song.deleteAll();
 
         ApelleUser admin = ApelleUser.builder()
                 .name("zanna")
@@ -64,8 +67,6 @@ class QueueResourceTest {
                 .password("other_psw")
                 .role(ApelleUserRole.USER)
                 .build().persist();
-
-        Queue.deleteAll();
 
         var queue = Queue.builder()
                 .code("code")
