@@ -3,12 +3,18 @@ package io.github.zannabianca1997.apelle.youtube.models;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.EnumMap;
+import java.util.Map;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.microprofile.config.ConfigProvider;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKey;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -34,6 +40,11 @@ public class YoutubeSong extends Song {
     @Column(name = "video_id", nullable = false, unique = true)
     /// Code of the song
     private String videoId;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "song_id")
+    @MapKey(name = "size")
+    private EnumMap<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails;
 
     @Override
     public URI getUri() {
@@ -68,9 +79,11 @@ public class YoutubeSong extends Song {
     public YoutubeSong(
             @NonNull String name,
             @NonNull Duration duration,
-            @NonNull String videoId) {
+            @NonNull String videoId,
+            @NonNull Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails) {
         super(name, duration);
         this.videoId = videoId;
+        this.thumbnails = new EnumMap<>(thumbnails);
     }
 
     @Override
