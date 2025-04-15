@@ -26,7 +26,6 @@ import io.github.zannabianca1997.apelle.queues.utils.QueueEventBus;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -146,7 +145,6 @@ public class QueueService {
         if (startedNow) {
             queueEventBus
                     .publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
-            scheduleStopAtEnd(queue);
         }
     }
 
@@ -190,7 +188,6 @@ public class QueueService {
 
         queue.next();
         queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
-        scheduleStopAtEnd(queue);
     }
 
     /**
@@ -319,29 +316,6 @@ public class QueueService {
 
         // Annunce the queue was deleted
         queueEventBus.publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
-    }
-
-    /**
-     * Schedule the queue to be stopped when it finished
-     * 
-     * @param queue The queue to stop
-     */
-    private void scheduleStopAtEnd(Queue queue) {
-        // Fire when the song would end
-        Uni<Boolean> songEnded = Uni.createFrom().voidItem()
-                .onItem().delayIt().by(queue.getCurrent().getTimeLeft())
-                .replaceWith(false);
-        // Fire if something stop the song
-        Uni<Boolean> stopEvent = queueEventBus.events(queue)
-                .filter(QueueEvent::preventsAutoStop)
-                .toUni().replaceWith(true);
-        // On song completion, if nothing stopped it before, stop the song
-        Uni.combine().any().of(songEnded, stopEvent)
-                .subscribe().with(stopped -> {
-                    if (!stopped) {
-                        stopNoCheck(queue);
-                    }
-                });
     }
 
     public Multi<QueueEvent> events(Queue queue) {
