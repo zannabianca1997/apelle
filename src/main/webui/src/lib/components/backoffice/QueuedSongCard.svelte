@@ -1,34 +1,21 @@
 <script lang="ts">
 	import type { QueuedSongQueryDto, QueuedSongShortQueryDto, Uuid } from '$lib/apis/apelle';
-	import {
-		getApiV1QueuesIQueueIdQueueSongId as getFullSong,
-		postApiV1QueuesIQueueIdQueueSongIdLikes as postLike
-	} from '$lib/apis/apelle';
+	import { postApiV1QueuesIQueueIdQueueSongIdLikes as postLike } from '$lib/apis/apelle';
+	import type { QueuedSong } from '$lib/models/Queue.svelte';
 	import { dayjs } from '$lib/time';
 	import { _ } from 'svelte-i18n';
 
 	const {
 		queue,
-		song: songShort
+		song
 	}: {
 		queue: Uuid;
-		song: QueuedSongShortQueryDto;
+		song: QueuedSong;
 	} = $props();
 
-	const songId = songShort.id;
-	let song: QueuedSongShortQueryDto | QueuedSongQueryDto = $state(songShort);
+	const songId = song.id;
 
-	function isFullLoaded(
-		song: QueuedSongShortQueryDto | QueuedSongQueryDto
-	): song is QueuedSongQueryDto {
-		return 'user_likes' in song;
-	}
-
-	$effect(() => {
-		getFullSong(queue, songId).then(({ data }) => (song = data));
-	});
-
-	async function likeSong(song: QueuedSongShortQueryDto | QueuedSongQueryDto) {
+	async function likeSong(song: QueuedSong) {
 		await postLike(queue, song.id);
 	}
 </script>
@@ -38,7 +25,7 @@
 	<td class="card">
 		<h2>{song.name}</h2>
 		<span>
-			Duration: {dayjs.duration(song.duration).format($_('backoffice.song.durationFormat'))}
+			Duration: {song.duration.format($_('backoffice.song.durationFormat'))}
 			Likes: {song.likes}
 		</span>
 	</td>
@@ -46,7 +33,7 @@
 		<button onclick={() => likeSong(song)}>{$_('backoffice.queue.like')}</button>
 	</td>
 	<td class="likesCount">
-		{#if isFullLoaded(song) && song.user_likes > 0}
+		{#if song.user_likes && song.user_likes > 0}
 			{$_('backoffice.queue.liked.pre', { default: '' })}
 			<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
 			{$_('backoffice.queue.liked.post', { default: '' })}

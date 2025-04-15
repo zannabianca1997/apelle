@@ -1,26 +1,14 @@
 <script lang="ts">
-	import type { CurrentSongQueryDto } from '$lib/apis/apelle';
-	import { onMount } from 'svelte';
-	import { dayjs } from '$lib/time';
 	import { _ } from 'svelte-i18n';
+	import type { CurrentSong } from '$lib/models/Queue.svelte';
 
-	const { current = $bindable() }: { current: CurrentSongQueryDto } = $props();
-	let position = $state(dayjs.duration(current.position));
-
-	onMount(() => {
-		let interval = setInterval(() => {
-			if (!current.stopped) {
-				position = dayjs.duration(dayjs().diff(current.starts_at));
-			}
-		}, 1000);
-		return () => clearInterval(interval);
-	});
+	const { current = $bindable() }: { current: CurrentSong } = $props();
 </script>
 
 <div class="iframePlaceholder"></div>
 <div class="card">
 	<h2>{current.name}</h2>
-	<h3>{position.format($_('backoffice.song.durationFormat'))}</h3>
+	<h3>{current.position.format($_('backoffice.song.durationFormat'))}</h3>
 </div>
 
 <style lang="scss">

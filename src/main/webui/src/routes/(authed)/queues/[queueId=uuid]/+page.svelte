@@ -1,8 +1,7 @@
 <script lang="ts">
 	import {
 		postApiV1QueuesIQueueIdQueue as enqueueSong,
-		type QueueEventDto,
-		type QueueQueryDto
+		type QueueEventDto
 	} from '$lib/apis/apelle';
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import type { PageProps } from './$types';
@@ -14,17 +13,19 @@
 	import authService from '$lib/auth.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { Queue } from '$lib/models/Queue.svelte';
 
 	const { data }: PageProps = $props();
 
 	const queueId = data.queue.id;
-	let queue: QueueQueryDto = $state(data.queue);
+	let queue: Queue = $state(data.queue);
+
 	let isPlayer: boolean = $state(data.isPlayer);
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
 
 	let songQuery: string | null = $state(null);
 
-	onMount(() =>
+	onMount(() => {
 		source(`/api/v1/queues/i/${queueId}/events`, {
 			options: {
 				method: 'GET',
@@ -42,15 +43,15 @@
 				}
 
 				switch (event.kind) {
-					case 'queue-state':
-						queue = event.queue;
-						break;
 					case 'queue-delete':
 						goto('/');
 						break;
+					default:
+						queue.update(event);
+						break;
 				}
-			})
-	);
+			});
+	});
 
 	async function addToQueue(e: SubmitEvent) {
 		e.preventDefault();

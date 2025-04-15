@@ -12,12 +12,13 @@
 	import IconPlay from '~icons/mdi/play';
 	import IconPause from '~icons/mdi/pause';
 	import IconNext from '~icons/mdi/skip-next';
+	import type { CurrentSong } from '$lib/models/Queue.svelte';
 
 	let {
 		queueId,
 		current = $bindable(),
 		user
-	}: { queueId: Uuid; current?: CurrentSongQueryDto; user: QueueUserQueryWithRoleDto } = $props();
+	}: { queueId: Uuid; current?: CurrentSong; user: QueueUserQueryWithRoleDto } = $props();
 
 	async function start() {
 		await postStart(queueId);
