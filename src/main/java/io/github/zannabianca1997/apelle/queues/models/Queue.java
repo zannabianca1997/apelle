@@ -155,7 +155,7 @@ public class Queue extends PanacheEntityBase {
     public boolean start() throws CantPlayEmptyQueueException {
         // If a song is running, start playing
         if (getCurrent() != null) {
-            return getCurrent().play();
+            return getCurrent().start();
         }
 
         // Pop a song from the queue

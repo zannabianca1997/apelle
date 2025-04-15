@@ -107,7 +107,7 @@ public class CurrentSong {
      * 
      * @return if the song state changed
      */
-    public boolean play() {
+    public boolean start() {
         if (!isStopped()) {
             return false;
         }
