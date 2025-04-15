@@ -4,16 +4,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.OnDelete;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.enterprise.context.BeforeDestroyed;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
