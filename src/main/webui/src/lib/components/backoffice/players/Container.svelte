@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Uuid } from '$lib/apis/apelle.ts';
 	import {
-		type CurrentSongQueryDto,
 		postApiV1QueuesIQueueIdStart as postStart,
 		postApiV1QueuesIQueueIdStop as postStop,
 		postApiV1QueuesIQueueIdNext as postNext
