@@ -126,6 +126,27 @@ public class CurrentSong {
     }
 
     /**
+     * Jump to the given position
+     * 
+     * @param position The position
+     */
+    public void jumpTo(@NonNull Duration position) {
+        // Clamp to the song duration
+        if (position.isNegative()) {
+            position = Duration.ZERO;
+        }
+        if (position.compareTo(getSong().getDuration()) > 0) {
+            position = getSong().getDuration();
+        }
+        // Set the position or the starting time
+        if (isStopped()) {
+            setPosition(position);
+        } else {
+            setStartsAt(Instant.now().minus(position));
+        }
+    }
+
+    /**
      * Get a URI to the song, if available.
      * 
      * If possible the URI will contain the position info.

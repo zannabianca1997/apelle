@@ -1,5 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -194,9 +195,14 @@ public class Queue extends PanacheEntityBase {
      */
     public void next() throws CantPlayEmptyQueueException {
         if (getCurrent() != null) {
-            var removingCurrent = getCurrent().getSong();
-            setCurrent(null);
-            enqueue(removingCurrent);
+            if (getQueuedSongs().isEmpty()) {
+                getCurrent().jumpTo(Duration.ZERO);
+            } else {
+                // Pop the current song and put it in the queue
+                var removingCurrent = getCurrent().getSong();
+                setCurrent(null);
+                enqueue(removingCurrent);
+            }
         }
         start();
     }
