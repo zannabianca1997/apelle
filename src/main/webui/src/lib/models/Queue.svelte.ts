@@ -25,15 +25,7 @@ export class Queue {
 
                 this.id = data.id;
                 this.code = data.code;
-                if (this.current) {
-                    if (data.current) {
-                        this.current.update(data.current)
-                    } else {
-                        this.current = undefined;
-                    }
-                } else {
-                    this.current = data.current ? new CurrentSong(data.current) : undefined;
-                }
+                this.current = data.current ? new CurrentSong(data.current) : undefined;
                 this.queue = data.queue;
 
                 break;
@@ -53,12 +45,10 @@ export class CurrentSong {
     kind: SongKind;
     /** Eventual public url of the song */
     url?: string;
-    /** If the song is currently stopped */
-    stopped: boolean;
     /** Moment at which the song should have started to reach the current position */
-    starts_at: dayjs.Dayjs;
+    private readonly _starts_at?: dayjs.Dayjs;
     /** Current position in the song */
-    position: durationjs.Duration;
+    private readonly _position?: durationjs.Duration;
 
     constructor(data: CurrentSongQueryDto) {
         this.id = data.id;
@@ -66,19 +56,36 @@ export class CurrentSong {
         this.duration = dayjs.duration(data.duration);
         this.kind = data.kind;
         this.url = data.url;
-        this.stopped = data.stopped;
-        this.starts_at = dayjs(data.starts_at);
-        this.position = dayjs.duration(data.position);
+        if (data.stopped) {
+            this._starts_at = undefined;
+            this._position = dayjs.duration(data.position);
+        } else {
+            this._starts_at = dayjs(data.starts_at);
+            this._position = undefined;
+        }
     }
 
-    update(data: CurrentSongQueryDto) {
-        this.id = data.id;
-        this.name = data.name;
-        this.duration = dayjs.duration(data.duration);
-        this.kind = data.kind;
-        this.url = data.url;
-        this.stopped = data.stopped;
-        this.starts_at = dayjs(data.starts_at);
-        this.position = dayjs.duration(data.position);
+    get stopped(): boolean {
+        return !this._starts_at?.add(this.duration).isBefore(dayjs());
+    }
+
+    get starts_at(): dayjs.Dayjs {
+        if (this._starts_at) {
+            if (this.stopped) {
+                return dayjs().subtract(this.duration);
+            }
+            return this._starts_at;
+        }
+        return dayjs().subtract(this._position!);
+    }
+
+    get position(): durationjs.Duration {
+        if (this._position) {
+            return this._position;
+        }
+        if (this.stopped) {
+            return this.duration;
+        }
+        return dayjs.duration(dayjs().diff(this.starts_at));
     }
 }
