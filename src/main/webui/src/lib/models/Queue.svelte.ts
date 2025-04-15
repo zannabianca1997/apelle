@@ -5,6 +5,7 @@ import type {
 	QueueEventDto,
 	QueueQueryDto,
 	SongKind,
+	ThumbnailQueryDto,
 	Uuid
 } from '$lib/apis/apelle';
 import { dayjs, durationjs } from '$lib/time';
@@ -152,6 +153,8 @@ export class QueuedSong {
 	kind?: SongKind = $state('Youtube');
 	/** Eventual public url of the song */
 	url?: string = $state();
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[] = $state();
 	/** The moment this song was added to the queue */
 	queued_at: dayjs.Dayjs = $state(dayjs());
 	/** The number of likes this song received */
@@ -165,6 +168,7 @@ export class QueuedSong {
 		this.duration = undefined;
 		this.kind = undefined;
 		this.url = undefined;
+		this.thumbnails = undefined;
 		this.queued_at = dayjs(song.queued_at);
 		this.likes = song.likes;
 		this.user_likes = undefined;
@@ -189,6 +193,7 @@ export class QueuedSong {
 		this.duration = dayjs.duration(data.duration);
 		this.kind = data.kind;
 		this.url = data.url;
+		this.thumbnails = data.thumbnails;
 		this.queued_at = dayjs(data.queued_at);
 		this.likes = data.likes;
 		this.user_likes = data.user_likes;

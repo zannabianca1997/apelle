@@ -38,6 +38,8 @@ export interface CurrentSongQueryDto {
 	kind: SongKind;
 	/** Eventual public url of the song */
 	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
 	/** If the song is currently stopped */
 	stopped: boolean;
 	/** Moment at which the song should have started to reach the current position */
@@ -178,6 +180,8 @@ export interface QueuedSongQueryDto {
 	kind: SongKind;
 	/** Eventual public url of the song */
 	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
 	/** The moment this song was added to the queue */
 	queued_at: Instant;
 	/** The number of likes this song received */
@@ -226,6 +230,8 @@ export interface SongQueryDto {
 	kind: SongKind;
 	/** Eventual public url of the song */
 	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
 }
 
 /**
@@ -236,6 +242,18 @@ export interface SongShortQueryDto {
 	id: Uuid;
 	/** Name of the song */
 	name: string;
+}
+
+/**
+ * A thumbnail for a song
+ */
+export interface ThumbnailQueryDto {
+	/** The thumbnail width */
+	width: number;
+	/** The thumbnail height */
+	height: number;
+	/** The public URL where the thumbnail can be found */
+	url: string;
 }
 
 /**

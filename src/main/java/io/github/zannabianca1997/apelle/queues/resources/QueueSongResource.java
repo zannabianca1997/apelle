@@ -58,9 +58,7 @@ public class QueueSongResource {
 
     @GET
     @Operation(summary = "Get the queued song", description = """
-            Get the full state of the queued song, with all data.
-
-            TODO: Add query parameters to ask for thumbnails.""")
+            Get the full state of the queued song, with all data.""")
     @APIResponse(responseCode = "200", description = "The queued song", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongQueryDto.class))
     })

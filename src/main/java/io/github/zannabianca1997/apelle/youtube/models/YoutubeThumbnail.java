@@ -7,6 +7,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.type.SqlTypes;
 
+import io.github.zannabianca1997.apelle.queues.models.Thumbnail;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,9 +34,8 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "youtube_thumbnail")
-public class YoutubeThumbnail extends PanacheEntityBase {
+public class YoutubeThumbnail extends PanacheEntityBase implements Thumbnail {
     /// The song this thumbnail belongs to
-    @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @Id

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Uuid } from '$lib/apis/apelle';
+	import type { ThumbnailQueryDto, Uuid } from '$lib/apis/apelle';
 	import { postApiV1QueuesIQueueIdQueueSongIdLikes as postLike } from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
 	import { _ } from 'svelte-i18n';
@@ -17,10 +17,25 @@
 	async function likeSong(song: QueuedSong) {
 		await postLike(queue, song.id);
 	}
+
+	let thumbHeight: number = $state(176);
+	let thumbWidth: number = $state(99);
+
+	let choosedThumb = $derived.by(() => {
+		const thumbScore = (thumb: ThumbnailQueryDto) => {
+			return -((thumb.height - thumbHeight) ** 2 + (thumb.width - thumbWidth) ** 2);
+		};
+
+		return song.thumbnails?.reduce((t1, t2) => (thumbScore(t1) > thumbScore(t2) ? t1 : t2)).url;
+	});
 </script>
 
 <tr>
-	<td class="iframe"></td>
+	<td class="iframe" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
+		{#if song.thumbnails}
+			<img alt="" src={choosedThumb} />
+		{/if}
+	</td>
 	<td class="card">
 		<h2>{song.name}</h2>
 		<span>
@@ -47,10 +62,18 @@
 		height: 99px;
 
 		td.iframe {
-			width: 99px;
+			width: 176px;
 			height: 99px;
 
-			background-color: #d6d6d6;
+			background-color: transparent;
+
+			padding: 0;
+			img {
+				width: 100%;
+				height: 100%;
+
+				display: block;
+			}
 		}
 
 		td.card {

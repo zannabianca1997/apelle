@@ -109,4 +109,11 @@ public abstract class Song extends PanacheEntityBase {
     public boolean isSame(Song b) {
         return false;
     }
+
+    /**
+     * @return All available thumbnails for this song
+     */
+    public Collection<Thumbnail> getAllThumbnails() {
+        return null;
+    }
 }

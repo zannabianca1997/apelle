@@ -22,6 +22,7 @@ import io.github.zannabianca1997.apelle.queues.models.Song;
 @Mapper(config = MappersConfig.class)
 public interface SongMapper {
     @Mapping(source = "uri", target = "url")
+    @Mapping(source = "allThumbnails", target = "thumbnails")
     SongQueryDto toDto(Song song);
 
     @Mapping(source = "likes", target = "likes")
@@ -31,10 +32,12 @@ public interface SongMapper {
     @Mapping(source = "queuedSong.likes", target = "likes")
     @Mapping(source = "queuedSong.song", target = ".")
     @Mapping(source = "queuedSong.song.uri", target = "url")
+    @Mapping(source = "queuedSong.song.allThumbnails", target = "thumbnails")
     QueuedSongQueryDto toDto(QueuedSong queuedSong, short userLikes);
 
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")
+    @Mapping(source = "song.allThumbnails", target = "thumbnails")
     CurrentSongQueryDto toDto(CurrentSong currentSong);
 
     default URL toUrl(URI uri) {

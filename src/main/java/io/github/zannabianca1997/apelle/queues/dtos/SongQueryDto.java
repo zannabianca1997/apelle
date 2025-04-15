@@ -2,6 +2,7 @@ package io.github.zannabianca1997.apelle.queues.dtos;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collection;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -33,4 +34,7 @@ public class SongQueryDto extends SongShortQueryDto {
 
     @Schema(description = "Eventual public url of the song")
     private URL url;
+
+    @Schema(description = "Available thumbnails for the song")
+    private Collection<ThumbnailQueryDto> thumbnails;
 }

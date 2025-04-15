@@ -3,6 +3,7 @@ package io.github.zannabianca1997.apelle.youtube.models;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.models.Song;
+import io.github.zannabianca1997.apelle.queues.models.Thumbnail;
 
 @Getter
 @Setter
@@ -82,6 +84,11 @@ public class YoutubeSong extends Song {
     @Override
     public SongKind getKind() {
         return SongKind.Youtube;
+    }
+
+    @Override
+    public Collection<Thumbnail> getAllThumbnails() {
+        return getThumbnails().values().stream().map(t -> (Thumbnail) t).toList();
     }
 
     @Builder
