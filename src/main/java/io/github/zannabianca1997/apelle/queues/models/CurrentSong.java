@@ -79,7 +79,7 @@ public class CurrentSong {
     // Stopped information
 
     public boolean isStopped() {
-        return position != null || startsAt.plus(getSong().getDuration()).isAfter(Instant.now());
+        return !(position == null && startsAt.plus(getSong().getDuration()).isAfter(Instant.now()));
     }
 
     // Action on the current song
