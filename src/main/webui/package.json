@@ -38,6 +38,7 @@
         "vite": "^5.4.11"
     },
     "dependencies": {
+        "@types/youtube": "^0.1.0",
         "axios": "^1.8.4",
         "dayjs": "^1.11.13",
         "svelte-i18n": "^4.0.1"

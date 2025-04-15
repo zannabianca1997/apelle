@@ -98,7 +98,7 @@ export class CurrentSong {
 	/** Source of the song */
 	kind: SongKind = $state('Youtube');
 	/** Eventual public url of the song */
-	url?: string = $state();
+	url?: URL = $state();
 	/** Available thumbnails for the song */
 	thumbnails?: ThumbnailQueryDto[] = $state();
 	/** If the song is currently stopped */
@@ -115,7 +115,7 @@ export class CurrentSong {
 		this.name = data.name;
 		this.duration = dayjs.duration(data.duration);
 		this.kind = data.kind;
-		this.url = data.url;
+		this.url = data.url ? new URL(data.url) : undefined;
 		this.thumbnails = data.thumbnails;
 		this.stopped = data.stopped;
 		this.position = dayjs.duration(data.position);
@@ -155,7 +155,7 @@ export class QueuedSong {
 	/** Source of the song */
 	kind?: SongKind = $state('Youtube');
 	/** Eventual public url of the song */
-	url?: string = $state();
+	url?: URL = $state();
 	/** Available thumbnails for the song */
 	thumbnails?: ThumbnailQueryDto[] = $state();
 	/** The moment this song was added to the queue */
@@ -195,7 +195,7 @@ export class QueuedSong {
 		this.name = data.name;
 		this.duration = dayjs.duration(data.duration);
 		this.kind = data.kind;
-		this.url = data.url;
+		this.url = data.url ? new URL(data.url) : undefined;
 		this.thumbnails = data.thumbnails;
 		this.queued_at = dayjs(data.queued_at);
 		this.likes = data.likes;

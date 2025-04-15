@@ -2,14 +2,15 @@
 	import { _ } from 'svelte-i18n';
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import type { ThumbnailQueryDto } from '$lib/apis/apelle';
+	import YoutubePlayer from './sources/YoutubePlayer.svelte';
 
 	const {
 		current = $bindable(),
 		isPlayer = $bindable(false)
 	}: { current: CurrentSong; isPlayer: boolean } = $props();
 
-	let thumbHeight: number = $state(176);
-	let thumbWidth: number = $state(99);
+	let thumbHeight: number = $state(200);
+	let thumbWidth: number = $state(357);
 
 	let choosedThumb = $derived.by(() => {
 		const thumbScore = (thumb: ThumbnailQueryDto) => {
@@ -21,7 +22,13 @@
 </script>
 
 {#if isPlayer}
-	<div class="iframe"></div>
+	<div class="iframe">
+		{#if current.kind == 'Youtube'}
+			<YoutubePlayer {current} />
+		{:else}
+			<!--No other kinds are possible-->
+		{/if}
+	</div>
 {:else}
 	<div class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
 		{#if choosedThumb}
@@ -38,14 +45,14 @@
 	.iframe,
 	.thumb {
 		flex-shrink: 0;
-		width: 244px;
-		height: 137px;
+		width: 357px;
+		height: 200px;
+
+		padding: 0;
 	}
 
 	.thumb {
 		background-color: transparent;
-
-		padding: 0;
 		img {
 			width: 100%;
 			height: 100%;

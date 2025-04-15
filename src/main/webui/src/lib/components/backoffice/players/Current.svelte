@@ -65,7 +65,7 @@
 		gap: 24px;
 
 		width: 100%;
-		height: 161px;
+		height: 244px;
 		border-radius: 6px;
 		padding: 12px;
 
