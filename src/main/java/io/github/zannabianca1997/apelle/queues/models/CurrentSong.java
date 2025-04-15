@@ -136,12 +136,17 @@ public class CurrentSong {
             position = Duration.ZERO;
         }
         if (position.compareTo(getSong().getDuration()) > 0) {
-            position = getSong().getDuration();
+            // Stop the song at the end
+            setPosition(getSong().getDuration());
+            setStartsAt(null);
+            return;
         }
         // Set the position or the starting time
         if (isStopped()) {
             setPosition(position);
+            setStartsAt(null);
         } else {
+            setPosition(null);
             setStartsAt(Instant.now().minus(position));
         }
     }
