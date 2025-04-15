@@ -99,6 +99,8 @@ export class CurrentSong {
 	kind: SongKind = $state('Youtube');
 	/** Eventual public url of the song */
 	url?: string = $state();
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[] = $state();
 	/** If the song is currently stopped */
 	stopped: boolean = $state(true);
 	/** Moment at which the song should have started to reach the current position */
@@ -114,6 +116,7 @@ export class CurrentSong {
 		this.duration = dayjs.duration(data.duration);
 		this.kind = data.kind;
 		this.url = data.url;
+		this.thumbnails = data.thumbnails;
 		this.stopped = data.stopped;
 		this.position = dayjs.duration(data.position);
 		this.starts_at = dayjs(data.starts_at);

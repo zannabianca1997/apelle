@@ -403,8 +403,6 @@ export const postApiV1QueuesCQueueCodeQueue = <TData = AxiosResponse<QueuedSongS
 
 /**
  * Get the full state of the queued song, with all data.
-
-TODO: Add query parameters to ask for thumbnails.
  * @summary Get the queued song
  */
 export const getApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<QueuedSongQueryDto>>(
@@ -585,8 +583,6 @@ export const postApiV1QueuesIQueueIdQueue = <TData = AxiosResponse<QueuedSongSho
 
 /**
  * Get the full state of the queued song, with all data.
-
-TODO: Add query parameters to ask for thumbnails.
  * @summary Get the queued song
  */
 export const getApiV1QueuesIQueueIdQueueSongId = <TData = AxiosResponse<QueuedSongQueryDto>>(

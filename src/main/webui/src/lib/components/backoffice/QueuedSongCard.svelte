@@ -31,8 +31,8 @@
 </script>
 
 <tr>
-	<td class="iframe" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
-		{#if song.thumbnails}
+	<td class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
+		{#if choosedThumb}
 			<img alt="" src={choosedThumb} />
 		{/if}
 	</td>
@@ -61,7 +61,7 @@
 	tr {
 		height: 99px;
 
-		td.iframe {
+		td.thumb {
 			width: 176px;
 			height: 99px;
 

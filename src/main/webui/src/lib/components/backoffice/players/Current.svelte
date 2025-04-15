@@ -16,8 +16,14 @@
 	let {
 		queueId,
 		current = $bindable(),
-		user
-	}: { queueId: Uuid; current?: CurrentSong; user: QueueUserQueryWithRoleDto } = $props();
+		user,
+		isPlayer = $bindable(false)
+	}: {
+		queueId: Uuid;
+		current?: CurrentSong;
+		user: QueueUserQueryWithRoleDto;
+		isPlayer: boolean;
+	} = $props();
 
 	async function start() {
 		await postStart(queueId);
@@ -32,7 +38,7 @@
 
 <section>
 	{#if current}
-		<Player bind:current />
+		<Player bind:current {isPlayer} />
 	{:else}
 		<h1>{$_('backoffice.currentSong.nothingPlaying')}</h1>
 	{/if}

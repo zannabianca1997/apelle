@@ -7,7 +7,7 @@
 	import type { PageProps } from './$types';
 	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
 	import { _ } from 'svelte-i18n';
-	import Player from '$lib/components/backoffice/players/Container.svelte';
+	import Current from '$lib/components/backoffice/players/Current.svelte';
 	import QueuedSongCard from '$lib/components/backoffice/QueuedSongCard.svelte';
 	import { source } from 'sveltekit-sse';
 	import authService from '$lib/auth.svelte';
@@ -65,9 +65,7 @@
 </script>
 
 <main>
-	{#if isPlayer}
-		<Player {queueId} bind:current={queue.current} {user} />
-	{/if}
+	<Current {queueId} bind:current={queue.current} {user} {isPlayer} />
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
 		{#if user.queue_role.permissions.queue.enqueue}
