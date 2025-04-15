@@ -116,10 +116,8 @@ class QueueResourceTest {
 
         YoutubeVideoDataDto videoData = YoutubeApiVideosClientMock.RESPONSES.get(videoId).unwrapSingle();
 
-        assertEquals(SongKind.Youtube, created.getKind());
         assertEquals(0, created.getLikes());
         assertEquals(videoData.getSnippet().getTitle(), created.getName());
-        assertEquals(videoData.getContentDetails().getDuration(), created.getDuration());
 
         Queue queue = Queue.findById(queueId);
 
@@ -134,8 +132,6 @@ class QueueResourceTest {
 
         assertEquals(videoId, song.getVideoId());
         assertEquals(created.getName(), song.getName());
-        assertEquals(created.getDuration(), song.getDuration());
-        assertEquals(created.getUrl(), song.getUri().toURL());
     }
 
     @Test

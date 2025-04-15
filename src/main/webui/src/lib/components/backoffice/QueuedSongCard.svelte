@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { QueuedSongQueryDto, QueuedSongShortQueryDto, Uuid } from '$lib/apis/apelle';
+	import type { Uuid } from '$lib/apis/apelle';
 	import { postApiV1QueuesIQueueIdQueueSongIdLikes as postLike } from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
-	import { dayjs } from '$lib/time';
 	import { _ } from 'svelte-i18n';
 
 	const {
@@ -25,7 +24,9 @@
 	<td class="card">
 		<h2>{song.name}</h2>
 		<span>
-			Duration: {song.duration.format($_('backoffice.song.durationFormat'))}
+			{#if song.duration}
+				Duration: {song.duration.format($_('backoffice.song.durationFormat'))}
+			{/if}
 			Likes: {song.likes}
 		</span>
 	</td>

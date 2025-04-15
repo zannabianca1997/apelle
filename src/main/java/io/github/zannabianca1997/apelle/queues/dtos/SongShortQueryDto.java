@@ -1,6 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.dtos;
 
-import java.time.Instant;
+import java.util.UUID;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -16,13 +16,15 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @Jacksonized
-@Schema(description = "A song inside a queue")
-public class QueuedSongShortQueryDto extends SongShortQueryDto {
+@Schema(description = "Basic data about a song")
+public class SongShortQueryDto {
     @NonNull
-    @JsonProperty(value = "queued_at", required = true)
-    @Schema(description = "The moment this song was added to the queue")
-    private Instant queuedAt;
     @JsonProperty(required = true)
-    @Schema(description = "The number of likes this song received")
-    private short likes;
+    @Schema(description = "Unique id of the song")
+    private UUID id;
+
+    @NonNull
+    @JsonProperty(required = true)
+    @Schema(description = "Name of the song")
+    private String name;
 }

@@ -178,6 +178,8 @@ export interface QueuedSongQueryDto {
 	kind: SongKind;
 	/** Eventual public url of the song */
 	url?: string;
+	/** The moment this song was added to the queue */
+	queued_at: Instant;
 	/** The number of likes this song received */
 	likes: number;
 	/** The number of likes this song received by this user */
@@ -192,12 +194,8 @@ export interface QueuedSongShortQueryDto {
 	id: Uuid;
 	/** Name of the song */
 	name: string;
-	/** Duration of the song */
-	duration: Duration;
-	/** Source of the song */
-	kind: SongKind;
-	/** Eventual public url of the song */
-	url?: string;
+	/** The moment this song was added to the queue */
+	queued_at: Instant;
 	/** The number of likes this song received */
 	likes: number;
 }
@@ -228,6 +226,16 @@ export interface SongQueryDto {
 	kind: SongKind;
 	/** Eventual public url of the song */
 	url?: string;
+}
+
+/**
+ * Basic data about a song
+ */
+export interface SongShortQueryDto {
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
 }
 
 /**

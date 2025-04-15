@@ -26,7 +26,6 @@ public interface SongMapper {
 
     @Mapping(source = "likes", target = "likes")
     @Mapping(source = "song", target = ".")
-    @Mapping(source = "song.uri", target = "url")
     QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong);
 
     @Mapping(source = "queuedSong.likes", target = "likes")
@@ -36,15 +35,14 @@ public interface SongMapper {
 
     @Mapping(source = "song", target = ".")
     @Mapping(source = "song.uri", target = "url")
-    CurrentSongQueryDto toDto(CurrentSong playingSong);
+    CurrentSongQueryDto toDto(CurrentSong currentSong);
 
     default URL toUrl(URI uri) {
         try {
             return uri.toURL();
         } catch (MalformedURLException e) {
             // This should not happen, as the url generated should always be valid
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 }

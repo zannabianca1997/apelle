@@ -2,7 +2,6 @@ package io.github.zannabianca1997.apelle.queues.dtos;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.UUID;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -20,17 +19,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 @Schema(description = "A song")
-public class SongQueryDto {
-    @NonNull
-    @JsonProperty(required = true)
-    @Schema(description = "Unique id of the song")
-    private UUID id;
-
-    @NonNull
-    @JsonProperty(required = true)
-    @Schema(description = "Name of the song")
-    private String name;
-
+public class SongQueryDto extends SongShortQueryDto {
     @NonNull
     @JsonProperty(required = true)
     @Schema(description = "Duration of the song")
