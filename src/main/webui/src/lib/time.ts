@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(duration);
+import durationjs from 'dayjs/plugin/duration';
+dayjs.extend(durationjs);
 
-export { dayjs };
+export { dayjs, durationjs };
