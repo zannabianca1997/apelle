@@ -42,13 +42,10 @@
 					return;
 				}
 
-				switch (event.kind) {
-					case 'queue-delete':
-						goto('/');
-						break;
-					default:
-						queue.update(event);
-						break;
+				if (event.kind === 'queue-delete') {
+					goto('/');
+				} else {
+					queue.update(event);
 				}
 			});
 		return unsubscribe;
