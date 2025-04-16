@@ -11,7 +11,11 @@ import type {
 } from '$lib/apis/apelle';
 import { dayjs, durationjs } from '$lib/time';
 
-import { getApiV1QueuesIQueueIdQueueSongId as getFullSong } from '$lib/apis/apelle';
+import {
+	getApiV1QueuesIQueueIdQueueSongId as getFullSong,
+	postApiV1QueuesIQueueIdNext as postNext
+} from '$lib/apis/apelle';
+import { AxiosError } from 'axios';
 
 export class Queue {
 	/** Unique ID of the queue */
@@ -104,9 +108,28 @@ export class Queue {
 		this.current?.destroy();
 		if (data) {
 			this.current = new CurrentSong(data.id);
-			await this.current.init(data);
+			await this.current.init(data, () => this.stopEvent());
 		} else {
 			this.current = undefined;
+		}
+	}
+
+	private async stopEvent(): Promise<void> {
+		try {
+			await postNext(this.id, {
+				headers: {
+					'If-Match': `W/"${this.player_state_id}"`
+				}
+			});
+		} catch (e) {
+			if (e instanceof AxiosError) {
+				if (e?.response?.status == 412) {
+					// The queue already changed state.
+					// This is probably due to another player that sent the next signal at the same time
+					return;
+				}
+			}
+			throw e;
 		}
 	}
 }
@@ -137,7 +160,7 @@ export class CurrentSong {
 		this.id = id;
 	}
 
-	async init(data: CurrentSongQueryDto) {
+	async init(data: CurrentSongQueryDto, stopEvent?: () => void) {
 		console.assert(this.id === data.id);
 
 		this.name = data.name;
@@ -150,19 +173,20 @@ export class CurrentSong {
 		this.starts_at = dayjs(data.starts_at);
 
 		if (!this.stopped) {
-			this.setTimeout();
+			this.setTimeout(stopEvent);
 		}
 	}
 
-	private setTimeout() {
+	private setTimeout(stopEvent?: () => void) {
 		const now = dayjs();
 
 		this.position = dayjs.duration(now.diff(this.starts_at));
 
 		if (this.position >= this.duration) {
 			this.stopped = true;
+			stopEvent?.();
 		} else {
-			this.animationFrame = window.requestAnimationFrame(() => this.setTimeout());
+			this.animationFrame = window.requestAnimationFrame(() => this.setTimeout(stopEvent));
 		}
 	}
 
