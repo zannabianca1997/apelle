@@ -11,7 +11,6 @@ import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdExcepti
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
-import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 

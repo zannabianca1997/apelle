@@ -11,7 +11,6 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;

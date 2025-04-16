@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.smallrye.common.annotation.Blocking;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
