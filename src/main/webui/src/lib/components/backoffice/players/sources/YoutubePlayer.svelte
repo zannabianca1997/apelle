@@ -49,7 +49,7 @@
 					disablekb: 1,
 					enablejsapi: 1,
 					fs: 0,
-					start: current.position.seconds()
+					start: current.position.asSeconds()
 				}
 			});
 
