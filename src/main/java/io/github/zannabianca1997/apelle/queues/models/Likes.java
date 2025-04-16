@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -99,12 +100,21 @@ public class Likes extends PanacheEntityBase {
                 .firstResult();
     }
 
-    public static short givenBy(UUID user, QueuedSong song) {
+    public static short givenBy(UUID userId, QueuedSong song) {
         return getSession()
                 .createNamedQuery("Likes.countUserLikes", Short.class)
                 .setParameter("queue_id", song.getQueue().getId())
                 .setParameter("song_id", song.getSong().getId())
-                .setParameter("user_id", user)
+                .setParameter("user_id", userId)
+                .getSingleResult();
+    }
+
+    public static short givenBy(UUID userId, UUID queueId, UUID songId) {
+        return getSession()
+                .createNamedQuery("Likes.countUserLikes", Short.class)
+                .setParameter("queue_id", queueId)
+                .setParameter("song_id", songId)
+                .setParameter("user_id", userId)
                 .getSingleResult();
     }
 

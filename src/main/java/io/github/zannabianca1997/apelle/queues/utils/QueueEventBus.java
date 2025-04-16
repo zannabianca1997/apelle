@@ -3,7 +3,6 @@ package io.github.zannabianca1997.apelle.queues.utils;
 import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
-import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -51,11 +50,11 @@ public class QueueEventBus {
     /**
      * Receive the queue events
      * 
-     * @param queue The queue to listen for
+     * @param queueId The queue to listen for
      * @return A stream of events
      */
-    public Multi<QueueEvent> events(Queue queue) {
-        return eventBus.<JsonObject>consumer(address(queue.getId()))
+    public Multi<QueueEvent> events(UUID queueId) {
+        return eventBus.<JsonObject>consumer(address(queueId))
                 .toMulti().map(message -> message.body().mapTo(QueueEvent.class));
     }
 }

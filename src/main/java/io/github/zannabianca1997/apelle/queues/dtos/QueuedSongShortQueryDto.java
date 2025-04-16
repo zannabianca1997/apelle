@@ -25,4 +25,7 @@ public class QueuedSongShortQueryDto extends SongShortQueryDto {
     @JsonProperty(required = true)
     @Schema(description = "The number of likes this song received")
     private short likes;
+    @JsonProperty(required = true, value = "user_likes")
+    @Schema(description = "The number of likes this song received by this user")
+    private short userLikes;
 }

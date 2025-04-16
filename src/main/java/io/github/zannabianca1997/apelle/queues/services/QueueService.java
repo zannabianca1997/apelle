@@ -27,6 +27,7 @@ import io.github.zannabianca1997.apelle.queues.utils.QueueEventBus;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -43,6 +44,8 @@ public class QueueService {
     QueueUserRolesService queueUserRolesService;
     @Inject
     QueueUserService queueUserService;
+    @Inject
+    QueueEventService queueEventService;
 
     @Inject
     QueueCodeConfigs queueCodeConfigs;
@@ -147,7 +150,8 @@ public class QueueService {
         boolean startedNow = queue.start();
         if (startedNow) {
             queueEventBus
-                    .publish(QueueStartEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+                    .publish(QueueStartEvent.builder().queueId(queue.getId())
+                            .state(queueMapper.toDto(queue, song -> (short) -1)).build());
         }
     }
 
@@ -191,7 +195,8 @@ public class QueueService {
         }
 
         queue.next();
-        queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+        queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId())
+                .state(queueMapper.toDto(queue, song -> (short) -1)).build());
     }
 
     /**
@@ -219,7 +224,9 @@ public class QueueService {
         queueEventBus
                 .publish(
                         QueueEnqueueEvent.builder().queueId(queue.getId())
-                                .queuedSongs(queue.getQueuedSongs().stream().map(songMapper::toShortDto).toList())
+                                .queuedSongs(queue.getQueuedSongs().stream()
+                                        .map(s -> songMapper.toShortDto(s, (short) -1))
+                                        .toList())
                                 .build());
 
         return enqueued;
@@ -303,7 +310,9 @@ public class QueueService {
 
         // Signal songs have changed
         queueEventBus.publish(QueueLikeEvent.builder().queueId(queue.getId())
-                .queuedSongs(queue.getQueuedSongs().stream().map(songMapper::toShortDto).toList()).build());
+                .queuedSongs(queue.getQueuedSongs().stream()
+                        .map(s -> songMapper.toShortDto(s, (short) -1)).toList())
+                .build());
     }
 
     public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueuedException {
@@ -326,8 +335,16 @@ public class QueueService {
         queueEventBus.publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
     }
 
-    public Multi<QueueEvent> events(Queue queue) {
-        return queueEventBus.events(queue);
+    public Multi<QueueEvent> events(Queue queue, QueueUser seenBy) {
+        // Extract the ids, ensuring the entities are not captured by the multi and
+        // persist for the entire request
+        UUID queueId = queue.getId();
+        UUID userId = seenBy.getUser().getId();
+
+        return queueEventBus.events(queueId)
+                // The `asSeenBy` call need to contact the db, so it must run on the worker pool
+                .emitOn(Infrastructure.getDefaultWorkerPool())
+                .map(event -> queueEventService.asSeenBy(event, userId));
     }
 
 }

@@ -11,6 +11,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
@@ -72,9 +73,11 @@ public class QueueResource {
     QueueUserResource queueUserResource;
 
     Queue queue = null;
+    QueueUser current = null;
 
     public QueueResource of(Queue queue) {
         this.queue = queue;
+        this.current = queueUserService.getCurrent(queue);
         return this;
     }
 
@@ -82,6 +85,8 @@ public class QueueResource {
     void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
         if (queue != null)
             queue = Queue.getEntityManager().merge(queue);
+        if (current != null)
+            current = QueueUser.getEntityManager().merge(current);
     }
 
     @GET
@@ -90,7 +95,7 @@ public class QueueResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueueQueryDto.class))
     })
     public QueueQueryDto get() {
-        return queueMapper.toDto(queue);
+        return queueMapper.toDto(queue, queuedSong -> queueUserService.likes(current, queuedSong));
     }
 
     @POST
@@ -106,14 +111,14 @@ public class QueueResource {
             YoutubeVideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
-        return RestResponse.status(Status.CREATED, songMapper.toShortDto(enqueued));
+        return RestResponse.status(Status.CREATED,
+                songMapper.toShortDto(enqueued, (short) 0));
     }
 
     @Path("/queue/{songId}")
     public QueueSongResource queueSong(UUID songId) throws SongNotQueuedException {
         QueuedSong song = queueService.getQueuedSong(queue, songId);
-        QueueUser user = queueUserService.getCurrent(queue);
-        return queueSongResource.of(song, user);
+        return queueSongResource.of(song, current);
     }
 
     @POST
@@ -159,8 +164,7 @@ public class QueueResource {
 
     @Path("/users/me")
     public QueueUserResource userByName() {
-        QueueUser user = queueUserService.getCurrent(queue);
-        return queueUserResource.ofMe(user);
+        return queueUserResource.ofMe(current);
     }
 
     @DELETE
@@ -177,6 +181,6 @@ public class QueueResource {
     @Path("/events")
     public Multi<QueueEventDto> events() {
         return Multi.createFrom().<QueueEventDto>item(QueueStateEventDto.builder().queue(get()).build())
-                .onCompletion().switchTo(queueService.events(queue).map(eventMapper::toDto));
+                .onCompletion().switchTo(queueService.events(queue, current).map(eventMapper::toDto));
     }
 }

@@ -21,7 +21,7 @@ async function fillUserRole(user: QueueUserQueryDto): Promise<QueueUserQueryWith
 export const load: PageLoad = async ({ params: { queueId }, url }) => {
 	const queue: Promise<Queue> = getQueueById(queueId)
 		.then(async ({ data }) => {
-			const queue = new Queue();
+			const queue = new Queue(data.id);
 			await queue.init(data);
 			return queue;
 		})

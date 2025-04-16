@@ -42,7 +42,7 @@ public class QueuesResource {
     })
     public RestResponse<QueueQueryDto> create() {
         var queue = queueService.create();
-        return RestResponse.status(Status.CREATED, queueMapper.toDto(queue));
+        return RestResponse.status(Status.CREATED, queueMapper.toDto(queue, user -> 0));
     }
 
     @Path("/i/{queueId}")

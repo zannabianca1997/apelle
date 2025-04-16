@@ -11,6 +11,7 @@ import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdExcepti
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -91,6 +92,19 @@ public class QueueUserService {
     }
 
     public short likes(QueueUser user, QueuedSong song) {
-        return Likes.givenBy(user.getUser().getId(), song);
+        assert user.getQueue().getId().equals(song.getQueue().getId());
+        return likes(user.getUser(), song);
+    }
+
+    public short likes(ApelleUser user, QueuedSong song) {
+        return likes(user.getId(), song);
+    }
+
+    public short likes(UUID userId, QueuedSong song) {
+        return Likes.givenBy(userId, song);
+    }
+
+    public short likes(UUID userId, UUID queueId, UUID songId) {
+        return Likes.givenBy(userId, queueId, songId);
     }
 }

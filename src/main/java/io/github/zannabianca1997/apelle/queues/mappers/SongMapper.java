@@ -3,7 +3,9 @@ package io.github.zannabianca1997.apelle.queues.mappers;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.function.Function;
 
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -25,9 +27,14 @@ public interface SongMapper {
     @Mapping(source = "allThumbnails", target = "thumbnails")
     SongQueryDto toDto(Song song);
 
-    @Mapping(source = "likes", target = "likes")
-    @Mapping(source = "song", target = ".")
-    QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong);
+    @Mapping(source = "queuedSong.likes", target = "likes")
+    @Mapping(source = "queuedSong.song", target = ".")
+    QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong, short userLikes);
+
+    default QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong,
+            @Context Function<QueuedSong, Short> getUserLikes) {
+        return toShortDto(queuedSong, getUserLikes.apply(queuedSong));
+    }
 
     @Mapping(source = "queuedSong.likes", target = "likes")
     @Mapping(source = "queuedSong.song", target = ".")

@@ -20,5 +20,4 @@ public abstract class QueueEvent {
      */
     @NonNull
     private UUID queueId;
-
 }
