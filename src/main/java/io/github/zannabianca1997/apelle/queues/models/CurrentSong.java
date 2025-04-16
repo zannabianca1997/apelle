@@ -135,13 +135,8 @@ public class CurrentSong {
         if (position.isNegative()) {
             position = Duration.ZERO;
         }
-        if (position.compareTo(getSong().getDuration()) > 0) {
-            // Stop the song at the end
-            setPosition(getSong().getDuration());
-            setStartsAt(null);
-            return;
-        }
         // Set the position or the starting time
+        // This also mantains the stopped by time/stopped by player state
         if (isStopped()) {
             setPosition(position);
             setStartsAt(null);
