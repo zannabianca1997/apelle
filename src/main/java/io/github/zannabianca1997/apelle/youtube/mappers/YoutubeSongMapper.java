@@ -35,11 +35,21 @@ public interface YoutubeSongMapper {
 
         Map<YoutubeThumbnailSize, YoutubeThumbnail> map = new EnumMap<>(YoutubeThumbnailSize.class);
 
-        map.put(YoutubeThumbnailSize.DEFAULT, fromDto(value.getDefault_(), YoutubeThumbnailSize.DEFAULT));
-        map.put(YoutubeThumbnailSize.MEDIUM, fromDto(value.getMedium(), YoutubeThumbnailSize.MEDIUM));
-        map.put(YoutubeThumbnailSize.HIGH, fromDto(value.getHigh(), YoutubeThumbnailSize.HIGH));
-        map.put(YoutubeThumbnailSize.STANDARD, fromDto(value.getStandard(), YoutubeThumbnailSize.STANDARD));
-        map.put(YoutubeThumbnailSize.MAXRES, fromDto(value.getMaxres(), YoutubeThumbnailSize.MAXRES));
+        if (value.getDefault_() != null) {
+            map.put(YoutubeThumbnailSize.DEFAULT, fromDto(value.getDefault_(), YoutubeThumbnailSize.DEFAULT));
+        }
+        if (value.getMedium() != null) {
+            map.put(YoutubeThumbnailSize.MEDIUM, fromDto(value.getMedium(), YoutubeThumbnailSize.MEDIUM));
+        }
+        if (value.getHigh() != null) {
+            map.put(YoutubeThumbnailSize.HIGH, fromDto(value.getHigh(), YoutubeThumbnailSize.HIGH));
+        }
+        if (value.getStandard() != null) {
+            map.put(YoutubeThumbnailSize.STANDARD, fromDto(value.getStandard(), YoutubeThumbnailSize.STANDARD));
+        }
+        if (value.getMaxres() != null) {
+            map.put(YoutubeThumbnailSize.MAXRES, fromDto(value.getMaxres(), YoutubeThumbnailSize.MAXRES));
+        }
 
         return map;
     }
