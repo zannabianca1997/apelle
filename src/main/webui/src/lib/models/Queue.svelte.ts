@@ -1,6 +1,7 @@
 import type {
 	CurrentSongQueryDto,
 	QueueDeleteEventDto,
+	QueuedSongQueryDto,
 	QueuedSongShortQueryDto,
 	QueueEventDto,
 	QueueQueryDto,
@@ -165,6 +166,8 @@ export class CurrentSong {
 	}
 }
 
+type QueuedSongAdditionalDataDto = Omit<QueuedSongQueryDto, keyof QueuedSongShortQueryDto>;
+
 export class QueuedSong {
 	/** Unique id of the song */
 	readonly id: Uuid;
@@ -208,7 +211,6 @@ export class QueuedSong {
 		console.assert(this.id == song.id);
 
 		this.name = song.name;
-		this.likes = song.likes;
 		this.queued_at = dayjs(song.queued_at);
 		this.likes = song.likes;
 		this.user_likes = song.user_likes;
@@ -216,16 +218,25 @@ export class QueuedSong {
 		await this.hydrate(queueId);
 	}
 
-	async hydrate(queueId: Uuid) {
-		const { data } = await getFullSong(queueId, this.id);
+	/**
+	 * Cache for the song data
+	 *
+	 * This cache store locally the song details and avoid to ask for them again
+	 */
+	static readonly fullSongCache: Map<string, QueuedSongAdditionalDataDto> = new Map();
 
-		this.name = data.name;
+	async hydrate(queueId: Uuid) {
+		const cacheKey = `${this.id}@${queueId}`;
+		let data: QueuedSongAdditionalDataDto | undefined = QueuedSong.fullSongCache.get(cacheKey);
+
+		if (!data) {
+			data = (await getFullSong(queueId, this.id)).data;
+			QueuedSong.fullSongCache.set(cacheKey, data);
+		}
+
 		this.duration = dayjs.duration(data.duration);
 		this.kind = data.kind;
 		this.url = data.url ? new URL(data.url) : undefined;
 		this.thumbnails = data.thumbnails;
-		this.queued_at = dayjs(data.queued_at);
-		this.likes = data.likes;
-		this.user_likes = data.user_likes;
 	}
 }
