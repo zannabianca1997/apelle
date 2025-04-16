@@ -8,4 +8,4 @@
 # Bugs
 
 - [ ] Sometimes the video after a stop restart from a previous point
-- [ ] Adding musics/making any change make the player jumps erratically
+- [x] Adding musics/making any change make the player jumps erratically
