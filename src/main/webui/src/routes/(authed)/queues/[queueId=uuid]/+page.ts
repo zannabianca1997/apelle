@@ -52,6 +52,10 @@ export const load: PageLoad = async ({ params: { queueId }, url }) => {
 				'This should not be possible as the only case in which 404 is returned for users/me is if the queue does not exist.'
 			);
 		}
+
+		// Setup of the queue using user data
+		queue.autoplay = user.queue_role.permissions.queue.next;
+
 		return {
 			isPlayer,
 			queue,

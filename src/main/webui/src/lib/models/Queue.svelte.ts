@@ -29,6 +29,8 @@ export class Queue {
 	/** Id of the current state of the player */
 	player_state_id: Uuid = $state('000000000-0000-0000-0000-000000000000');
 
+	autoplay: boolean = $state(true);
+
 	constructor(id: Uuid) {
 		this.id = id;
 	}
@@ -108,7 +110,7 @@ export class Queue {
 		this.current?.destroy();
 		if (data) {
 			this.current = new CurrentSong(data.id);
-			await this.current.init(data, () => this.stopEvent());
+			await this.current.init(data, this.autoplay ? () => this.stopEvent() : undefined);
 		} else {
 			this.current = undefined;
 		}
