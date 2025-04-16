@@ -26,23 +26,10 @@ export class Queue {
         const promises = [];
 
         this.id = data.id;
+
         this.code = data.code;
-
-        this.current?.destroy();
-        if (data.current) {
-            this.current = new CurrentSong();
-            promises.push(this.current.init(data.current));
-        } else {
-            this.current = undefined;
-        }
-
-        const newQueue = [];
-        for (const song of data.queue) {
-            const newSong = new QueuedSong();
-            promises.push(newSong.init(this.id, song));
-            newQueue.push(newSong);
-        }
-        this.queue = newQueue;
+        promises.push(this.updateCurrent(data.current));
+        promises.push(this.updateQueuedSongs(data.queue));
 
         await Promise.all(promises);
     }
@@ -57,9 +44,7 @@ export class Queue {
                 console.assert(event.queue.id === this.id);
 
                 this.code = data.code;
-
                 promises.push(this.updateCurrent(data.current));
-
                 promises.push(this.updateQueuedSongs(data.queue));
 
                 break;
@@ -68,6 +53,7 @@ export class Queue {
             case 'current-song-state':
                 promises.push(this.updateCurrent(event.current));
                 break;
+
             case 'queued-songs-state':
                 promises.push(this.updateQueuedSongs(event.queue));
                 break;
