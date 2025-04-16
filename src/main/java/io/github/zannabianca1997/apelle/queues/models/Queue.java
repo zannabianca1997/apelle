@@ -76,6 +76,20 @@ public class Queue extends PanacheEntityBase {
     private CurrentSong current;
 
     @NonNull
+    @Column(name = "player_state_id", nullable = false)
+    @Setter(AccessLevel.PRIVATE)
+    /// Id of the current state of the player
+    ///
+    /// This is an opaque id that is regenerated at each modification of the playing
+    /// song. Requests can be conditional on the state they refer to, so they are
+    /// refused in case of a mismatch.
+    private UUID playerStateId;
+
+    private void setPlayerStateId() {
+        setPlayerStateId(UUID.randomUUID());
+    }
+
+    @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue", orphanRemoval = true)
     @OrderBy("likes DESC, queued_at ASC")
@@ -111,6 +125,7 @@ public class Queue extends PanacheEntityBase {
 
         this.id = null;
         this.current = current;
+        setPlayerStateId();
         this.queuedSongs = queuedSongs;
         this.users = new ArrayList<>();
         this.likes = new ArrayList<>();
@@ -156,7 +171,11 @@ public class Queue extends PanacheEntityBase {
     public boolean start() throws CantPlayEmptyQueueException {
         // If a song is running, start playing
         if (getCurrent() != null) {
-            return getCurrent().start();
+            var started = getCurrent().start();
+            if (started) {
+                setPlayerStateId();
+            }
+            return started;
         }
 
         // Pop a song from the queue
@@ -171,6 +190,7 @@ public class Queue extends PanacheEntityBase {
                 .playing().startsAt(Instant.now())
                 .build());
 
+        setPlayerStateId();
         return true;
     }
 
@@ -184,7 +204,11 @@ public class Queue extends PanacheEntityBase {
             return false;
         }
 
-        return getCurrent().stop();
+        var stopped = getCurrent().stop();
+        if (stopped) {
+            setPlayerStateId();
+        }
+        return stopped;
     }
 
     /**
@@ -203,6 +227,7 @@ public class Queue extends PanacheEntityBase {
                 setCurrent(null);
                 enqueue(removingCurrent);
             }
+            setPlayerStateId();
         }
         start();
     }

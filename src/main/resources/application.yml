@@ -98,6 +98,7 @@ quarkus:
       info-title: Apelle API (test)
     flyway:
       migrate-at-start: true
+      baseline-on-migrate: true
     hibernate-orm:
       database:
         generation: none

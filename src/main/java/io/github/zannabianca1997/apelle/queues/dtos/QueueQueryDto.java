@@ -36,4 +36,14 @@ public class QueueQueryDto {
     @JsonProperty(value = "queue", required = true)
     @Schema(description = "The songs in the queue")
     private List<QueuedSongShortQueryDto> queuedSongs;
+
+    @NonNull
+    @JsonProperty(value = "player_state_id", required = true)
+    @Schema(description = """
+            Id of the current state of the player
+
+            This is an opaque id that is regenerated at each modification of the playing
+            song. Requests can be conditional on the state they refer to, so they are
+            refused in case of a mismatch.""")
+    private UUID playerStateId;
 }

@@ -114,7 +114,7 @@ public class CurrentSong {
 
         var playStartsAt = getStartsAt();
 
-        if (!playStartsAt.plus(getPosition()).isBefore(Instant.now())) {
+        if (playStartsAt.plus(getSong().getDuration()).isBefore(Instant.now())) {
             // The song reached his end, not starting it
             return false;
         }

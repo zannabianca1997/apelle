@@ -22,6 +22,8 @@ export class Queue {
 	current?: CurrentSong = $state();
 	/** The songs in the queue */
 	queue: QueuedSong[] = $state([]);
+	/** Id of the current state of the player */
+	player_state_id: Uuid = $state('000000000-0000-0000-0000-000000000000');
 
 	constructor(id: Uuid) {
 		this.id = id;
@@ -33,6 +35,7 @@ export class Queue {
 		const promises = [];
 
 		this.code = data.code;
+		this.player_state_id = data.player_state_id;
 		promises.push(this.updateCurrent(data.current));
 		promises.push(this.updateQueuedSongs(data.queue));
 
@@ -49,6 +52,7 @@ export class Queue {
 				console.assert(event.queue.id === this.id);
 
 				this.code = data.code;
+				this.player_state_id = data.player_state_id;
 				promises.push(this.updateCurrent(data.current));
 				promises.push(this.updateQueuedSongs(data.queue));
 
@@ -56,6 +60,9 @@ export class Queue {
 			}
 
 			case 'current-song-state':
+				if (event.player_state_id) {
+					this.player_state_id = event.player_state_id;
+				}
 				promises.push(this.updateCurrent(event.current));
 				break;
 

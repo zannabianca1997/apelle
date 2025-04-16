@@ -176,6 +176,7 @@ public class QueueService {
         if (stoppedNow) {
             queueEventBus
                     .publish(QueueStopEvent.builder().queueId(queue.getId())
+                            .playerStateId(queue.getPlayerStateId())
                             .state(songMapper.toDto(queue.getCurrent())).build());
         }
     }

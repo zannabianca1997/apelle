@@ -64,6 +64,8 @@ After receiving this message a client must assume the current song is in the pro
 export interface CurrentSongStateEventDto {
 	kind: CurrentSongStateEventDtoKind;
 	current?: CurrentSongQueryDto;
+	/** If present, contains the new value of the player state ID */
+	player_state_id?: Uuid;
 }
 
 export type Duration = string;
@@ -126,6 +128,12 @@ export interface QueueQueryDto {
 	current?: CurrentSongQueryDto;
 	/** The songs in the queue */
 	queue: QueuedSongShortQueryDto[];
+	/** Id of the current state of the player
+
+This is an opaque id that is regenerated at each modification of the playing
+song. Requests can be conditional on the state they refer to, so they are
+refused in case of a mismatch. */
+	player_state_id: Uuid;
 }
 
 export type QueueStateEventDtoKind =
