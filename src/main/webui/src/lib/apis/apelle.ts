@@ -48,6 +48,24 @@ export interface CurrentSongQueryDto {
 	position: Duration;
 }
 
+export type CurrentSongStateEventDtoKind =
+	(typeof CurrentSongStateEventDtoKind)[keyof typeof CurrentSongStateEventDtoKind];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CurrentSongStateEventDtoKind = {
+	'current-song-state': 'current-song-state'
+} as const;
+
+/**
+ * An authoritative broadcast of the current song state.
+
+After receiving this message a client must assume the current song is in the provided state.
+ */
+export interface CurrentSongStateEventDto {
+	kind: CurrentSongStateEventDtoKind;
+	current: CurrentSongQueryDto;
+}
+
 export type Duration = string;
 
 export type Instant = string;
@@ -90,7 +108,11 @@ export interface QueueDeleteEventDto {
 
 The `kind` property discriminates between the different messages.
  */
-export type QueueEventDto = QueueStateEventDto | QueueDeleteEventDto;
+export type QueueEventDto =
+	| QueueStateEventDto
+	| QueueDeleteEventDto
+	| CurrentSongStateEventDto
+	| QueuedSongsStateEventDto;
 
 /**
  * A queue of songs
@@ -202,6 +224,25 @@ export interface QueuedSongShortQueryDto {
 	queued_at: Instant;
 	/** The number of likes this song received */
 	likes: number;
+}
+
+export type QueuedSongsStateEventDtoKind =
+	(typeof QueuedSongsStateEventDtoKind)[keyof typeof QueuedSongsStateEventDtoKind];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const QueuedSongsStateEventDtoKind = {
+	'queued-songs-state': 'queued-songs-state'
+} as const;
+
+/**
+ * An authoritative broadcast of the queued songs state.
+
+After receiving this message a client must assume the queued songs are in the provided state.
+ */
+export interface QueuedSongsStateEventDto {
+	kind: QueuedSongsStateEventDtoKind;
+	/** The songs in the queue */
+	queue: QueuedSongShortQueryDto[];
 }
 
 /**

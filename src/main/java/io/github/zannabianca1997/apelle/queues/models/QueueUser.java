@@ -1,7 +1,5 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import java.util.UUID;
-
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;

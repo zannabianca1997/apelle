@@ -15,12 +15,21 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-@JsonSubTypes({ @Type(value = QueueStateEventDto.class) })
+@JsonSubTypes({
+        @Type(value = QueueStateEventDto.class),
+        @Type(value = QueueDeleteEventDto.class),
+        @Type(value = CurrentSongStateEventDto.class),
+        @Type(value = QueuedSongsStateEventDto.class)
+})
 @Schema(description = """
         A message from the server.
 
-        The `kind` property discriminates between the different messages.""", oneOf = { QueueStateEventDto.class,
-        QueueDeleteEventDto.class }, requiredProperties = { "kind" })
+        The `kind` property discriminates between the different messages.""", oneOf = {
+        QueueStateEventDto.class,
+        QueueDeleteEventDto.class,
+        CurrentSongStateEventDto.class,
+        QueuedSongsStateEventDto.class
+}, requiredProperties = { "kind" })
 public abstract class QueueEventDto {
 
 }
