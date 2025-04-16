@@ -17,6 +17,7 @@ import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException
 import io.github.zannabianca1997.apelle.queues.exceptions.SongAlreadyQueuedException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueuedException;
 import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
+import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
@@ -33,6 +34,8 @@ import jakarta.inject.Inject;
 public class QueueService {
     @Inject
     QueueMapper queueMapper;
+    @Inject
+    SongMapper songMapper;
 
     @Inject
     UsersService usersService;
@@ -168,7 +171,8 @@ public class QueueService {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
             queueEventBus
-                    .publish(QueueStopEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+                    .publish(QueueStopEvent.builder().queueId(queue.getId())
+                            .state(songMapper.toDto(queue.getCurrent())).build());
         }
     }
 
@@ -213,7 +217,10 @@ public class QueueService {
         QueuedSong enqueued = queue.enqueue(song);
 
         queueEventBus
-                .publish(QueueEnqueueEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+                .publish(
+                        QueueEnqueueEvent.builder().queueId(queue.getId())
+                                .queuedSongs(queue.getQueuedSongs().stream().map(songMapper::toShortDto).toList())
+                                .build());
 
         return enqueued;
     }
@@ -295,7 +302,8 @@ public class QueueService {
         queue.sortSongs();
 
         // Signal songs have changed
-        queueEventBus.publish(QueueLikeEvent.builder().queueId(queue.getId()).state(queueMapper.toDto(queue)).build());
+        queueEventBus.publish(QueueLikeEvent.builder().queueId(queue.getId())
+                .queuedSongs(queue.getQueuedSongs().stream().map(songMapper::toShortDto).toList()).build());
     }
 
     public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueuedException {
