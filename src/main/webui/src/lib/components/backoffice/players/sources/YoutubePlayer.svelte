@@ -17,7 +17,7 @@
 
 		const newId = videoId;
 		// do not track the position, or the player would be reset every frame
-		const position = untrack(() => current.position.seconds());
+		const position = untrack(() => current.position.asSeconds());
 
 		player?.loadVideoById?.(newId, position);
 	});
@@ -27,7 +27,7 @@
 
 		const stopped = current.stopped;
 		// do not track the position, or the player would be reset every frame
-		const position = untrack(() => current.position.seconds());
+		const position = untrack(() => current.position.asSeconds());
 
 		if (stopped) {
 			player?.pauseVideo?.();
