@@ -63,7 +63,7 @@ After receiving this message a client must assume the current song is in the pro
  */
 export interface CurrentSongStateEventDto {
 	kind: CurrentSongStateEventDtoKind;
-	current: CurrentSongQueryDto;
+	current?: CurrentSongQueryDto;
 }
 
 export type Duration = string;
