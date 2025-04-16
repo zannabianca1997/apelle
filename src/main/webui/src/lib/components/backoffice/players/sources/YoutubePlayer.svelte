@@ -10,7 +10,11 @@
 
 	let player: YT.Player | undefined = $state();
 
+	let loaded: boolean = $state(false);
+
 	$effect(() => {
+		if (!loaded) return;
+
 		const newId = videoId;
 		// do not track the position, or the player would be reset every frame
 		const position = untrack(() => current.position.seconds());
@@ -19,6 +23,8 @@
 	});
 
 	$effect(() => {
+		if (!loaded) return;
+
 		const stopped = current.stopped;
 		// do not track the position, or the player would be reset every frame
 		const position = untrack(() => current.position.seconds());
@@ -46,6 +52,8 @@
 					start: current.position.seconds()
 				}
 			});
+
+			loaded = true;
 		}
 
 		if (window.YT) {
@@ -55,7 +63,9 @@
 		}
 
 		return () => {
-			player?.destroy();
+			player?.destroy?.();
+			player = undefined;
+			loaded = false;
 		};
 	});
 </script>
