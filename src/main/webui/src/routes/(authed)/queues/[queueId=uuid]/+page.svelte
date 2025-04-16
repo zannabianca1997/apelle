@@ -26,7 +26,7 @@
 	let songQuery: string | null = $state(null);
 
 	onMount(() => {
-		source(`/api/v1/queues/i/${queueId}/events`, {
+		const unsubscribe = source(`/api/v1/queues/i/${queueId}/events`, {
 			options: {
 				method: 'GET',
 				headers: {
@@ -51,6 +51,7 @@
 						break;
 				}
 			});
+		return unsubscribe;
 	});
 
 	async function addToQueue(e: SubmitEvent) {
