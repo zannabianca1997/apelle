@@ -2,8 +2,6 @@ package io.github.zannabianca1997.apelle.queues.utils;
 
 import java.util.UUID;
 
-import org.hibernate.resource.transaction.spi.TransactionStatus;
-
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
