@@ -2,12 +2,19 @@ package io.github.zannabianca1997.apelle.queues.utils;
 
 import java.util.UUID;
 
+import org.hibernate.resource.transaction.spi.TransactionStatus;
+
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.TransactionManager;
 
 /**
  * Typed event bus
@@ -19,6 +26,8 @@ public class QueueEventBus {
 
     @Inject
     EventBus eventBus;
+    @Inject
+    TransactionManager transactionManager;
 
     // Use the full qualified class name to avoid collisions with other event buses
     final static String ADDRESS_SUFFIX = "@" + QueueEventBus.class.getName();
@@ -44,6 +53,35 @@ public class QueueEventBus {
      * @param event The event to publish
      */
     public void publish(QueueEvent event) {
+        // Need to handle the transaction.
+        //
+        // As the events show the queue state, they need to be run AFTER the state has
+        // changed. This means that if a transaction is ongoing, the message need to be
+        // delayed until the transaction has completed
+        try {
+            if (transactionManager.getStatus() == Status.STATUS_NO_TRANSACTION) {
+                // Direct publish
+                doPublish(event);
+            } else {
+                // Need to run the publish AFTER the transaction commits
+                transactionManager.getTransaction().registerSynchronization(new Synchronization() {
+                    @Override
+                    public void beforeCompletion() {
+                        // nothing here
+                    }
+
+                    @Override
+                    public void afterCompletion(int status) {
+                        doPublish(event);
+                    }
+                });
+            }
+        } catch (SystemException | IllegalStateException | RollbackException e) {
+            throw new RuntimeException("Error while publishing event %s".formatted(event), e);
+        }
+    }
+
+    private void doPublish(QueueEvent event) {
         eventBus.publish(address(event.getQueueId()), JsonObject.mapFrom(event));
     }
 
