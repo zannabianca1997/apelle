@@ -24,7 +24,11 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
@@ -125,18 +129,32 @@ public class QueueResource {
     @Path("/start")
     @Operation(summary = "Start playing", description = "Start playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
+    @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public void start() throws CantPlayEmptyQueueException, ActionNotPermittedException {
+    public Response start(@Context Request request) throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+        if (preconditions != null) {
+            return preconditions.build();
+        }
+
         queueService.start(queue);
+        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
     }
 
     @POST
     @Path("/stop")
     @Operation(summary = "Stop playing", description = "Stop playing music from the queue.")
     @APIResponse(responseCode = "204", description = "The music started")
+    @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public void stop() throws ActionNotPermittedException {
+    public Response stop(@Context Request request) throws ActionNotPermittedException {
+        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+        if (preconditions != null) {
+            return preconditions.build();
+        }
+
         queueService.stop(queue);
+        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
     }
 
     @POST
@@ -145,9 +163,16 @@ public class QueueResource {
             Start the next song in the queue.
             The current one will be requeued as the last one, with no likes.""")
     @APIResponse(responseCode = "204", description = "The music started")
+    @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public void next() throws CantPlayEmptyQueueException, ActionNotPermittedException {
+    public Response next(@Context Request request) throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+        if (preconditions != null) {
+            return preconditions.build();
+        }
+
         queueService.next(queue);
+        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
     }
 
     @Path("/users/i/{userId}")

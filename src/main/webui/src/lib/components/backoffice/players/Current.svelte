@@ -15,24 +15,38 @@
 
 	let {
 		queueId,
+		playerStateId = $bindable(),
 		current = $bindable(),
 		user,
 		isPlayer = $bindable(false)
 	}: {
 		queueId: Uuid;
+		playerStateId: Uuid;
 		current?: CurrentSong;
 		user: QueueUserQueryWithRoleDto;
 		isPlayer: boolean;
 	} = $props();
 
 	async function start() {
-		await postStart(queueId);
+		await postStart(queueId, {
+			headers: {
+				'If-Match': `W/"${playerStateId}"`
+			}
+		});
 	}
 	async function stop() {
-		await postStop(queueId);
+		await postStop(queueId, {
+			headers: {
+				'If-Match': `W/"${playerStateId}"`
+			}
+		});
 	}
 	async function next() {
-		await postNext(queueId);
+		await postNext(queueId, {
+			headers: {
+				'If-Match': `W/"${playerStateId}"`
+			}
+		});
 	}
 </script>
 

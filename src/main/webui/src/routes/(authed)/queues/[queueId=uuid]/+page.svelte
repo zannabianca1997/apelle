@@ -63,7 +63,13 @@
 </script>
 
 <main>
-	<Current {queueId} bind:current={queue.current} {user} {isPlayer} />
+	<Current
+		{queueId}
+		bind:playerStateId={queue.player_state_id}
+		bind:current={queue.current}
+		{user}
+		{isPlayer}
+	/>
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
 		{#if user.queue_role.permissions.queue.enqueue}
