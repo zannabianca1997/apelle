@@ -71,6 +71,12 @@ export class Queue {
             case 'queued-songs-state':
                 promises.push(this.updateQueuedSongs(event.queue));
                 break;
+
+            default: {
+                // This stops compilation if new events are added and not handled
+                const exhaustiveCheck: never = event;
+                throw new Error(`Unknown event kind ${(exhaustiveCheck as { kind: string }).kind} `);
+            }
         }
 
         await Promise.all(promises);
