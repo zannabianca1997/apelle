@@ -11,6 +11,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
@@ -178,6 +179,7 @@ public class QueueResource {
     @RestStreamElementType(MediaType.APPLICATION_JSON)
     @Operation(summary = "Obtain a stream of events regarding this queue.")
     @Path("/events")
+    @Blocking
     public Multi<QueueEventDto> events() {
         return Multi.createFrom().<QueueEventDto>item(QueueStateEventDto.builder().queue(get()).build())
                 .onCompletion().switchTo(queueService.events(queue, current).map(eventMapper::toDto));
