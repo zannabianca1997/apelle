@@ -7,5 +7,6 @@
 
 # Bugs
 
-- [ ] Sometimes the video after a stop restart from a previous point
+- [x] Sometimes the video after a stop restart from a previous point
 - [x] Adding musics/making any change make the player jumps erratically
+- [ ] Player is not synced when manually started
