@@ -27,6 +27,7 @@ jobs:
       - name: Build native image and push container
         run: |
           ./gradlew quarkusBuild \
+            -Dquarkus.profile=$([ "$GITHUB_REF_NAME" == 'main' ] && echo 'prod' || echo 'staging') \
             -Dquarkus.native.enabled=true \
             -Dquarkus.native.container-build=true \
             -Dquarkus.container-image.build=true \
