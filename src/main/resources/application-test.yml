@@ -1,0 +1,7 @@
+quarkus:
+  flyway:
+    baseline-on-migrate: true
+  rest-client:
+    youtube-api:
+      # Do not contact youtube during tests
+      url:

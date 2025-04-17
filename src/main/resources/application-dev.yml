@@ -1,0 +1,7 @@
+quarkus:
+  quinoa:
+    dev-server:
+      index-page: /
+      port: 3000
+  flyway:
+    baseline-on-migrate: true

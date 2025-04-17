@@ -1,6 +1,7 @@
 ---
 openapi: 3.1.0
 info:
+  title: Apelle API
   description: |-
     > A communist music queue
 
