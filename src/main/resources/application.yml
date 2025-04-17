@@ -68,41 +68,33 @@ quarkus:
   quinoa:
     build-dir: build
     enable-spa-routing: true
+  hibernate-orm:
+    database:
+      generation: none
+    sql-load-script: no-file
+  flyway:
+    migrate-at-start: true
 
 # Setup during Dev
 "%dev":
   quarkus:
-    hibernate-orm:
-      database:
-        # in dev mode only, create all the tables at startup
-        generation: drop-and-create
     quinoa:
       dev-server:
         index-page: /
         port: 3000
     smallrye-openapi:
       info-title: Apelle API (development)
-# Setup in prod
-"%prod":
-  quarkus:
     flyway:
-      migrate-at-start: true
-    hibernate-orm:
-      database:
-        generation: none
-      sql-load-script: no-file
+      baseline-on-migrate: true
+# Setup in prod
+"%prod": {}
 # Setup during tests
 "%test":
   quarkus:
     smallrye-openapi:
       info-title: Apelle API (test)
     flyway:
-      migrate-at-start: true
       baseline-on-migrate: true
-    hibernate-orm:
-      database:
-        generation: none
-      sql-load-script: no-file
     rest-client:
       youtube-api:
         # Do not contact youtube during tests
