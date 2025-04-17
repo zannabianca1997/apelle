@@ -1,3 +1,4 @@
+import type { LogLevelFilter } from '$lib/logger';
 import dev from './dev';
 import prod from './prod';
 import staging from './staging';
@@ -9,7 +10,7 @@ export interface Log {
 	/**
 	 * Log all sse events
 	 */
-	sse: boolean;
+	sse: LogLevelFilter;
 }
 
 /**

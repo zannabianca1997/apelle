@@ -2,6 +2,6 @@ import type { Config } from '.';
 
 export default {
 	log: {
-		sse: true
+		sse: 'all'
 	}
 } satisfies Config;
