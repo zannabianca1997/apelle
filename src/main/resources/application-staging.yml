@@ -6,4 +6,4 @@ quarkus:
   log:
     category:
       "io.github.zannabianca1997.apelle":
-        level: INFO
+        level: DEBUG
