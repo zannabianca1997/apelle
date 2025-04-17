@@ -7,6 +7,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.ResponseHeader;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
@@ -204,6 +205,9 @@ public class QueueResource {
     @RestStreamElementType(MediaType.APPLICATION_JSON)
     @Operation(summary = "Obtain a stream of events regarding this queue.")
     @Path("/events")
+    // Signal to NGINX that the messages should reach the frontend as soon as
+    // possible
+    @ResponseHeader(name = "X-Accel-Buffering", value = "no")
     @Blocking
     public Multi<QueueEventDto> events() {
         return Multi.createFrom().<QueueEventDto>item(QueueStateEventDto.builder().queue(get()).build())
