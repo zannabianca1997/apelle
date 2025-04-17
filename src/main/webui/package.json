@@ -6,11 +6,6 @@
     "scripts": {
         "dev": "svelte-kit sync && orval && vite dev",
         "build": "svelte-kit sync && orval && vite build",
-        "preview": "svelte-kit sync && orval && vite preview",
-        "check": "svelte-kit sync && orval && svelte-check --tsconfig ./tsconfig.json",
-        "check:watch": "svelte-kit sync && orval && svelte-check --tsconfig ./tsconfig.json --watch",
-        "format": "prettier --write .",
-        "lint": "prettier --check . && eslint .",
         "orval": "orval"
     },
     "devDependencies": {

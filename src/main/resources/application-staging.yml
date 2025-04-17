@@ -1,3 +1,5 @@
 quarkus:
   swagger-ui:
     always-include: true
+  quinoa:
+    ci: true
