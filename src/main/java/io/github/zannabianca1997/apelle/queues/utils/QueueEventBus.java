@@ -2,6 +2,8 @@ package io.github.zannabianca1997.apelle.queues.utils;
 
 import java.util.UUID;
 
+import org.jboss.logging.Logger;
+
 import io.github.zannabianca1997.apelle.queues.events.QueueEvent;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
@@ -21,6 +23,8 @@ import jakarta.transaction.TransactionManager;
  */
 @ApplicationScoped
 public class QueueEventBus {
+    @Inject
+    Logger log;
 
     @Inject
     EventBus eventBus;
@@ -80,6 +84,7 @@ public class QueueEventBus {
     }
 
     private void doPublish(QueueEvent event) {
+        log.debugf("Publishing event %s to queue %s", event.getClass(), event.getQueueId());
         eventBus.publish(address(event.getQueueId()), JsonObject.mapFrom(event));
     }
 

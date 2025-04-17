@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.jboss.logging.Logger;
+
 import io.github.zannabianca1997.apelle.queues.configs.QueueCodeConfigs;
 import io.github.zannabianca1997.apelle.queues.events.QueueDeleteEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueEnqueueEvent;
@@ -55,6 +57,9 @@ public class QueueService {
 
     @Inject
     StringUtils stringUtils;
+
+    @Inject
+    Logger log;
 
     /**
      * Create a new queue
@@ -345,7 +350,9 @@ public class QueueService {
         return queueEventBus.events(queueId)
                 // The `asSeenBy` call need to contact the db, so it must run on the worker pool
                 .emitOn(Infrastructure.getDefaultWorkerPool())
-                .map(event -> queueEventService.asSeenBy(event, userId));
+                .map(event -> queueEventService.asSeenBy(event, userId))
+                .onSubscription().invoke(() -> log.infof("User %s connected to the queue %s", userId, queueId))
+                .onCancellation().invoke(() -> log.infof("User %s disconnetted from the queue %s", userId, queueId));
     }
 
 }
