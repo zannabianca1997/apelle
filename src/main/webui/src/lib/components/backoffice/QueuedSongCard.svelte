@@ -49,17 +49,20 @@
 
 <tr>
 	{#if permissions.remove || permissions.ban || permissions.next}
-		<td class="buttons">
-			{#if permissions.remove}
-				<button aria-label="remove" onclick={remove}><IconRemove height={24} width={24} /></button>
-			{/if}
-			{#if permissions.ban}
-				<button aria-label="ban" onclick={ban}><IconBan height={24} width={24} /></button>
-			{/if}
-			{#if permissions.next}
-				<button aria-label="play" onclick={play}><IconPlay height={24} width={24} /></button>
-			{/if}
-		</td>
+		<td class="buttons"
+			><div>
+				{#if permissions.remove}
+					<button aria-label="remove" onclick={remove}><IconRemove height={24} width={24} /></button
+					>
+				{/if}
+				{#if false && permissions.ban}
+					<button aria-label="ban" onclick={ban}><IconBan height={24} width={24} /></button>
+				{/if}
+				{#if permissions.next}
+					<button aria-label="play" onclick={play}><IconPlay height={24} width={24} /></button>
+				{/if}
+			</div></td
+		>
 	{/if}
 	<td class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
 		{#if choosedThumb}
@@ -94,19 +97,23 @@
 		td.buttons {
 			width: 24px;
 
-			display: table-cell flex;
-			flex-direction: column;
-			justify-content: space-between;
+			div {
+				height: 99px;
 
-			button {
-				background: transparent;
-				border: 0;
-				color: white;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-evenly;
 
-				padding: 0;
+				button {
+					background: transparent;
+					border: 0;
+					color: white;
 
-				&:hover {
-					background: radial-gradient(closest-side, #ffffff88, #00000000);
+					padding: 0;
+
+					&:hover {
+						background: radial-gradient(closest-side, #ffffff88, #00000000);
+					}
 				}
 			}
 		}
