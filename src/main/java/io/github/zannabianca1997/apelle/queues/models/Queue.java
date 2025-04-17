@@ -214,7 +214,6 @@ public class Queue extends PanacheEntityBase {
     /**
      * Move to the next song
      * 
-     * @return If the queue was playing before
      * @throws CantPlayEmptyQueueException The queue is empty
      */
     public void next() throws CantPlayEmptyQueueException {
@@ -230,6 +229,31 @@ public class Queue extends PanacheEntityBase {
             setPlayerStateId();
         }
         start();
+    }
+
+    /**
+     * Move to a given song
+     */
+    public void next(QueuedSong next) {
+        assert next.getQueue().getId().equals(getId());
+
+        if (getCurrent() != null) {
+            // Pop the current song and put it in the queue
+            var removingCurrent = getCurrent().getSong();
+            setCurrent(null);
+            enqueue(removingCurrent);
+        }
+
+        getQueuedSongs().removeIf(s -> s.getSong().getId().equals(next.getSong().getId()));
+
+        Likes.deleteReferringTo(next);
+
+        setCurrent(CurrentSong.builder()
+                .song(next.getSong())
+                .playing().startsAt(Instant.now())
+                .build());
+
+        setPlayerStateId();
     }
 
     /**

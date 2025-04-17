@@ -3,7 +3,8 @@
 	import type { ThumbnailQueryDto, Uuid } from '$lib/apis/apelle';
 	import {
 		postApiV1QueuesIQueueIdQueueSongIdLikes as postLike,
-		deleteApiV1QueuesIQueueIdQueueSongId as deleteQueuedSong
+		deleteApiV1QueuesIQueueIdQueueSongId as deleteQueuedSong,
+		postApiV1QueuesIQueueIdQueueSongIdPlay as playQueuedSong
 	} from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
 	import { _ } from 'svelte-i18n';
@@ -44,7 +45,9 @@
 
 	async function ban() {}
 
-	async function play() {}
+	async function play() {
+		await playQueuedSong(queue, song.id);
+	}
 </script>
 
 <tr>

@@ -213,6 +213,28 @@ public class QueueService {
     }
 
     /**
+     * Skip to a given song
+     * 
+     * @param song The song to skip to
+     * @throws ActionNotPermittedException The user can't skip songs
+     */
+    public void next(QueuedSong song) throws ActionNotPermittedException {
+        Queue queue = song.getQueue();
+
+        QueueUser user = queueUserService.getCurrent(song.getQueue());
+        if (!user.getPermissions().queue().next()) {
+            throw new ActionNotPermittedException(user.getRole(), "move to song");
+        }
+
+        log.infof("[user=%s, queue=%s] Song %s requested", user.getUser().getId(), queue.getId(),
+                song.getSong().getId());
+
+        queue.next(song);
+        queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId())
+                .state(queueMapper.toDto(queue, s -> (short) -1)).build());
+    }
+
+    /**
      * Add a song to the queueu
      * 
      * @param queueId The id on the queue

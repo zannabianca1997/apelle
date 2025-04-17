@@ -68,6 +68,15 @@ public class QueueSongResource {
     }
 
     @POST
+    @Path("/play")
+    @Operation(summary = "Play this song", description = """
+            Play this song, ignoring the order of the queue.""")
+    @Transactional
+    public void like() throws ActionNotPermittedException {
+        queueService.next(song);
+    }
+
+    @POST
     @Path("/likes")
     @Operation(summary = "Add a like to the song", description = """
             Add a like to the song, pushing it upwards in the queue.

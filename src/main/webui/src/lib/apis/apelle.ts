@@ -519,6 +519,18 @@ export const postApiV1QueuesCQueueCodeQueueSongIdLikes = <TData = AxiosResponse<
 };
 
 /**
+ * Play this song, ignoring the order of the queue.
+ * @summary Play this song
+ */
+export const postApiV1QueuesCQueueCodeQueueSongIdPlay = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/play`, undefined, options);
+};
+
+/**
  * Start playing music from the queue.
  * @summary Start playing
  */
@@ -713,6 +725,18 @@ export const postApiV1QueuesIQueueIdQueueSongIdLikes = <TData = AxiosResponse<vo
 };
 
 /**
+ * Play this song, ignoring the order of the queue.
+ * @summary Play this song
+ */
+export const postApiV1QueuesIQueueIdQueueSongIdPlay = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	songId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.post(`/api/v1/queues/i/${queueId}/queue/${songId}/play`, undefined, options);
+};
+
+/**
  * Start playing music from the queue.
  * @summary Start playing
  */
@@ -900,6 +924,7 @@ export type PostApiV1QueuesCQueueCodeQueueResult = AxiosResponse<QueuedSongShort
 export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeQueueSongIdLikesResult = AxiosResponse<void>;
+export type PostApiV1QueuesCQueueCodeQueueSongIdPlayResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStopResult = AxiosResponse<void>;
 export type GetApiV1QueuesCQueueCodeUsersIUserIdResult = AxiosResponse<QueueUserQueryDto>;
@@ -916,6 +941,7 @@ export type PostApiV1QueuesIQueueIdQueueResult = AxiosResponse<QueuedSongShortQu
 export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
 export type DeleteApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesResult = AxiosResponse<void>;
+export type PostApiV1QueuesIQueueIdQueueSongIdPlayResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStopResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdUsersIUserIdResult = AxiosResponse<QueueUserQueryDto>;
