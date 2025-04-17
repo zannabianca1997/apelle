@@ -1,15 +1,21 @@
 <script lang="ts">
+	import type { Permissions, Queue } from '$lib/apis/apelle.ts';
 	import type { ThumbnailQueryDto, Uuid } from '$lib/apis/apelle';
 	import { postApiV1QueuesIQueueIdQueueSongIdLikes as postLike } from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
 	import { _ } from 'svelte-i18n';
+	import IconRemove from '~icons/mdi/delete-empty-outline';
+	import IconBan from '~icons/mdi/cancel';
+	import IconPlay from '~icons/mdi/play';
 
 	const {
 		queue,
-		song
+		song,
+		permissions
 	}: {
 		queue: Uuid;
 		song: QueuedSong;
+		permissions: Queue;
 	} = $props();
 
 	const songId = song.id;
@@ -28,9 +34,28 @@
 
 		return song.thumbnails?.reduce((t1, t2) => (thumbScore(t1) > thumbScore(t2) ? t1 : t2)).url;
 	});
+
+	async function remove() {}
+
+	async function ban() {}
+
+	async function play() {}
 </script>
 
 <tr>
+	{#if permissions.remove || permissions.ban || permissions.next}
+		<td class="buttons">
+			{#if permissions.remove}
+				<button aria-label="remove" onclick={remove}><IconRemove height={24} width={24} /></button>
+			{/if}
+			{#if permissions.ban}
+				<button aria-label="ban" onclick={ban}><IconBan height={24} width={24} /></button>
+			{/if}
+			{#if permissions.next}
+				<button aria-label="play" onclick={play}><IconPlay height={24} width={24} /></button>
+			{/if}
+		</td>
+	{/if}
 	<td class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
 		{#if choosedThumb}
 			<img alt="" src={choosedThumb} />
@@ -60,6 +85,26 @@
 <style lang="scss">
 	tr {
 		height: 99px;
+
+		td.buttons {
+			width: 24px;
+
+			display: table-cell flex;
+			flex-direction: column;
+			justify-content: space-between;
+
+			button {
+				background: transparent;
+				border: 0;
+				color: white;
+
+				padding: 0;
+
+				&:hover {
+					background: radial-gradient(closest-side, #ffffff88, #00000000);
+				}
+			}
+		}
 
 		td.thumb {
 			width: 176px;

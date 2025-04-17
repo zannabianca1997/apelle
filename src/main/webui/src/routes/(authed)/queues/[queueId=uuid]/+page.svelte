@@ -92,7 +92,7 @@
 		<h1>{$_('backoffice.queue.title')}</h1>
 		<table class="queue">
 			{#each queue.queue as song (song.id)}
-				<QueuedSongCard {song} queue={queue.id} />
+				<QueuedSongCard {song} queue={queue.id} permissions={user.queue_role.permissions.queue} />
 			{/each}
 		</table>
 	</section>
