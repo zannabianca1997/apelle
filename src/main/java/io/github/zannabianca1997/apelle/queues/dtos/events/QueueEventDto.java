@@ -19,7 +19,8 @@ import lombok.experimental.SuperBuilder;
         @Type(value = QueueStateEventDto.class),
         @Type(value = QueueDeleteEventDto.class),
         @Type(value = CurrentSongStateEventDto.class),
-        @Type(value = QueuedSongsStateEventDto.class)
+        @Type(value = QueuedSongsStateEventDto.class),
+        @Type(value = QueuedSongDeleteEventDto.class)
 })
 @Schema(description = """
         A message from the server.
@@ -28,7 +29,8 @@ import lombok.experimental.SuperBuilder;
         QueueStateEventDto.class,
         QueueDeleteEventDto.class,
         CurrentSongStateEventDto.class,
-        QueuedSongsStateEventDto.class
+        QueuedSongsStateEventDto.class,
+        QueuedSongDeleteEventDto.class
 }, requiredProperties = { "kind" })
 public abstract class QueueEventDto {
 

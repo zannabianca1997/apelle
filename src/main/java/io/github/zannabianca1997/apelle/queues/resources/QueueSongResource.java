@@ -14,6 +14,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -79,6 +80,16 @@ public class QueueSongResource {
     public void like(@QueryParam("count") @DefaultValue("1") short count)
             throws ActionNotPermittedException {
         queueService.like(song, user, count);
+    }
+
+    @DELETE
+    @Operation(summary = "Remove this song from the queue", description = """
+            Remove the song from the queue.
+
+            TODO: ban functionality.""")
+    @Transactional
+    public void delete() throws ActionNotPermittedException {
+        queueService.removeQueuedSong(song, user);
     }
 
 }

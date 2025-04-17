@@ -7,6 +7,7 @@ import org.mapstruct.SubclassMapping;
 
 import io.github.zannabianca1997.apelle.common.configs.MappersConfig;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueueStateEventDto;
+import io.github.zannabianca1997.apelle.queues.dtos.events.QueuedSongDeleteEventDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueuedSongsStateEventDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.CurrentSongStateEventDto;
 import io.github.zannabianca1997.apelle.queues.dtos.events.QueueDeleteEventDto;
@@ -18,6 +19,7 @@ import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueuedSongDeleteEvent;
 
 @Mapper(config = MappersConfig.class, subclassExhaustiveStrategy = SubclassExhaustiveStrategy.RUNTIME_EXCEPTION)
 public interface EventMapper {
@@ -27,20 +29,23 @@ public interface EventMapper {
     @SubclassMapping(source = QueueLikeEvent.class, target = QueuedSongsStateEventDto.class)
     @SubclassMapping(source = QueueEnqueueEvent.class, target = QueuedSongsStateEventDto.class)
     @SubclassMapping(source = QueueDeleteEvent.class, target = QueueDeleteEventDto.class)
+    @SubclassMapping(source = QueuedSongDeleteEvent.class, target = QueuedSongDeleteEventDto.class)
     QueueEventDto toDto(QueueEvent event);
 
     @Mapping(target = "queue", source = "state")
-    QueueStateEventDto toMessage(QueueStartEvent event);
+    QueueStateEventDto toDto(QueueStartEvent event);
 
     @Mapping(target = "current", source = "state")
-    CurrentSongStateEventDto toMessage(QueueStopEvent event);
+    CurrentSongStateEventDto toDto(QueueStopEvent event);
 
     @Mapping(target = "queue", source = "state")
-    QueueStateEventDto toMessage(QueueNextEvent event);
+    QueueStateEventDto toDto(QueueNextEvent event);
 
-    QueuedSongsStateEventDto toMessage(QueueEnqueueEvent event);
+    QueuedSongsStateEventDto toDto(QueueEnqueueEvent event);
 
-    QueuedSongsStateEventDto toMessage(QueueLikeEvent event);
+    QueuedSongsStateEventDto toDto(QueueLikeEvent event);
 
-    QueueDeleteEventDto toMessage(QueueDeleteEvent event);
+    QueueDeleteEventDto toDto(QueueDeleteEvent event);
+
+    QueuedSongDeleteEventDto toDto(QueuedSongDeleteEvent event);
 }

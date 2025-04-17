@@ -13,6 +13,7 @@ import io.github.zannabianca1997.apelle.queues.events.QueueLikeEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueNextEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStartEvent;
 import io.github.zannabianca1997.apelle.queues.events.QueueStopEvent;
+import io.github.zannabianca1997.apelle.queues.events.QueuedSongDeleteEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
 import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueueException;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
@@ -338,6 +339,23 @@ public class QueueService {
             throw new SongNotQueuedException(queue, songId);
         }
         return queuedSong;
+    }
+
+    public void removeQueuedSong(QueuedSong song, QueueUser user) throws ActionNotPermittedException {
+        if (!user.getPermissions().queue().remove()) {
+            throw new ActionNotPermittedException(user.getRole(), "remove song");
+        }
+
+        log.infof("[user=%s, queue=%s] Removed song %s", user.getUser().getId(), user.getQueue().getId(),
+                song.getSong().getId());
+
+        Likes.deleteReferringTo(song);
+        song.getQueue().getQueuedSongs().removeIf(s -> s.getSong().getId().equals(song.getSong().getId()));
+        song.getSong().getQueues().removeIf(s -> s.getQueue().getId().equals(song.getQueue().getId()));
+        song.delete();
+
+        queueEventBus.publish(QueuedSongDeleteEvent.builder().queueId(song.getQueue().getId())
+                .deletedId(song.getSong().getId()).build());
     }
 
     public void delete(Queue queue) throws ActionNotPermittedException {

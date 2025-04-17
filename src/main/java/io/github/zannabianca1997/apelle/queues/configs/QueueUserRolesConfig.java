@@ -53,6 +53,7 @@ public interface QueueUserRolesConfig {
             @JsonProperty(required = true)
             boolean delete();
 
+            @Schema(name = "QueuePermissions")
             public interface Queue {
                 @WithDefault("false")
                 @JsonProperty(required = true)
@@ -83,6 +84,7 @@ public interface QueueUserRolesConfig {
                 boolean ban();
             }
 
+            @Schema(name = "QueueUsersPermissions")
             public interface QueueUsers {
                 @JsonProperty(required = true)
                 @Schema(examples = { "[\"PLAYER\", \"VOTER\", \"OBSERVER\"]" })

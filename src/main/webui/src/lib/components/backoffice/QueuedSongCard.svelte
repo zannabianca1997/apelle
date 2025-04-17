@@ -1,7 +1,10 @@
 <script lang="ts">
-	import type { Permissions, Queue } from '$lib/apis/apelle.ts';
+	import type { QueuePermissions } from '$lib/apis/apelle.ts';
 	import type { ThumbnailQueryDto, Uuid } from '$lib/apis/apelle';
-	import { postApiV1QueuesIQueueIdQueueSongIdLikes as postLike } from '$lib/apis/apelle';
+	import {
+		postApiV1QueuesIQueueIdQueueSongIdLikes as postLike,
+		deleteApiV1QueuesIQueueIdQueueSongId as deleteQueuedSong
+	} from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
 	import { _ } from 'svelte-i18n';
 	import IconRemove from '~icons/mdi/delete-empty-outline';
@@ -15,7 +18,7 @@
 	}: {
 		queue: Uuid;
 		song: QueuedSong;
-		permissions: Queue;
+		permissions: QueuePermissions;
 	} = $props();
 
 	const songId = song.id;
@@ -35,7 +38,9 @@
 		return song.thumbnails?.reduce((t1, t2) => (thumbScore(t1) > thumbScore(t2) ? t1 : t2)).url;
 	});
 
-	async function remove() {}
+	async function remove() {
+		await deleteQueuedSong(queue, song.id);
+	}
 
 	async function ban() {}
 

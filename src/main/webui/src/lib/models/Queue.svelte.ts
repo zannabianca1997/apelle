@@ -76,6 +76,14 @@ export class Queue {
 				promises.push(this.updateQueuedSongs(event.queue));
 				break;
 
+			case 'queued-song-delete': {
+				const index = this.queue.findIndex((song) => song.id === event.deleted_id);
+				if (index > -1) {
+					this.queue.splice(index, 1);
+				}
+				break;
+			}
+
 			default: {
 				// This stops compilation if new events are added and not handled
 				const exhaustiveCheck: never = event;

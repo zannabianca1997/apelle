@@ -73,19 +73,9 @@ export type Duration = string;
 export type Instant = string;
 
 export interface Permissions {
-	queue: Queue;
-	queueUsers: QueueUsers;
+	queue: QueuePermissions;
+	queueUsers: QueueUsersPermissions;
 	delete: boolean;
-}
-
-export interface Queue {
-	start: boolean;
-	stop: boolean;
-	next: boolean;
-	like: boolean;
-	enqueue: boolean;
-	remove: boolean;
-	ban: boolean;
 }
 
 export type QueueDeleteEventDtoKind =
@@ -114,7 +104,18 @@ export type QueueEventDto =
 	| QueueStateEventDto
 	| QueueDeleteEventDto
 	| CurrentSongStateEventDto
-	| QueuedSongsStateEventDto;
+	| QueuedSongsStateEventDto
+	| QueuedSongDeleteEventDto;
+
+export interface QueuePermissions {
+	start: boolean;
+	stop: boolean;
+	next: boolean;
+	like: boolean;
+	enqueue: boolean;
+	remove: boolean;
+	ban: boolean;
+}
 
 /**
  * A queue of songs
@@ -185,15 +186,34 @@ export interface QueueUserRolesConfig {
 	roles: string[];
 }
 
-export type QueueUsersGrantRoles = string[] | null;
+export type QueueUsersPermissionsGrantRoles = string[] | null;
 
-export type QueueUsersRemoveRoles = string[] | null;
+export type QueueUsersPermissionsRemoveRoles = string[] | null;
 
-export interface QueueUsers {
-	grantRoles: QueueUsersGrantRoles;
-	removeRoles: QueueUsersRemoveRoles;
+export interface QueueUsersPermissions {
+	grantRoles: QueueUsersPermissionsGrantRoles;
+	removeRoles: QueueUsersPermissionsRemoveRoles;
 	remove: boolean;
 	ban: boolean;
+}
+
+export type QueuedSongDeleteEventDtoKind =
+	(typeof QueuedSongDeleteEventDtoKind)[keyof typeof QueuedSongDeleteEventDtoKind];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const QueuedSongDeleteEventDtoKind = {
+	'queued-song-delete': 'queued-song-delete'
+} as const;
+
+/**
+ * Signal the removal of a single song.
+
+Nothing else is changed. The song should be removed mantaining the order of the others.
+ */
+export interface QueuedSongDeleteEventDto {
+	kind: QueuedSongDeleteEventDtoKind;
+	/** The song to delete */
+	deleted_id: Uuid;
 }
 
 /**
@@ -465,6 +485,20 @@ export const getApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<Queued
 };
 
 /**
+ * Remove the song from the queue.
+
+TODO: ban functionality.
+ * @summary Remove this song from the queue
+ */
+export const deleteApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<void>>(
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
+};
+
+/**
  * Add a like to the song, pushing it upwards in the queue.
 
 If the maximum number of likes was already reached, the oldest like will be removed.
@@ -642,6 +676,20 @@ export const getApiV1QueuesIQueueIdQueueSongId = <TData = AxiosResponse<QueuedSo
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
+};
+
+/**
+ * Remove the song from the queue.
+
+TODO: ban functionality.
+ * @summary Remove this song from the queue
+ */
+export const deleteApiV1QueuesIQueueIdQueueSongId = <TData = AxiosResponse<void>>(
+	queueId: Uuid,
+	songId: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.delete(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
 };
 
 /**
@@ -850,6 +898,7 @@ export type GetApiV1QueuesCQueueCodeEventsResult = AxiosResponse<QueueEventDto[]
 export type PostApiV1QueuesCQueueCodeNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
+export type DeleteApiV1QueuesCQueueCodeQueueSongIdResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeQueueSongIdLikesResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesCQueueCodeStopResult = AxiosResponse<void>;
@@ -865,6 +914,7 @@ export type GetApiV1QueuesIQueueIdEventsResult = AxiosResponse<QueueEventDto[]>;
 export type PostApiV1QueuesIQueueIdNextResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueResult = AxiosResponse<QueuedSongShortQueryDto>;
 export type GetApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<QueuedSongQueryDto>;
+export type DeleteApiV1QueuesIQueueIdQueueSongIdResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStartResult = AxiosResponse<void>;
 export type PostApiV1QueuesIQueueIdStopResult = AxiosResponse<void>;
