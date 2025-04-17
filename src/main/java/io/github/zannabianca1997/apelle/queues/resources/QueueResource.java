@@ -138,7 +138,7 @@ public class QueueResource {
         }
 
         queueService.start(queue);
-        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
+        return Response.noContent().build();
     }
 
     @POST
@@ -154,7 +154,7 @@ public class QueueResource {
         }
 
         queueService.stop(queue);
-        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
+        return Response.noContent().build();
     }
 
     @POST
@@ -172,7 +172,7 @@ public class QueueResource {
         }
 
         queueService.next(queue);
-        return Response.noContent().tag(new EntityTag(queue.getPlayerStateId().toString(), true)).build();
+        return Response.noContent().build();
     }
 
     @Path("/users/i/{userId}")
