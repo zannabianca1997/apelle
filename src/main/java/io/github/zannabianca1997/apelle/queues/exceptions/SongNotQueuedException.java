@@ -28,10 +28,10 @@ public class SongNotQueuedException extends Exception {
     @APIResponse(responseCode = "404", description = "The song is not in the queue", content = {
             @Content(mediaType = "text/plain")
     })
-    public static class Mapper implements ExceptionMapper<SongAlreadyQueuedException> {
+    public static class Mapper implements ExceptionMapper<SongNotQueuedException> {
         @Override
-        public Response toResponse(SongAlreadyQueuedException exception) {
-            return RestResponse.status(Status.CONFLICT, exception.getMessage()).toResponse();
+        public Response toResponse(SongNotQueuedException exception) {
+            return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }
 }
