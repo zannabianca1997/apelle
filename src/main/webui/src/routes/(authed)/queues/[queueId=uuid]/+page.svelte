@@ -14,6 +14,8 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Queue } from '$lib/models/Queue.svelte';
+	import { Logger } from '$lib/logger';
+	import { config } from '$lib/config';
 
 	const { data }: PageProps = $props();
 
@@ -24,6 +26,8 @@
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
 
 	let songQuery: string | null = $state(null);
+
+	const SSELogger = new Logger(config.log.sse);
 
 	onMount(() =>
 		source(`/api/v1/queues/i/${queueId}/events`, {
@@ -41,6 +45,8 @@
 				if (!event) {
 					return;
 				}
+
+				SSELogger.info(`Received queue event: %o`, event);
 
 				if (event.kind === 'queue-delete') {
 					goto('/');
