@@ -9,3 +9,9 @@ quarkus:
     category:
       "io.github.zannabianca1997.apelle":
         level: DEBUG
+  quinoa:
+    package-manager-command:
+      build-env:
+        VITE_QUARKUS_PROFILE: test
+      dev-env:
+        VITE_QUARKUS_PROFILE: test
