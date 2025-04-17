@@ -72,8 +72,6 @@ quarkus:
         VITE_QUARKUS_PROFILE: ${quarkus.profile}
       dev-env:
         VITE_QUARKUS_PROFILE: ${quarkus.profile}
-      test-env:
-        VITE_QUARKUS_PROFILE: ${quarkus.profile}
   hibernate-orm:
     database:
       generation: none
