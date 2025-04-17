@@ -84,7 +84,7 @@ public class QueueEventBus {
     }
 
     private void doPublish(QueueEvent event) {
-        log.debugf("Publishing event %s to queue %s", event.getClass(), event.getQueueId());
+        log.debugf("[queue=%s] Publishing event %s", event.getQueueId(), event.getClass());
         eventBus.publish(address(event.getQueueId()), JsonObject.mapFrom(event));
     }
 
