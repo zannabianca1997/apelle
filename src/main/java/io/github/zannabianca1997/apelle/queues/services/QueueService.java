@@ -27,6 +27,7 @@ import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.utils.QueueEventBus;
 import io.github.zannabianca1997.apelle.queues.utils.StringUtils;
+import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -81,9 +82,10 @@ public class QueueService {
         var queue = Queue.builder()
                 .code(generateQueueCode(codeComplexity))
                 .build();
+        var creator = usersService.getMe();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
-                .user(usersService.getMe())
+                .user(creator)
                 .role(queueUserRolesService.getCreatorRole())
                 .likesFilled(false)
                 .build());
@@ -101,6 +103,9 @@ public class QueueService {
         }
 
         queue.persist();
+
+        log.infof("[user=%s, queue=%s] Created queue", creator.getId(), queue.getId());
+
         return queue;
     }
 
@@ -152,6 +157,8 @@ public class QueueService {
             throw new ActionNotPermittedException(user.getRole(), "start playing");
         }
 
+        log.infof("[user=%s, queue=%s] Start playing requested", user.getUser().getId(), queue.getId());
+
         boolean startedNow = queue.start();
         if (startedNow) {
             queueEventBus
@@ -173,10 +180,8 @@ public class QueueService {
             throw new ActionNotPermittedException(user.getRole(), "stop playing");
         }
 
-        stopNoCheck(queue);
-    }
+        log.infof("[user=%s, queue=%s] Stop playing requested", user.getUser().getId(), queue.getId());
 
-    private void stopNoCheck(Queue queue) {
         boolean stoppedNow = queue.stop();
         if (stoppedNow) {
             queueEventBus
@@ -199,6 +204,8 @@ public class QueueService {
         if (!user.getPermissions().queue().next()) {
             throw new ActionNotPermittedException(user.getRole(), "move to next song");
         }
+
+        log.infof("[user=%s, queue=%s] Next song requested", user.getUser().getId(), queue.getId());
 
         queue.next();
         queueEventBus.publish(QueueNextEvent.builder().queueId(queue.getId())
@@ -224,6 +231,8 @@ public class QueueService {
             throw new SongAlreadyQueuedException(queue.getId(), song);
         }
         song.persist();
+
+        log.infof("[user=%s, queue=%s] Song added: %s", user.getUser().getId(), queue.getId(), song.getId());
 
         QueuedSong enqueued = queue.enqueue(song);
 
@@ -268,6 +277,9 @@ public class QueueService {
         }
 
         Queue queue = song.getQueue();
+
+        log.infof("[user=%s, queue=%s] User adds %s likes to the song %s", user.getUser().getId(), queue.getId(), count,
+                song.getSong().getId());
 
         // Liming the number of likes to the max
         count = (short) Math.min(count, user.getMaxLikes());
@@ -334,6 +346,8 @@ public class QueueService {
         if (!user.getPermissions().delete()) {
             throw new ActionNotPermittedException(user.getRole(), "delete queue");
         }
+
+        log.infof("[user=%s, queue=%s] Queue deleted", user.getUser().getId(), queue.getId());
 
         queue.delete();
 
