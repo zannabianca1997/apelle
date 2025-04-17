@@ -2,6 +2,10 @@ import axios, { AxiosError, type AxiosBasicCredentials } from 'axios';
 
 import { getApiV1UsersMe, postApiV1Users, type UserQueryDto } from '$lib/apis/apelle';
 import { browser } from '$app/environment';
+import { Logger } from '$lib/logger';
+import { config } from '$lib/config';
+
+const logger = new Logger(config.log.auth);
 
 export type Credentials = AxiosBasicCredentials;
 type UserData = Omit<UserQueryDto, 'name'> & Credentials;
@@ -46,7 +50,7 @@ class AuthServiceBrowser implements AuthService {
 	public constructor() {
 		this._userData = JSON.parse(localStorage.getItem('apelleUser') ?? 'null');
 
-		console.info('Installing auth interceptors');
+		logger.info('Installing auth interceptors');
 		axios.interceptors.request.use((config) => {
 			// Add authentication if not provided
 			if (this.authenticated() && !config.auth) {
@@ -101,7 +105,7 @@ class AuthServiceBrowser implements AuthService {
 		if (userQueryDto.status != 200) {
 			throw new Error('Unexpected server response from `/me`.');
 		}
-		console.debug(`Signing in as ${auth.username}`);
+		logger.debug(`Signing in as ${auth.username}`);
 		this.userData = { ...userQueryDto.data, ...auth };
 	}
 
@@ -133,7 +137,7 @@ class AuthServiceBrowser implements AuthService {
 		if (userQueryDto.status != 201) {
 			throw new Error('Unexpected server response from `/me`.');
 		}
-		console.debug(`Signing up as ${auth.username}`);
+		logger.debug(`Signing up as ${auth.username}`);
 		this.userData = { ...userQueryDto.data, ...auth };
 	}
 
@@ -146,7 +150,7 @@ class AuthServiceBrowser implements AuthService {
 	 * @return {Promise<void>} Signout successfully
 	 */
 	public async signout(): Promise<void> {
-		console.debug(`Signing out from ${this.userData?.username}`);
+		logger.debug(`Signing out from ${this.userData?.username}`);
 		this.userData = null;
 	}
 

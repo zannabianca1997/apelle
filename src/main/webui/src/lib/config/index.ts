@@ -7,10 +7,10 @@ import staging from './staging';
  * Configuration for the logging
  */
 export interface Log {
-	/**
-	 * Log all sse events
-	 */
+	/**  SSE events */
 	sse: LogLevelFilter;
+	/** Auth events */
+	auth: LogLevelFilter;
 }
 
 /**

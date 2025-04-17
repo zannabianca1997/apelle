@@ -2,6 +2,7 @@ import type { Config } from '.';
 
 export default {
 	log: {
-		sse: 'info'
+		sse: 'info',
+		auth: 'info'
 	}
 } satisfies Config;
