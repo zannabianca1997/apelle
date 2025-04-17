@@ -7,3 +7,5 @@ quarkus:
     category:
       "io.github.zannabianca1997.apelle":
         level: DEBUG
+      "io.github.zannabianca1997.apelle.queues.utils.QueueEventBus":
+        level: INFO # Do not spam each event

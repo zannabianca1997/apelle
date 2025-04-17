@@ -2,7 +2,9 @@ quarkus:
   log:
     min-level: INFO # Do not generate code for DEBUG logs
     category:
-      "io.github.zannabianca1997.apelle.queues.services.QueueService":
-        level: WARN
+      "io.github.zannabianca1997.apelle":
+        level: INFO
+      "io.github.zannabianca1997.apelle.queues":
+        level: WARN # Only warnings from the queues
   quinoa:
     ci: true

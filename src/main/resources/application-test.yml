@@ -5,3 +5,7 @@ quarkus:
     youtube-api:
       # Do not contact youtube during tests
       url:
+  log:
+    category:
+      "io.github.zannabianca1997.apelle":
+        level: DEBUG
