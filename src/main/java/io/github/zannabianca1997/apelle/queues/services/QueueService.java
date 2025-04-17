@@ -351,8 +351,13 @@ public class QueueService {
                 // The `asSeenBy` call need to contact the db, so it must run on the worker pool
                 .emitOn(Infrastructure.getDefaultWorkerPool())
                 .map(event -> queueEventService.asSeenBy(event, userId))
-                .onSubscription().invoke(() -> log.infof("User %s connected to the queue %s", userId, queueId))
-                .onCancellation().invoke(() -> log.infof("User %s disconnetted from the queue %s", userId, queueId));
+                .onSubscription()
+                .invoke(() -> log.infof("[user=%s, queue=%s] Connected to the server", userId, queueId))
+                .onItem()
+                .invoke(event -> log.debugf("[user=%s, queue=%s] Received event: %s", userId, queueId,
+                        event.getClass()))
+                .onCancellation()
+                .invoke(() -> log.infof("[user=%s, queue=%s] Disconnetted from the server", userId, queueId));
     }
 
 }
