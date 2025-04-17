@@ -8,8 +8,9 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.ResponseHeader;
-import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.ResponseStatus;
 import org.jboss.resteasy.reactive.RestStreamElementType;
+import org.jboss.resteasy.reactive.RestResponse.StatusCode;
 
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.Blocking;
@@ -30,7 +31,6 @@ import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
@@ -109,15 +109,15 @@ public class QueueResource {
     @APIResponse(responseCode = "201", description = "The enqueued song", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = QueuedSongShortQueryDto.class))
     })
+    @ResponseStatus(StatusCode.CREATED)
     @Transactional
     @Tag(name = "Queued song")
-    public RestResponse<QueuedSongShortQueryDto> enqueue(SongAddDto songAddDto)
+    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto)
             throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
             YoutubeVideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
-        return RestResponse.status(Status.CREATED,
-                songMapper.toShortDto(enqueued, (short) 0));
+        return songMapper.toShortDto(enqueued, (short) 0);
     }
 
     @Path("/queue/{songId}")
