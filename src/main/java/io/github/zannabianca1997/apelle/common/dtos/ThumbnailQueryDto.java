@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.queues.dtos;
+package io.github.zannabianca1997.apelle.common.dtos;
 
 import java.net.URL;
 

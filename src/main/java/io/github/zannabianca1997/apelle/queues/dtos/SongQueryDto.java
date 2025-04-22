@@ -9,6 +9,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
+import io.github.zannabianca1997.apelle.common.dtos.ThumbnailQueryDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
