@@ -4,20 +4,21 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClient;
+import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiClient;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
 import io.github.zannabianca1997.apelle.youtube.exceptions.YoutubeVideoNotFoundException;
 import io.github.zannabianca1997.apelle.youtube.mappers.YoutubeSongMapper;
 import io.github.zannabianca1997.apelle.youtube.models.YoutubeSong;
+import io.vertx.redis.client.impl.RedisClient;
 
 @ApplicationScoped
 public class YoutubeService {
 
     @Inject
     @RestClient
-    YoutubeApiVideosClient youtubeApiVideosClient;
+    YoutubeApiClient youtubeApiVideosClient;
 
     @Inject
     YoutubeSongMapper songMapper;
@@ -45,12 +46,18 @@ public class YoutubeService {
      */
     public YoutubeSong fromDto(YoutubeSongAddDto youtubeSongAddDto)
             throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
+        // Try to obtain it from the database
         YoutubeSong cached = YoutubeSong.findByVideoId(youtubeSongAddDto.getVideoId());
         if (cached != null) {
             return cached;
         }
 
+        // Failed: asking the youtube gods
         var videoData = getVideoData(youtubeSongAddDto.getVideoId());
         return songMapper.fromDto(youtubeSongAddDto, videoData);
     }
+
+    @Inject
+    RedisClient redisClient;
+
 }

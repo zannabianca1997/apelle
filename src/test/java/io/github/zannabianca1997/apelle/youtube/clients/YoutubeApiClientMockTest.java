@@ -12,20 +12,20 @@ import jakarta.inject.Inject;
 
 @QuarkusTest
 @Tag("testEnviroment")
-class YoutubeApiVideosClientMockTest {
+class YoutubeApiClientMockTest {
     @Inject
     @RestClient
-    YoutubeApiVideosClient youtubeApiVideosClient;
+    YoutubeApiClient youtubeApiVideosClient;
 
     @BeforeEach
     void installYoutubeMock() {
-        YoutubeApiVideosClientMock.install();
+        YoutubeApiClientMock.install();
     }
 
     @Test
     void isMocked() {
-        String id = YoutubeApiVideosClientMock.RESPONSES.keySet().iterator().next();
+        String id = YoutubeApiClientMock.RESPONSES.keySet().iterator().next();
         var gotten = youtubeApiVideosClient.getDataById(id);
-        assertEquals(YoutubeApiVideosClientMock.RESPONSES.get(id), gotten);
+        assertEquals(YoutubeApiClientMock.RESPONSES.get(id), gotten);
     }
 }

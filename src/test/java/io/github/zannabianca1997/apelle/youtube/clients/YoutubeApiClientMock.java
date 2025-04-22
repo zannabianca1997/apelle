@@ -21,7 +21,7 @@ import jakarta.enterprise.context.ApplicationScoped;
  * an api key
  */
 @ApplicationScoped
-public class YoutubeApiVideosClientMock implements YoutubeApiVideosClient {
+public class YoutubeApiClientMock implements YoutubeApiClient {
 
     private static final record MockedVideo(
             String id, String title, Duration duration) {
@@ -57,8 +57,8 @@ public class YoutubeApiVideosClientMock implements YoutubeApiVideosClient {
 
     public static void install() {
         QuarkusMock.installMockForType(
-                new YoutubeApiVideosClientMock(),
-                YoutubeApiVideosClient.class,
+                new YoutubeApiClientMock(),
+                YoutubeApiClient.class,
                 RestClient.LITERAL);
     }
 }

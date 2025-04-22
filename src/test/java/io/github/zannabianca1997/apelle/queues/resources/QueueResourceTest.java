@@ -31,7 +31,7 @@ import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserRolesService;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
-import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMock;
+import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiClientMock;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 import io.github.zannabianca1997.apelle.youtube.models.YoutubeSong;
@@ -84,7 +84,7 @@ class QueueResourceTest {
 
     @BeforeEach
     void installYoutubeMock() {
-        YoutubeApiVideosClientMock.install();
+        YoutubeApiClientMock.install();
     }
 
     @Test
@@ -102,7 +102,7 @@ class QueueResourceTest {
 
     @Test
     void shouldEnqueueYoutubeSong() throws MalformedURLException {
-        String videoId = YoutubeApiVideosClientMock.RESPONSES.keySet().iterator().next();
+        String videoId = YoutubeApiClientMock.RESPONSES.keySet().iterator().next();
 
         QueuedSongShortQueryDto created = given()
                 .auth().basic("zanna", "zanna")
@@ -113,7 +113,7 @@ class QueueResourceTest {
                 .contentType(ContentType.JSON)
                 .extract().as(QueuedSongShortQueryDto.class);
 
-        YoutubeVideoDataDto videoData = YoutubeApiVideosClientMock.RESPONSES.get(videoId).unwrapSingle();
+        YoutubeVideoDataDto videoData = YoutubeApiClientMock.RESPONSES.get(videoId).unwrapSingle();
 
         assertEquals(0, created.getLikes());
         assertEquals(videoData.getSnippet().getTitle(), created.getName());
@@ -135,7 +135,7 @@ class QueueResourceTest {
 
     @Test
     void shouldSortEnqueuedByTime() throws InterruptedException {
-        String[] videoIds = YoutubeApiVideosClientMock.RESPONSES.keySet().toArray(String[]::new);
+        String[] videoIds = YoutubeApiClientMock.RESPONSES.keySet().toArray(String[]::new);
 
         for (var videoId : videoIds) {
             given()
