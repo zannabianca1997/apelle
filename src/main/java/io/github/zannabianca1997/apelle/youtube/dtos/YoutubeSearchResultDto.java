@@ -1,10 +1,5 @@
 package io.github.zannabianca1997.apelle.youtube.dtos;
 
-import java.net.URL;
-import java.time.Duration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -16,13 +11,19 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @Builder
 @Jacksonized
-public class YoutubeVideoDataDto {
+public class YoutubeSearchResultDto {
     @NonNull
-    private String id;
+    private Id id;
     @NonNull
     private Snippet snippet;
-    @NonNull
-    private ContentDetails contentDetails;
+
+    @Data
+    @Builder
+    @Jacksonized
+    public static class Id {
+        @NonNull
+        private String videoId;
+    }
 
     @Data
     @Builder
@@ -31,14 +32,6 @@ public class YoutubeVideoDataDto {
         @NonNull
         private String title;
         private YoutubeThumbnailsDto thumbnails;
-
     }
 
-    @Data
-    @Builder
-    @Jacksonized
-    public static class ContentDetails {
-        @NonNull
-        private Duration duration;
-    }
 }

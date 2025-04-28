@@ -17,6 +17,8 @@ public class YoutubePaginatedDto<T> {
     @NonNull
     private List<T> items;
 
+    private String nextPageToken;
+
     @Data
     @AllArgsConstructor
     public static class PageInfo {
@@ -39,11 +41,11 @@ public class YoutubePaginatedDto<T> {
     }
 
     public static <T> YoutubePaginatedDto<T> ofOne(T t) {
-        return new YoutubePaginatedDto<T>(new PageInfo(1), List.of(t));
+        return new YoutubePaginatedDto<T>(new PageInfo(1), List.of(t), null);
     }
 
     public static <T> YoutubePaginatedDto<T> ofNone() {
-        return new YoutubePaginatedDto<T>(new PageInfo(0), List.of());
+        return new YoutubePaginatedDto<T>(new PageInfo(0), List.of(), null);
     }
 
 }

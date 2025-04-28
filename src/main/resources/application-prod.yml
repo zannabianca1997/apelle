@@ -6,5 +6,7 @@ quarkus:
         level: INFO
       "io.github.zannabianca1997.apelle.queues":
         level: WARN # Only warnings from the queues
+      "io.github.zannabianca1997.apelle.search":
+        level: WARN # Only warnings from the searches
   quinoa:
     ci: true

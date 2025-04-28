@@ -11,9 +11,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
-
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

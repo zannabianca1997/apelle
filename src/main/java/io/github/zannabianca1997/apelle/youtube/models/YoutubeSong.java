@@ -27,8 +27,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
 import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.models.Thumbnail;
 

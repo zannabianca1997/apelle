@@ -9,6 +9,7 @@ import jakarta.ws.rs.QueryParam;
 import lombok.NonNull;
 
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubePaginatedDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSearchResultDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 
 @RegisterRestClient(configKey = "youtube-api")
@@ -25,7 +26,7 @@ public interface YoutubeApiClient {
     @ClientQueryParam(name = "type", value = "video")
     @ClientQueryParam(name = "safeSearch", value = "none")
     @ClientQueryParam(name = "videoEmbeddable", value = "true")
-    YoutubePaginatedDto<YoutubeVideoDataDto> getSearchByKeywords(
+    YoutubePaginatedDto<YoutubeSearchResultDto> getSearchByKeywords(
             @QueryParam("maxResults") int maxResults,
             @QueryParam("q") String query);
 
@@ -35,7 +36,7 @@ public interface YoutubeApiClient {
     @ClientQueryParam(name = "type", value = "video")
     @ClientQueryParam(name = "safeSearch", value = "none")
     @ClientQueryParam(name = "videoEmbeddable", value = "true")
-    YoutubePaginatedDto<YoutubeVideoDataDto> getSearchPage(
+    YoutubePaginatedDto<YoutubeSearchResultDto> getSearchPage(
             @QueryParam("maxResults") int maxResults,
             @QueryParam("q") String query,
             @QueryParam("pageToken") String pageToken);

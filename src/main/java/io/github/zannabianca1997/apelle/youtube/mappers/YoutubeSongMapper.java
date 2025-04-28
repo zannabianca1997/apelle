@@ -1,15 +1,29 @@
 package io.github.zannabianca1997.apelle.youtube.mappers;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
+import org.apache.http.client.utils.URIBuilder;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 import io.github.zannabianca1997.apelle.common.configs.MappersConfig;
+import io.github.zannabianca1997.apelle.common.dtos.ThumbnailQueryDto;
+import io.github.zannabianca1997.apelle.search.dtos.SearchedSongQueryDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSearchResultDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeThumbnailsDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 import io.github.zannabianca1997.apelle.youtube.models.YoutubeSong;
 import io.github.zannabianca1997.apelle.youtube.models.YoutubeThumbnail;
@@ -28,7 +42,7 @@ public interface YoutubeSongMapper {
         song.getThumbnails().forEach((size, thumbnail) -> thumbnail.setSong(song));
     }
 
-    default Map<YoutubeThumbnailSize, YoutubeThumbnail> fromDto(YoutubeVideoDataDto.Snippet.Thumbnails value) {
+    default Map<YoutubeThumbnailSize, YoutubeThumbnail> fromDto(YoutubeThumbnailsDto value) {
         if (value == null) {
             return null;
         }
@@ -54,5 +68,40 @@ public interface YoutubeSongMapper {
         return map;
     }
 
-    YoutubeThumbnail fromDto(YoutubeVideoDataDto.Snippet.Thumbnails.Thumbnail thumbnail, YoutubeThumbnailSize size);
+    YoutubeThumbnail fromDto(YoutubeThumbnailsDto.Thumbnail thumbnail, YoutubeThumbnailSize size);
+
+    @Mapping(source = "snippet.title", target = "name")
+    @Mapping(source = "snippet.thumbnails", target = "thumbnails")
+    @Mapping(source = "id.videoId", target = "url", qualifiedByName = "watchUrl")
+    @Mapping(source = "id.videoId", target = "enqueueData", qualifiedByName = "toAddDto")
+    SearchedSongQueryDto toSearchedDto(YoutubeSearchResultDto searchResultDto);
+
+    default Collection<ThumbnailQueryDto> toSearchedDto(YoutubeThumbnailsDto youtubeThumbnailsDto) {
+        return Stream.of(
+                youtubeThumbnailsDto.getDefault_(),
+                youtubeThumbnailsDto.getHigh(),
+                youtubeThumbnailsDto.getMaxres(),
+                youtubeThumbnailsDto.getMedium(),
+                youtubeThumbnailsDto.getStandard()).filter(Objects::nonNull).map(this::toSearchedDto).toList();
+    }
+
+    ThumbnailQueryDto toSearchedDto(YoutubeThumbnailsDto.Thumbnail thumbnail);
+
+    @Named("watchUrl")
+    default URL watchURL(String videoId) {
+        try {
+            return new URIBuilder(
+                    ConfigProvider.getConfig()
+                            .getValue("apelle.songs.sources.youtube.watch-uri", URI.class))
+                    .addParameter("v", videoId)
+                    .build().toURL();
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException("The youtube url should always form a valid url", e);
+        }
+    }
+
+    @Named("toAddDto")
+    default YoutubeSongAddDto toAddDto(String videoId) {
+        return YoutubeSongAddDto.builder().videoId(videoId).build();
+    }
 }

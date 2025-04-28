@@ -25,8 +25,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.Getter;
-
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Getter

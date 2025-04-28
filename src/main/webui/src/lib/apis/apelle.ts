@@ -72,6 +72,63 @@ export type Duration = string;
 
 export type Instant = string;
 
+/**
+ * Paged response for Apelle API
+ */
+export interface Page {
+	items?: unknown[];
+	page_info?: PageInfo;
+}
+
+/**
+ * Number of items in the search, if available
+ * @minimum 0
+ */
+export type PageInfoTotalItems = number | null;
+
+/**
+ * Next page token
+ */
+export type PageInfoNext = string | null;
+
+/**
+ * Previous page token
+ */
+export type PageInfoPrev = string | null;
+
+/**
+ * Info about a page of responses
+ */
+export interface PageInfo {
+	/**
+	 * Number of items in the search, if available
+	 * @minimum 0
+	 */
+	total_items?: PageInfoTotalItems;
+	/**
+	 * Number of items in the page
+	 * @minimum 0
+	 */
+	items: number;
+	/**
+	 * Page number
+	 * @minimum 0
+	 */
+	number: number;
+	/** Next page token */
+	next?: PageInfoNext;
+	/** Previous page token */
+	prev?: PageInfoPrev;
+}
+
+/**
+ * Paged response for Apelle API
+ */
+export interface PageSearchedSongQueryDto {
+	items?: SearchedSongQueryDto[];
+	page_info?: PageInfo;
+}
+
 export interface Permissions {
 	queue: QueuePermissions;
 	queueUsers: QueueUsersPermissions;
@@ -276,6 +333,20 @@ export interface QueuedSongsStateEventDto {
 }
 
 /**
+ * A song searched from a probider
+ */
+export interface SearchedSongQueryDto {
+	/** Name of the song */
+	name: string;
+	/** Data to send to the `/enqueue` endpoint to add this song */
+	enqueue_data: SongAddDto;
+	/** Eventual public url of the song */
+	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
+}
+
+/**
  * Data defining a song to add
  */
 export type SongAddDto = YoutubeSongAddDto;
@@ -383,6 +454,15 @@ export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
 	 * How many time to like the song. If negative, nothing will happen.
 	 */
 	count?: number;
+};
+
+export type GetApiV1SearchParams = {
+	page?: string;
+	page_size?: number;
+	/**
+	 * The searched song
+	 */
+	q: string;
 };
 
 /**
@@ -829,6 +909,23 @@ export const deleteApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<vo
 };
 
 /**
+ * Search all available sources for a given song.
+
+The returned values are sorted by relevance. Each one contains the DTO one should send to the `/enqueue`
+endpoint to add the corresponding song.
+ * @summary Search a song
+ */
+export const getApiV1Search = <TData = AxiosResponse<PageSearchedSongQueryDto>>(
+	params: GetApiV1SearchParams,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/search`, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
+};
+
+/**
  * Create an user that can access queues and vote on them
  * @summary Create a user
  */
@@ -950,6 +1047,7 @@ export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<QueueUserQueryDt
 export type DeleteApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<void>;
+export type GetApiV1SearchResult = AxiosResponse<PageSearchedSongQueryDto>;
 export type PostApiV1UsersResult = AxiosResponse<UserQueryDto>;
 export type GetApiV1UsersIUserIdResult = AxiosResponse<UserQueryDto>;
 export type DeleteApiV1UsersIUserIdResult = AxiosResponse<void>;

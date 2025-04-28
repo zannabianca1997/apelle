@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubePaginatedDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSearchResultDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto.ContentDetails;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto.Snippet;
@@ -60,5 +61,17 @@ public class YoutubeApiClientMock implements YoutubeApiClient {
                 new YoutubeApiClientMock(),
                 YoutubeApiClient.class,
                 RestClient.LITERAL);
+    }
+
+    @Override
+    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchByKeywords(int maxResults, String query) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getSearchByKeywords'");
+    }
+
+    @Override
+    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchPage(int maxResults, String query, String pageToken) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getSearchPage'");
     }
 }
