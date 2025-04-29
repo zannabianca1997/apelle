@@ -87,7 +87,7 @@ public class YoutubeService {
         // TODO: trim the query to a maximum lenght
         return query
                 .trim()
-                .replaceAll("\n", "")
+                .replace("\n", " ")
                 .replaceAll("\\s+", " ")
                 .toLowerCase();
     }
