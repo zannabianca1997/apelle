@@ -78,3 +78,6 @@ quarkus:
     sql-load-script: no-file
   flyway:
     migrate-at-start: true
+  redis:
+    configure-client-name: true
+    client-name: ${quarkus.application.name}
