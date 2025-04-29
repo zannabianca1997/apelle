@@ -3,17 +3,29 @@
 	import { _ } from 'svelte-i18n';
 
 	let {
-		onsubmit,
-		query = $bindable()
+		onsubmit: onsubmitInner
 	}: {
-		onsubmit: (e: SubmitEvent) => void;
-		query?: string | null;
+		onsubmit?: (e: string) => Promise<boolean>;
 	} = $props();
+
+	let value: string | null = $state(null);
+
+	async function onsubmit(e: SubmitEvent) {
+		e.preventDefault();
+		const query = value?.trim();
+		if (!query) {
+			return;
+		}
+		const reset = onsubmitInner?.(query);
+		if (reset && (await reset)) {
+			value = null;
+		}
+	}
 </script>
 
 <form {onsubmit}>
 	<TextInput
-		bind:value={query}
+		bind:value
 		label={$_('backoffice.searchSong.label')}
 		placeholder={$_('backoffice.searchSong.placeholder')}
 	/>

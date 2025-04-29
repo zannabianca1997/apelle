@@ -25,8 +25,6 @@
 	let isPlayer: boolean = $state(data.isPlayer);
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
 
-	let songQuery: string | null = $state(null);
-
 	const SSELogger = new Logger(config.log.sse);
 
 	onMount(() =>
@@ -56,14 +54,9 @@
 			})
 	);
 
-	async function addToQueue(e: SubmitEvent) {
-		e.preventDefault();
-		const videoId = songQuery?.trim();
-		if (!videoId) {
-			return;
-		}
-		await enqueueSong(queueId, { kind: 'Youtube', video_id: videoId });
-		songQuery = null;
+	async function addToQueue(query: string): Promise<boolean> {
+		await enqueueSong(queueId, { kind: 'Youtube', video_id: query });
+		return true;
 	}
 </script>
 
@@ -78,15 +71,17 @@
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
 		{#if user.queue_role.permissions.queue.enqueue}
-			<SearchBar onsubmit={addToQueue} bind:query={songQuery} />
+			<SearchBar onsubmit={addToQueue} />
 		{/if}
 	</section>
 	<section>
 		<h1>{$_('backoffice.queue.title')}</h1>
 		<table class="queue">
-			{#each queue.queue as song (song.id)}
-				<QueuedSongCard {song} queue={queue.id} permissions={user.queue_role.permissions.queue} />
-			{/each}
+			<tbody>
+				{#each queue.queue as song (song.id)}
+					<QueuedSongCard {song} queue={queue.id} permissions={user.queue_role.permissions.queue} />
+				{/each}
+			</tbody>
 		</table>
 	</section>
 </main>
