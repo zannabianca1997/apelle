@@ -1,73 +1,73 @@
 {
-    "login": {
-        "signinForm": {
-            "username": "Username",
-            "password": "Password",
-            "submit": "Signin",
-            "errors": {
-                "usernameRequired": "The username is required",
-                "passwordRequired": "The password is required"
-            }
-        },
-        "signupForm": {
-            "username": "Username",
-            "password": "Password",
-            "passwordCheck": "Repeat password",
-            "submit": "Signup",
-            "errors": {
-                "usernameRequired": "The username is required",
-                "passwordRequired": "The password is required",
-                "passwordDoesNotMatch": "The password does not match"
-            }
-        }
-    },
-    "navbar": {
-        "title": "Apelle",
-        "logout": "Logout",
-        "home": "Home"
-    },
-    "frontoffice": {
-        "title": "Welcome to Apelle",
-        "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
-        "choices": {
-            "host": {
-                "text": "Host",
-                "anything": "Anything"
-            },
-            "join": {
-                "text": "Join",
-                "id": {
-                    "label": "Party code",
-                    "placeholder": "HASTGA"
-                },
-                "submit": "Enter",
-                "errors": {
-                    "queueCodeRequired": "The queue code is required",
-                    "queueNotFound": "Queue {queueCode} does not exist"
-                }
-            }
-        }
-    },
-    "backoffice": {
-        "partyName": "Party name: ",
-        "currentSong": {
-            "nothingPlaying": "Nothing currently playing"
-        },
-        "addSong": {
-            "label": "Insert a youtube video ID",
-            "placeholder": "kt2mtS7VTG4",
-            "submit": "Search"
-        },
-        "queue": {
-            "title": "Queue",
-            "like": "Move up",
-            "liked": {
-                "pre": "Liked",
-                "unit": "times"
-            }
-        },
-        "song": {
-            "durationFormat": "HH:mm:ss"
-        }
-    }
+	"login": {
+		"signinForm": {
+			"username": "Username",
+			"password": "Password",
+			"submit": "Signin",
+			"errors": {
+				"usernameRequired": "The username is required",
+				"passwordRequired": "The password is required"
+			}
+		},
+		"signupForm": {
+			"username": "Username",
+			"password": "Password",
+			"passwordCheck": "Repeat password",
+			"submit": "Signup",
+			"errors": {
+				"usernameRequired": "The username is required",
+				"passwordRequired": "The password is required",
+				"passwordDoesNotMatch": "The password does not match"
+			}
+		}
+	},
+	"navbar": {
+		"title": "Apelle",
+		"logout": "Logout",
+		"home": "Home"
+	},
+	"frontoffice": {
+		"title": "Welcome to Apelle",
+		"subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
+		"choices": {
+			"host": {
+				"text": "Host",
+				"anything": "Anything"
+			},
+			"join": {
+				"text": "Join",
+				"id": {
+					"label": "Party code",
+					"placeholder": "HASTGA"
+				},
+				"submit": "Enter",
+				"errors": {
+					"queueCodeRequired": "The queue code is required",
+					"queueNotFound": "Queue {queueCode} does not exist"
+				}
+			}
+		}
+	},
+	"backoffice": {
+		"partyName": "Party name: ",
+		"currentSong": {
+			"nothingPlaying": "Nothing currently playing"
+		},
+		"searchSong": {
+			"label": "Now I want to listen to...",
+			"placeholder": " ",
+			"submit": "Search"
+		},
+		"queue": {
+			"title": "Queue",
+			"like": "Move up",
+			"liked": {
+				"pre": "Liked",
+				"unit": "times"
+			}
+		},
+		"song": {
+			"durationFormat": "HH:mm:ss"
+		}
+	}
 }
