@@ -457,10 +457,16 @@ export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
 };
 
 export type GetApiV1SearchParams = {
+	/**
+	 * Page token. Must be obtained from a previous call to `/search`
+	 */
 	page?: string;
+	/**
+	 * Size of the requested page
+	 */
 	page_size?: number;
 	/**
-	 * The searched song
+	 * Searched song query
 	 */
 	q: string;
 };
