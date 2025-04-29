@@ -24,6 +24,7 @@ import io.github.zannabianca1997.apelle.youtube.mappers.YoutubeSongMapper;
 import io.github.zannabianca1997.apelle.youtube.models.CachedYoutubeSearch;
 import io.github.zannabianca1997.apelle.youtube.models.YoutubeSong;
 import io.quarkus.redis.datasource.RedisDataSource;
+import io.quarkus.redis.datasource.value.SetArgs;
 import io.quarkus.redis.datasource.value.ValueCommands;
 
 @ApplicationScoped
@@ -121,6 +122,8 @@ public class YoutubeService {
         // Fetch the search from the redis cache if present
         var cached = redisDataSource.get(key);
 
+        final boolean isFirstRequest = cached == null;
+
         // Check the youtube query limit
         final var currentNumberOfItems = cached != null ? cached.getFound().size() : 0;
         if (pageEnd > currentNumberOfItems
@@ -158,7 +161,13 @@ public class YoutubeService {
 
         // Cache the search
         if (shouldSaveAtTheEnd) {
-            redisDataSource.setex(key, searchConfig.cacheExpiration().toSeconds(), cached);
+            redisDataSource.set(key, cached,
+                    isFirstRequest
+                            // First request, set and set the expiration
+                            ? new SetArgs().nx().ex(searchConfig.cacheExpiration())
+                            // Not first request, just set and keep the expiration
+                            : new SetArgs().xx().keepttl());
+
         }
 
         final var pageItems = cached.getFound().subList(Integer.min(pageStart, cached.getFound().size()),
