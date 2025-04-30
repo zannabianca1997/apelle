@@ -1,5 +1,7 @@
 package io.github.zannabianca1997.apelle.youtube.dtos;
 
+import java.util.Objects;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -21,7 +23,7 @@ public class YoutubeSearchResultDto {
     @Builder
     @Jacksonized
     public static class Id {
-        @NonNull
+        // Will be null on things that are not video
         private String videoId;
     }
 
@@ -32,6 +34,10 @@ public class YoutubeSearchResultDto {
         @NonNull
         private String title;
         private YoutubeThumbnailsDto thumbnails;
+    }
+
+    public boolean isVideo() {
+        return Objects.nonNull(getId().getVideoId());
     }
 
 }

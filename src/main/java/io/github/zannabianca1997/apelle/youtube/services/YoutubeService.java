@@ -16,6 +16,7 @@ import io.github.zannabianca1997.apelle.common.dtos.PageRequest;
 import io.github.zannabianca1997.apelle.search.dtos.SearchedSongQueryDto;
 import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiClient;
 import io.github.zannabianca1997.apelle.youtube.configs.SearchConfig;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSearchResultDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
@@ -139,8 +140,9 @@ public class YoutubeService {
             log.debugf("Starting a new search for `%s`", query);
             final var firstPage = youtubeApiVideosClient.getSearchByKeywords(searchConfig.pageSize(), query);
 
-            cached = new CachedYoutubeSearch(firstPage.getItems().stream().map(songMapper::toSearchedDto)
-                    .collect(Collectors.toCollection(() -> new ArrayList<>(searchConfig.pageSize()))),
+            cached = new CachedYoutubeSearch(
+                    firstPage.getItems().stream().filter(YoutubeSearchResultDto::isVideo).map(songMapper::toSearchedDto)
+                            .collect(Collectors.toCollection(() -> new ArrayList<>(searchConfig.pageSize()))),
                     firstPage.getPageInfo().getTotalResults(),
                     firstPage.getNextPageToken());
 
@@ -153,7 +155,8 @@ public class YoutubeService {
             final var nextPage = youtubeApiVideosClient.getSearchPage(searchConfig.pageSize(), query,
                     cached.getNextYoutubePageToken());
 
-            cached.getFound().addAll(nextPage.getItems().stream().map(songMapper::toSearchedDto).toList());
+            cached.getFound().addAll(nextPage.getItems().stream().filter(YoutubeSearchResultDto::isVideo)
+                    .map(songMapper::toSearchedDto).toList());
             cached.setNextYoutubePageToken(nextPage.getNextPageToken());
 
             shouldSaveAtTheEnd = true;
