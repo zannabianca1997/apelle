@@ -1,4 +1,4 @@
-package io.github.zannabianca1997.apelle.common.models;
+package io.github.zannabianca1997.apelle.common.dtos;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 

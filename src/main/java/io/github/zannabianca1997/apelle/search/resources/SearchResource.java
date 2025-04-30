@@ -5,8 +5,8 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.github.zannabianca1997.apelle.common.models.Page;
-import io.github.zannabianca1997.apelle.common.models.PageRequest;
+import io.github.zannabianca1997.apelle.common.dtos.Page;
+import io.github.zannabianca1997.apelle.common.dtos.PageRequest;
 import io.github.zannabianca1997.apelle.search.dtos.SearchedSongQueryDto;
 import io.github.zannabianca1997.apelle.search.services.SearchService;
 import io.quarkus.security.Authenticated;

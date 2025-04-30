@@ -2,8 +2,8 @@ package io.github.zannabianca1997.apelle.search.services;
 
 import org.jboss.logging.Logger;
 
-import io.github.zannabianca1997.apelle.common.models.Page;
-import io.github.zannabianca1997.apelle.common.models.PageRequest;
+import io.github.zannabianca1997.apelle.common.dtos.Page;
+import io.github.zannabianca1997.apelle.common.dtos.PageRequest;
 import io.github.zannabianca1997.apelle.search.dtos.SearchedSongQueryDto;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
