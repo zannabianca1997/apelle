@@ -23,7 +23,7 @@
 	}
 </script>
 
-<dialog bind:this={dialog} closedby="any">
+<dialog bind:this={dialog}>
 	<SearchView bind:this={searchView} {onSongChosen} />
 </dialog>
 
