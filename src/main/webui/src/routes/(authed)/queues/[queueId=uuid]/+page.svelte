@@ -1,7 +1,8 @@
 <script lang="ts">
 	import {
 		postApiV1QueuesIQueueIdQueue as enqueueSong,
-		type QueueEventDto
+		type QueueEventDto,
+		type SongAddDto
 	} from '$lib/apis/apelle';
 	import type { PageProps } from './$types';
 	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
@@ -16,6 +17,7 @@
 	import { Logger } from '$lib/logger';
 	import { config } from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
+	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -54,10 +56,16 @@
 			})
 	);
 
-	async function addToQueue(query: string): Promise<boolean> {
-		await enqueueSong(queueId, { kind: 'Youtube', video_id: query });
+	async function openSearch(query: string): Promise<boolean> {
+		await searchDialog.open(query);
 		return true;
 	}
+
+	async function onSongChosen(song: SongAddDto) {
+		await enqueueSong(queueId, song);
+	}
+
+	let searchDialog: SearchDialog;
 </script>
 
 <main>
@@ -71,7 +79,7 @@
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
 		{#if user.queue_role.permissions.queue.enqueue}
-			<SearchBar onsubmit={addToQueue} />
+			<SearchBar onsubmit={openSearch} />
 		{/if}
 	</section>
 	<section>
@@ -84,6 +92,8 @@
 			</tbody>
 		</table>
 	</section>
+
+	<SearchDialog bind:this={searchDialog} {onSongChosen} />
 </main>
 
 <style lang="scss">

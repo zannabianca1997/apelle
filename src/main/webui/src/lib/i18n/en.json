@@ -53,7 +53,7 @@
 		"currentSong": {
 			"nothingPlaying": "Nothing currently playing"
 		},
-		"searchSong": {
+		"search": {
 			"label": "Now I want to listen to...",
 			"placeholder": " ",
 			"submit": "Search"

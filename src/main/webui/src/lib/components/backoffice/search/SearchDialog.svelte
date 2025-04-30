@@ -3,14 +3,19 @@
 	import SearchView from './SearchView.svelte';
 
 	const {
-		onSongChosen: onSongChosenInner,
-		initialQuery
+		onSongChosen: onSongChosenInner
 	}: {
 		onSongChosen?: (s: SongAddDto) => void;
-		initialQuery?: string;
 	} = $props();
 
 	let dialog: HTMLDialogElement;
+
+	let searchView: SearchView;
+
+	export async function open(initialQuery: string) {
+		dialog.show();
+		await searchView.searchFor(initialQuery);
+	}
 
 	function onSongChosen(s: SongAddDto) {
 		onSongChosenInner?.(s);
@@ -18,12 +23,12 @@
 	}
 </script>
 
-<dialog bind:this={dialog}>
-	<SearchView {onSongChosen} {initialQuery} />
+<dialog bind:this={dialog} closedby="any">
+	<SearchView bind:this={searchView} {onSongChosen} />
 </dialog>
 
 <style lang="scss">
-	dialog {
+	dialog[open] {
 		width: 90%;
 
 		display: flex;

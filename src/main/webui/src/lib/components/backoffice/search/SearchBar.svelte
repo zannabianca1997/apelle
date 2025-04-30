@@ -5,6 +5,11 @@
 	let {
 		onsubmit: onsubmitInner
 	}: {
+		/**
+		 * Function to run when the search button is pressed.
+		 * If the function returns `true`, the search field will be cleared.
+		 * @param e The search query
+		 */
 		onsubmit?: (e: string) => Promise<boolean>;
 	} = $props();
 
@@ -26,10 +31,10 @@
 <form {onsubmit}>
 	<TextInput
 		bind:value
-		label={$_('backoffice.searchSong.label')}
-		placeholder={$_('backoffice.searchSong.placeholder')}
+		label={$_('backoffice.search.label')}
+		placeholder={$_('backoffice.search.placeholder')}
 	/>
-	<button>{$_('backoffice.searchSong.submit')}</button>
+	<button>{$_('backoffice.search.submit')}</button>
 </form>
 
 <style lang="scss">

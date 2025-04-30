@@ -20,40 +20,40 @@ export type ApelleUserRole = (typeof ApelleUserRole)[keyof typeof ApelleUserRole
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApelleUserRole = {
-    ADMIN: 'ADMIN',
-    USER: 'USER'
+	ADMIN: 'ADMIN',
+	USER: 'USER'
 } as const;
 
 /**
  * The song currently being played
  */
 export interface CurrentSongQueryDto {
-    /** Unique id of the song */
-    id: Uuid;
-    /** Name of the song */
-    name: string;
-    /** Duration of the song */
-    duration: Duration;
-    /** Source of the song */
-    kind: SongKind;
-    /** Eventual public url of the song */
-    url?: string;
-    /** Available thumbnails for the song */
-    thumbnails?: ThumbnailQueryDto[];
-    /** If the song is currently stopped */
-    stopped: boolean;
-    /** Moment at which the song should have started to reach the current position */
-    starts_at: Instant;
-    /** Current position in the song */
-    position: Duration;
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
+	/** Duration of the song */
+	duration: Duration;
+	/** Source of the song */
+	kind: SongKind;
+	/** Eventual public url of the song */
+	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
+	/** If the song is currently stopped */
+	stopped: boolean;
+	/** Moment at which the song should have started to reach the current position */
+	starts_at: Instant;
+	/** Current position in the song */
+	position: Duration;
 }
 
 export type CurrentSongStateEventDtoKind =
-    (typeof CurrentSongStateEventDtoKind)[keyof typeof CurrentSongStateEventDtoKind];
+	(typeof CurrentSongStateEventDtoKind)[keyof typeof CurrentSongStateEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CurrentSongStateEventDtoKind = {
-    'current-song-state': 'current-song-state'
+	'current-song-state': 'current-song-state'
 } as const;
 
 /**
@@ -62,10 +62,10 @@ export const CurrentSongStateEventDtoKind = {
 After receiving this message a client must assume the current song is in the provided state.
  */
 export interface CurrentSongStateEventDto {
-    kind: CurrentSongStateEventDtoKind;
-    current?: CurrentSongQueryDto;
-    /** If present, contains the new value of the player state ID */
-    player_state_id?: Uuid;
+	kind: CurrentSongStateEventDtoKind;
+	current?: CurrentSongQueryDto;
+	/** If present, contains the new value of the player state ID */
+	player_state_id?: Uuid;
 }
 
 export type Duration = string;
@@ -76,8 +76,8 @@ export type Instant = string;
  * Paged response for Apelle API
  */
 export interface Page {
-    items?: unknown[];
-    page_info?: PageInfo;
+	items: unknown[];
+	page_info: PageInfo;
 }
 
 /**
@@ -100,47 +100,47 @@ export type PageInfoPrev = string | null;
  * Info about a page of responses
  */
 export interface PageInfo {
-    /**
-     * Number of items in the search, if available
-     * @minimum 0
-     */
-    total_items?: PageInfoTotalItems;
-    /**
-     * Number of items in the page
-     * @minimum 0
-     */
-    items: number;
-    /**
-     * Page number
-     * @minimum 0
-     */
-    number: number;
-    /** Next page token */
-    next?: PageInfoNext;
-    /** Previous page token */
-    prev?: PageInfoPrev;
+	/**
+	 * Number of items in the search, if available
+	 * @minimum 0
+	 */
+	total_items?: PageInfoTotalItems;
+	/**
+	 * Number of items in the page
+	 * @minimum 0
+	 */
+	items: number;
+	/**
+	 * Page number
+	 * @minimum 0
+	 */
+	number: number;
+	/** Next page token */
+	next?: PageInfoNext;
+	/** Previous page token */
+	prev?: PageInfoPrev;
 }
 
 /**
  * Paged response for Apelle API
  */
 export interface PageSearchedSongQueryDto {
-    items: SearchedSongQueryDto[];
-    page_info: PageInfo;
+	items: SearchedSongQueryDto[];
+	page_info: PageInfo;
 }
 
 export interface Permissions {
-    queue: QueuePermissions;
-    queueUsers: QueueUsersPermissions;
-    delete: boolean;
+	queue: QueuePermissions;
+	queueUsers: QueueUsersPermissions;
+	delete: boolean;
 }
 
 export type QueueDeleteEventDtoKind =
-    (typeof QueueDeleteEventDtoKind)[keyof typeof QueueDeleteEventDtoKind];
+	(typeof QueueDeleteEventDtoKind)[keyof typeof QueueDeleteEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueueDeleteEventDtoKind = {
-    'queue-delete': 'queue-delete'
+	'queue-delete': 'queue-delete'
 } as const;
 
 /**
@@ -149,7 +149,7 @@ export const QueueDeleteEventDtoKind = {
 This message also signal the closure of the event stream.
  */
 export interface QueueDeleteEventDto {
-    kind: QueueDeleteEventDtoKind;
+	kind: QueueDeleteEventDtoKind;
 }
 
 /**
@@ -158,48 +158,48 @@ export interface QueueDeleteEventDto {
 The `kind` property discriminates between the different messages.
  */
 export type QueueEventDto =
-    | QueueStateEventDto
-    | QueueDeleteEventDto
-    | CurrentSongStateEventDto
-    | QueuedSongsStateEventDto
-    | QueuedSongDeleteEventDto;
+	| QueueStateEventDto
+	| QueueDeleteEventDto
+	| CurrentSongStateEventDto
+	| QueuedSongsStateEventDto
+	| QueuedSongDeleteEventDto;
 
 export interface QueuePermissions {
-    start: boolean;
-    stop: boolean;
-    next: boolean;
-    like: boolean;
-    enqueue: boolean;
-    remove: boolean;
-    ban: boolean;
+	start: boolean;
+	stop: boolean;
+	next: boolean;
+	like: boolean;
+	enqueue: boolean;
+	remove: boolean;
+	ban: boolean;
 }
 
 /**
  * A queue of songs
  */
 export interface QueueQueryDto {
-    /** Unique ID of the queue */
-    id: Uuid;
-    /** Unique code of the queue */
-    code: string;
-    /** The current playing song, if any */
-    current?: CurrentSongQueryDto;
-    /** The songs in the queue */
-    queue: QueuedSongShortQueryDto[];
-    /** Id of the current state of the player
+	/** Unique ID of the queue */
+	id: Uuid;
+	/** Unique code of the queue */
+	code: string;
+	/** The current playing song, if any */
+	current?: CurrentSongQueryDto;
+	/** The songs in the queue */
+	queue: QueuedSongShortQueryDto[];
+	/** Id of the current state of the player
 
 This is an opaque id that is regenerated at each modification of the playing
 song. Requests can be conditional on the state they refer to, so they are
 refused in case of a mismatch. */
-    player_state_id: Uuid;
+	player_state_id: Uuid;
 }
 
 export type QueueStateEventDtoKind =
-    (typeof QueueStateEventDtoKind)[keyof typeof QueueStateEventDtoKind];
+	(typeof QueueStateEventDtoKind)[keyof typeof QueueStateEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueueStateEventDtoKind = {
-    'queue-state': 'queue-state'
+	'queue-state': 'queue-state'
 } as const;
 
 /**
@@ -208,39 +208,39 @@ export const QueueStateEventDtoKind = {
 After receiving this message a client must assume the queue is in the provided state.
  */
 export interface QueueStateEventDto {
-    kind: QueueStateEventDtoKind;
-    queue: QueueQueryDto;
+	kind: QueueStateEventDtoKind;
+	queue: QueueQueryDto;
 }
 
 /**
  * Data about a user of a queue
  */
 export interface QueueUserQueryDto {
-    /** Unique ID of the user */
-    id: Uuid;
-    /** Unique username of the user */
-    name: string;
-    /** Comma separated list of roles the user has */
-    roles: ApelleUserRole[];
-    /** Role of the user in the queue */
-    queue_role: string;
-    /** Number of likes given in the queue */
-    likes: number;
-    /** Maximum number of likes that can be given */
-    max_likes: number;
+	/** Unique ID of the user */
+	id: Uuid;
+	/** Unique username of the user */
+	name: string;
+	/** Comma separated list of roles the user has */
+	roles: ApelleUserRole[];
+	/** Role of the user in the queue */
+	queue_role: string;
+	/** Number of likes given in the queue */
+	likes: number;
+	/** Maximum number of likes that can be given */
+	max_likes: number;
 }
 
 export interface QueueUserRole {
-    name: string;
-    maxLikes: number;
-    permissions: Permissions;
+	name: string;
+	maxLikes: number;
+	permissions: Permissions;
 }
 
 export interface QueueUserRolesConfig {
-    default: string;
-    creator: string;
-    banned: string;
-    roles: string[];
+	default: string;
+	creator: string;
+	banned: string;
+	roles: string[];
 }
 
 export type QueueUsersPermissionsGrantRoles = string[] | null;
@@ -248,18 +248,18 @@ export type QueueUsersPermissionsGrantRoles = string[] | null;
 export type QueueUsersPermissionsRemoveRoles = string[] | null;
 
 export interface QueueUsersPermissions {
-    grantRoles: QueueUsersPermissionsGrantRoles;
-    removeRoles: QueueUsersPermissionsRemoveRoles;
-    remove: boolean;
-    ban: boolean;
+	grantRoles: QueueUsersPermissionsGrantRoles;
+	removeRoles: QueueUsersPermissionsRemoveRoles;
+	remove: boolean;
+	ban: boolean;
 }
 
 export type QueuedSongDeleteEventDtoKind =
-    (typeof QueuedSongDeleteEventDtoKind)[keyof typeof QueuedSongDeleteEventDtoKind];
+	(typeof QueuedSongDeleteEventDtoKind)[keyof typeof QueuedSongDeleteEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueuedSongDeleteEventDtoKind = {
-    'queued-song-delete': 'queued-song-delete'
+	'queued-song-delete': 'queued-song-delete'
 } as const;
 
 /**
@@ -268,57 +268,57 @@ export const QueuedSongDeleteEventDtoKind = {
 Nothing else is changed. The song should be removed mantaining the order of the others.
  */
 export interface QueuedSongDeleteEventDto {
-    kind: QueuedSongDeleteEventDtoKind;
-    /** The song to delete */
-    deleted_id: Uuid;
+	kind: QueuedSongDeleteEventDtoKind;
+	/** The song to delete */
+	deleted_id: Uuid;
 }
 
 /**
  * Full description of a song inside a queue
  */
 export interface QueuedSongQueryDto {
-    /** Unique id of the song */
-    id: Uuid;
-    /** Name of the song */
-    name: string;
-    /** Duration of the song */
-    duration: Duration;
-    /** Source of the song */
-    kind: SongKind;
-    /** Eventual public url of the song */
-    url?: string;
-    /** Available thumbnails for the song */
-    thumbnails?: ThumbnailQueryDto[];
-    /** The moment this song was added to the queue */
-    queued_at: Instant;
-    /** The number of likes this song received */
-    likes: number;
-    /** The number of likes this song received by this user */
-    user_likes: number;
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
+	/** Duration of the song */
+	duration: Duration;
+	/** Source of the song */
+	kind: SongKind;
+	/** Eventual public url of the song */
+	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
+	/** The moment this song was added to the queue */
+	queued_at: Instant;
+	/** The number of likes this song received */
+	likes: number;
+	/** The number of likes this song received by this user */
+	user_likes: number;
 }
 
 /**
  * A song inside a queue
  */
 export interface QueuedSongShortQueryDto {
-    /** Unique id of the song */
-    id: Uuid;
-    /** Name of the song */
-    name: string;
-    /** The moment this song was added to the queue */
-    queued_at: Instant;
-    /** The number of likes this song received */
-    likes: number;
-    /** The number of likes this song received by this user */
-    user_likes: number;
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
+	/** The moment this song was added to the queue */
+	queued_at: Instant;
+	/** The number of likes this song received */
+	likes: number;
+	/** The number of likes this song received by this user */
+	user_likes: number;
 }
 
 export type QueuedSongsStateEventDtoKind =
-    (typeof QueuedSongsStateEventDtoKind)[keyof typeof QueuedSongsStateEventDtoKind];
+	(typeof QueuedSongsStateEventDtoKind)[keyof typeof QueuedSongsStateEventDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueuedSongsStateEventDtoKind = {
-    'queued-songs-state': 'queued-songs-state'
+	'queued-songs-state': 'queued-songs-state'
 } as const;
 
 /**
@@ -327,23 +327,23 @@ export const QueuedSongsStateEventDtoKind = {
 After receiving this message a client must assume the queued songs are in the provided state.
  */
 export interface QueuedSongsStateEventDto {
-    kind: QueuedSongsStateEventDtoKind;
-    /** The songs in the queue */
-    queue: QueuedSongShortQueryDto[];
+	kind: QueuedSongsStateEventDtoKind;
+	/** The songs in the queue */
+	queue: QueuedSongShortQueryDto[];
 }
 
 /**
  * A song searched from a probider
  */
 export interface SearchedSongQueryDto {
-    /** Name of the song */
-    name: string;
-    /** Data to send to the `/enqueue` endpoint to add this song */
-    enqueue_data: SongAddDto;
-    /** Eventual public url of the song */
-    url?: string;
-    /** Available thumbnails for the song */
-    thumbnails?: ThumbnailQueryDto[];
+	/** Name of the song */
+	name: string;
+	/** Data to send to the `/enqueue` endpoint to add this song */
+	enqueue_data: SongAddDto;
+	/** Eventual public url of the song */
+	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
 }
 
 /**
@@ -355,47 +355,47 @@ export type SongKind = (typeof SongKind)[keyof typeof SongKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SongKind = {
-    Youtube: 'Youtube'
+	Youtube: 'Youtube'
 } as const;
 
 /**
  * A song
  */
 export interface SongQueryDto {
-    /** Unique id of the song */
-    id: Uuid;
-    /** Name of the song */
-    name: string;
-    /** Duration of the song */
-    duration: Duration;
-    /** Source of the song */
-    kind: SongKind;
-    /** Eventual public url of the song */
-    url?: string;
-    /** Available thumbnails for the song */
-    thumbnails?: ThumbnailQueryDto[];
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
+	/** Duration of the song */
+	duration: Duration;
+	/** Source of the song */
+	kind: SongKind;
+	/** Eventual public url of the song */
+	url?: string;
+	/** Available thumbnails for the song */
+	thumbnails?: ThumbnailQueryDto[];
 }
 
 /**
  * Basic data about a song
  */
 export interface SongShortQueryDto {
-    /** Unique id of the song */
-    id: Uuid;
-    /** Name of the song */
-    name: string;
+	/** Unique id of the song */
+	id: Uuid;
+	/** Name of the song */
+	name: string;
 }
 
 /**
  * A thumbnail for a song
  */
 export interface ThumbnailQueryDto {
-    /** The thumbnail width */
-    width: number;
-    /** The thumbnail height */
-    height: number;
-    /** The public URL where the thumbnail can be found */
-    url: string;
+	/** The thumbnail width */
+	width: number;
+	/** The thumbnail height */
+	height: number;
+	/** The public URL where the thumbnail can be found */
+	url: string;
 }
 
 /**
@@ -407,68 +407,68 @@ export type Uuid = string;
  * User creation data
  */
 export interface UserCreateDto {
-    /** Unique username for the user */
-    name: string;
-    /** Password for the user */
-    password: string;
+	/** Unique username for the user */
+	name: string;
+	/** Password for the user */
+	password: string;
 }
 
 /**
  * Data about a single user
  */
 export interface UserQueryDto {
-    /** Unique ID of the user */
-    id: Uuid;
-    /** Unique username of the user */
-    name: string;
-    /** Comma separated list of roles the user has */
-    roles: ApelleUserRole[];
+	/** Unique ID of the user */
+	id: Uuid;
+	/** Unique username of the user */
+	name: string;
+	/** Comma separated list of roles the user has */
+	roles: ApelleUserRole[];
 }
 
 export type YoutubeSongAddDtoKind =
-    (typeof YoutubeSongAddDtoKind)[keyof typeof YoutubeSongAddDtoKind];
+	(typeof YoutubeSongAddDtoKind)[keyof typeof YoutubeSongAddDtoKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const YoutubeSongAddDtoKind = {
-    Youtube: 'Youtube'
+	Youtube: 'Youtube'
 } as const;
 
 /**
  * A song that comes from youtube
  */
 export interface YoutubeSongAddDto {
-    kind: YoutubeSongAddDtoKind;
-    /** The video ID */
-    video_id: string;
+	kind: YoutubeSongAddDtoKind;
+	/** The video ID */
+	video_id: string;
 }
 
 export type PostApiV1QueuesCQueueCodeQueueSongIdLikesParams = {
-    /**
-     * How many time to like the song. If negative, nothing will happen.
-     */
-    count?: number;
+	/**
+	 * How many time to like the song. If negative, nothing will happen.
+	 */
+	count?: number;
 };
 
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
-    /**
-     * How many time to like the song. If negative, nothing will happen.
-     */
-    count?: number;
+	/**
+	 * How many time to like the song. If negative, nothing will happen.
+	 */
+	count?: number;
 };
 
 export type GetApiV1SearchParams = {
-    /**
-     * Page token. Must be obtained from a previous call to `/search`
-     */
-    page?: string;
-    /**
-     * Size of the requested page
-     */
-    page_size?: number;
-    /**
-     * Searched song query
-     */
-    q: string;
+	/**
+	 * Page token. Must be obtained from a previous call to `/search`
+	 */
+	page?: string;
+	/**
+	 * Size of the requested page
+	 */
+	page_size?: number;
+	/**
+	 * Searched song query
+	 */
+	q: string;
 };
 
 /**
@@ -476,9 +476,9 @@ export type GetApiV1SearchParams = {
  * @summary Get the list of roles and the default ones
  */
 export const getApiV1ConfigsQueueUserRoles = <TData = AxiosResponse<QueueUserRolesConfig>>(
-    options?: AxiosRequestConfig
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/configs/queue-user/roles`, options);
+	return axios.get(`/api/v1/configs/queue-user/roles`, options);
 };
 
 /**
@@ -486,10 +486,10 @@ export const getApiV1ConfigsQueueUserRoles = <TData = AxiosResponse<QueueUserRol
  * @summary Get the configuration for a role
  */
 export const getApiV1ConfigsQueueUserRolesRoleName = <TData = AxiosResponse<QueueUserRole>>(
-    roleName: string,
-    options?: AxiosRequestConfig
+	roleName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/configs/queue-user/roles/${roleName}`, options);
+	return axios.get(`/api/v1/configs/queue-user/roles/${roleName}`, options);
 };
 
 /**
@@ -497,9 +497,9 @@ export const getApiV1ConfigsQueueUserRolesRoleName = <TData = AxiosResponse<Queu
  * @summary Create a new queue
  */
 export const postApiV1Queues = <TData = AxiosResponse<QueueQueryDto>>(
-    options?: AxiosRequestConfig
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues`, undefined, options);
+	return axios.post(`/api/v1/queues`, undefined, options);
 };
 
 /**
@@ -507,10 +507,10 @@ export const postApiV1Queues = <TData = AxiosResponse<QueueQueryDto>>(
  * @summary Get the queue state
  */
 export const getApiV1QueuesCQueueCode = <TData = AxiosResponse<QueueQueryDto>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}`, options);
 };
 
 /**
@@ -518,20 +518,20 @@ export const getApiV1QueuesCQueueCode = <TData = AxiosResponse<QueueQueryDto>>(
  * @summary Delete the queue
  */
 export const deleteApiV1QueuesCQueueCode = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/c/${queueCode}`, options);
+	return axios.delete(`/api/v1/queues/c/${queueCode}`, options);
 };
 
 /**
  * @summary Obtain a stream of events regarding this queue.
  */
 export const getApiV1QueuesCQueueCodeEvents = <TData = AxiosResponse<QueueEventDto[]>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}/events`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}/events`, options);
 };
 
 /**
@@ -540,10 +540,10 @@ The current one will be requeued as the last one, with no likes.
  * @summary Start playing the next song
  */
 export const postApiV1QueuesCQueueCodeNext = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/next`, undefined, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/next`, undefined, options);
 };
 
 /**
@@ -551,11 +551,11 @@ export const postApiV1QueuesCQueueCodeNext = <TData = AxiosResponse<void>>(
  * @summary Add a song to the queue
  */
 export const postApiV1QueuesCQueueCodeQueue = <TData = AxiosResponse<QueuedSongShortQueryDto>>(
-    queueCode: string,
-    songAddDto: SongAddDto,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	songAddDto: SongAddDto,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/queue`, songAddDto, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue`, songAddDto, options);
 };
 
 /**
@@ -563,11 +563,11 @@ export const postApiV1QueuesCQueueCodeQueue = <TData = AxiosResponse<QueuedSongS
  * @summary Get the queued song
  */
 export const getApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<QueuedSongQueryDto>>(
-    queueCode: string,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
 };
 
 /**
@@ -577,11 +577,11 @@ TODO: ban functionality.
  * @summary Remove this song from the queue
  */
 export const deleteApiV1QueuesCQueueCodeQueueSongId = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
+	return axios.delete(`/api/v1/queues/c/${queueCode}/queue/${songId}`, options);
 };
 
 /**
@@ -593,15 +593,15 @@ effectively removing all likes and moving them to the song.
  * @summary Add a like to the song
  */
 export const postApiV1QueuesCQueueCodeQueueSongIdLikes = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    songId: Uuid,
-    params?: PostApiV1QueuesCQueueCodeQueueSongIdLikesParams,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	songId: Uuid,
+	params?: PostApiV1QueuesCQueueCodeQueueSongIdLikesParams,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/likes`, undefined, {
-        ...options,
-        params: { ...params, ...options?.params }
-    });
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/likes`, undefined, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**
@@ -609,11 +609,11 @@ export const postApiV1QueuesCQueueCodeQueueSongIdLikes = <TData = AxiosResponse<
  * @summary Play this song
  */
 export const postApiV1QueuesCQueueCodeQueueSongIdPlay = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/play`, undefined, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue/${songId}/play`, undefined, options);
 };
 
 /**
@@ -621,10 +621,10 @@ export const postApiV1QueuesCQueueCodeQueueSongIdPlay = <TData = AxiosResponse<v
  * @summary Start playing
  */
 export const postApiV1QueuesCQueueCodeStart = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/start`, undefined, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/start`, undefined, options);
 };
 
 /**
@@ -632,10 +632,10 @@ export const postApiV1QueuesCQueueCodeStart = <TData = AxiosResponse<void>>(
  * @summary Stop playing
  */
 export const postApiV1QueuesCQueueCodeStop = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/c/${queueCode}/stop`, undefined, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/stop`, undefined, options);
 };
 
 /**
@@ -643,11 +643,11 @@ export const postApiV1QueuesCQueueCodeStop = <TData = AxiosResponse<void>>(
  * @summary The queue user data
  */
 export const getApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueCode: string,
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
 };
 
 /**
@@ -655,11 +655,11 @@ export const getApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<Queue
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/i/${userId}`, options);
 };
 
 /**
@@ -667,10 +667,10 @@ export const deleteApiV1QueuesCQueueCodeUsersIUserId = <TData = AxiosResponse<vo
  * @summary The queue user data
  */
 export const getApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}/users/me`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/me`, options);
 };
 
 /**
@@ -678,10 +678,10 @@ export const getApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<QueueUserQ
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/c/${queueCode}/users/me`, options);
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/me`, options);
 };
 
 /**
@@ -689,11 +689,11 @@ export const deleteApiV1QueuesCQueueCodeUsersMe = <TData = AxiosResponse<void>>(
  * @summary The queue user data
  */
 export const getApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueCode: string,
-    userName: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
+	return axios.get(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
 };
 
 /**
@@ -701,11 +701,11 @@ export const getApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<Que
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<void>>(
-    queueCode: string,
-    userName: string,
-    options?: AxiosRequestConfig
+	queueCode: string,
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
+	return axios.delete(`/api/v1/queues/c/${queueCode}/users/n/${userName}`, options);
 };
 
 /**
@@ -713,10 +713,10 @@ export const deleteApiV1QueuesCQueueCodeUsersNUserName = <TData = AxiosResponse<
  * @summary Get the queue state
  */
 export const getApiV1QueuesIQueueId = <TData = AxiosResponse<QueueQueryDto>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}`, options);
 };
 
 /**
@@ -724,20 +724,20 @@ export const getApiV1QueuesIQueueId = <TData = AxiosResponse<QueueQueryDto>>(
  * @summary Delete the queue
  */
 export const deleteApiV1QueuesIQueueId = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/i/${queueId}`, options);
+	return axios.delete(`/api/v1/queues/i/${queueId}`, options);
 };
 
 /**
  * @summary Obtain a stream of events regarding this queue.
  */
 export const getApiV1QueuesIQueueIdEvents = <TData = AxiosResponse<QueueEventDto[]>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}/events`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}/events`, options);
 };
 
 /**
@@ -746,10 +746,10 @@ The current one will be requeued as the last one, with no likes.
  * @summary Start playing the next song
  */
 export const postApiV1QueuesIQueueIdNext = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/next`, undefined, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/next`, undefined, options);
 };
 
 /**
@@ -757,11 +757,11 @@ export const postApiV1QueuesIQueueIdNext = <TData = AxiosResponse<void>>(
  * @summary Add a song to the queue
  */
 export const postApiV1QueuesIQueueIdQueue = <TData = AxiosResponse<QueuedSongShortQueryDto>>(
-    queueId: Uuid,
-    songAddDto: SongAddDto,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	songAddDto: SongAddDto,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/queue`, songAddDto, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/queue`, songAddDto, options);
 };
 
 /**
@@ -769,11 +769,11 @@ export const postApiV1QueuesIQueueIdQueue = <TData = AxiosResponse<QueuedSongSho
  * @summary Get the queued song
  */
 export const getApiV1QueuesIQueueIdQueueSongId = <TData = AxiosResponse<QueuedSongQueryDto>>(
-    queueId: Uuid,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
 };
 
 /**
@@ -783,11 +783,11 @@ TODO: ban functionality.
  * @summary Remove this song from the queue
  */
 export const deleteApiV1QueuesIQueueIdQueueSongId = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
+	return axios.delete(`/api/v1/queues/i/${queueId}/queue/${songId}`, options);
 };
 
 /**
@@ -799,15 +799,15 @@ effectively removing all likes and moving them to the song.
  * @summary Add a like to the song
  */
 export const postApiV1QueuesIQueueIdQueueSongIdLikes = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    songId: Uuid,
-    params?: PostApiV1QueuesIQueueIdQueueSongIdLikesParams,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	songId: Uuid,
+	params?: PostApiV1QueuesIQueueIdQueueSongIdLikesParams,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/queue/${songId}/likes`, undefined, {
-        ...options,
-        params: { ...params, ...options?.params }
-    });
+	return axios.post(`/api/v1/queues/i/${queueId}/queue/${songId}/likes`, undefined, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**
@@ -815,11 +815,11 @@ export const postApiV1QueuesIQueueIdQueueSongIdLikes = <TData = AxiosResponse<vo
  * @summary Play this song
  */
 export const postApiV1QueuesIQueueIdQueueSongIdPlay = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    songId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	songId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/queue/${songId}/play`, undefined, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/queue/${songId}/play`, undefined, options);
 };
 
 /**
@@ -827,10 +827,10 @@ export const postApiV1QueuesIQueueIdQueueSongIdPlay = <TData = AxiosResponse<voi
  * @summary Start playing
  */
 export const postApiV1QueuesIQueueIdStart = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/start`, undefined, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/start`, undefined, options);
 };
 
 /**
@@ -838,10 +838,10 @@ export const postApiV1QueuesIQueueIdStart = <TData = AxiosResponse<void>>(
  * @summary Stop playing
  */
 export const postApiV1QueuesIQueueIdStop = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/queues/i/${queueId}/stop`, undefined, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/stop`, undefined, options);
 };
 
 /**
@@ -849,11 +849,11 @@ export const postApiV1QueuesIQueueIdStop = <TData = AxiosResponse<void>>(
  * @summary The queue user data
  */
 export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueId: Uuid,
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}/users/i/${userId}`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}/users/i/${userId}`, options);
 };
 
 /**
@@ -861,11 +861,11 @@ export const getApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<QueueUs
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/i/${queueId}/users/i/${userId}`, options);
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/i/${userId}`, options);
 };
 
 /**
@@ -873,10 +873,10 @@ export const deleteApiV1QueuesIQueueIdUsersIUserId = <TData = AxiosResponse<void
  * @summary The queue user data
  */
 export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}/users/me`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}/users/me`, options);
 };
 
 /**
@@ -884,10 +884,10 @@ export const getApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<QueueUserQue
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/i/${queueId}/users/me`, options);
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/me`, options);
 };
 
 /**
@@ -895,11 +895,11 @@ export const deleteApiV1QueuesIQueueIdUsersMe = <TData = AxiosResponse<void>>(
  * @summary The queue user data
  */
 export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<QueueUserQueryDto>>(
-    queueId: Uuid,
-    userName: string,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
+	return axios.get(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
 };
 
 /**
@@ -907,11 +907,11 @@ export const getApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<Queue
  * @summary Remove the user from the queue
  */
 export const deleteApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<void>>(
-    queueId: Uuid,
-    userName: string,
-    options?: AxiosRequestConfig
+	queueId: Uuid,
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
+	return axios.delete(`/api/v1/queues/i/${queueId}/users/n/${userName}`, options);
 };
 
 /**
@@ -922,13 +922,13 @@ endpoint to add the corresponding song.
  * @summary Search a song
  */
 export const getApiV1Search = <TData = AxiosResponse<PageSearchedSongQueryDto>>(
-    params: GetApiV1SearchParams,
-    options?: AxiosRequestConfig
+	params: GetApiV1SearchParams,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/search`, {
-        ...options,
-        params: { ...params, ...options?.params }
-    });
+	return axios.get(`/api/v1/search`, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**
@@ -936,10 +936,10 @@ export const getApiV1Search = <TData = AxiosResponse<PageSearchedSongQueryDto>>(
  * @summary Create a user
  */
 export const postApiV1Users = <TData = AxiosResponse<UserQueryDto>>(
-    userCreateDto: UserCreateDto,
-    options?: AxiosRequestConfig
+	userCreateDto: UserCreateDto,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.post(`/api/v1/users`, userCreateDto, options);
+	return axios.post(`/api/v1/users`, userCreateDto, options);
 };
 
 /**
@@ -947,10 +947,10 @@ export const postApiV1Users = <TData = AxiosResponse<UserQueryDto>>(
  * @summary The user data
  */
 export const getApiV1UsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/users/i/${userId}`, options);
+	return axios.get(`/api/v1/users/i/${userId}`, options);
 };
 
 /**
@@ -958,10 +958,10 @@ export const getApiV1UsersIUserId = <TData = AxiosResponse<UserQueryDto>>(
  * @summary Delete user
  */
 export const deleteApiV1UsersIUserId = <TData = AxiosResponse<void>>(
-    userId: Uuid,
-    options?: AxiosRequestConfig
+	userId: Uuid,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/users/i/${userId}`, options);
+	return axios.delete(`/api/v1/users/i/${userId}`, options);
 };
 
 /**
@@ -969,9 +969,9 @@ export const deleteApiV1UsersIUserId = <TData = AxiosResponse<void>>(
  * @summary The user data
  */
 export const getApiV1UsersMe = <TData = AxiosResponse<UserQueryDto>>(
-    options?: AxiosRequestConfig
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/users/me`, options);
+	return axios.get(`/api/v1/users/me`, options);
 };
 
 /**
@@ -979,9 +979,9 @@ export const getApiV1UsersMe = <TData = AxiosResponse<UserQueryDto>>(
  * @summary Delete user
  */
 export const deleteApiV1UsersMe = <TData = AxiosResponse<void>>(
-    options?: AxiosRequestConfig
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/users/me`, options);
+	return axios.delete(`/api/v1/users/me`, options);
 };
 
 /**
@@ -989,10 +989,10 @@ export const deleteApiV1UsersMe = <TData = AxiosResponse<void>>(
  * @summary The user data
  */
 export const getApiV1UsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
-    userName: string,
-    options?: AxiosRequestConfig
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/users/n/${userName}`, options);
+	return axios.get(`/api/v1/users/n/${userName}`, options);
 };
 
 /**
@@ -1000,10 +1000,10 @@ export const getApiV1UsersNUserName = <TData = AxiosResponse<UserQueryDto>>(
  * @summary Delete user
  */
 export const deleteApiV1UsersNUserName = <TData = AxiosResponse<void>>(
-    userName: string,
-    options?: AxiosRequestConfig
+	userName: string,
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.delete(`/api/v1/users/n/${userName}`, options);
+	return axios.delete(`/api/v1/users/n/${userName}`, options);
 };
 
 /**
@@ -1011,9 +1011,9 @@ export const deleteApiV1UsersNUserName = <TData = AxiosResponse<void>>(
  * @summary Version of the server
  */
 export const getApiV1Version = <TData = AxiosResponse<string>>(
-    options?: AxiosRequestConfig
+	options?: AxiosRequestConfig
 ): Promise<TData> => {
-    return axios.get(`/api/v1/version`, options);
+	return axios.get(`/api/v1/version`, options);
 };
 
 export type GetApiV1ConfigsQueueUserRolesResult = AxiosResponse<QueueUserRolesConfig>;
