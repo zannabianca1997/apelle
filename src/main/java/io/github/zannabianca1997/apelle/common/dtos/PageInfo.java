@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -18,6 +19,7 @@ public class PageInfo {
     @Schema(description = "Number of items in the search, if available", nullable = true, required = false)
     @JsonProperty(value = "total_items")
     @PositiveOrZero
+    @NonNull
     public Integer totalItems;
     @Schema(description = "Number of items in the page", required = true)
     @NotNull
