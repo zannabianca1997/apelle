@@ -56,7 +56,13 @@
 		"search": {
 			"label": "Now I want to listen to...",
 			"placeholder": " ",
-			"submit": "Search"
+			"submit": "Search",
+            "add": "Add",
+            "dismiss": "Exit",
+            "pageOnTotal":"{number} of {total}",
+            "unknowPageNumber": "many",
+            "prev": "Back",
+            "next": "More"
 		},
 		"queue": {
 			"title": "Queue",

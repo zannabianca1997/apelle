@@ -4,7 +4,7 @@
 		type QueueEventDto,
 		type SongAddDto
 	} from '$lib/apis/apelle';
-	import type { PageProps } from './$types';
+	import type { PageProps, Snapshot } from './$types';
 	import type { QueueUserQueryWithRoleDto } from '$lib/models/QueueUserQueryWithRoleDto';
 	import { _ } from 'svelte-i18n';
 	import Current from '$lib/components/backoffice/players/Current.svelte';
@@ -18,6 +18,7 @@
 	import { config } from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
+	import TextInput from '$lib/components/forms/TextInput.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -66,6 +67,17 @@
 	}
 
 	let searchDialog: SearchDialog;
+
+	export const snapshot: Snapshot<{
+		dialog: typeof searchDialog.snapshot extends Snapshot<infer T> ? T : never;
+	}> = {
+		capture: () => ({
+			dialog: searchDialog.snapshot.capture()
+		}),
+		restore: (value) => {
+			searchDialog.snapshot.restore(value.dialog);
+		}
+	};
 </script>
 
 <main>
