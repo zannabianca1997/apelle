@@ -11,6 +11,10 @@
 	import IconRemove from '~icons/mdi/delete-empty-outline';
 	import IconBan from '~icons/mdi/cancel';
 	import IconPlay from '~icons/mdi/play';
+	import IconVotedOnce from '~icons/mdi/chevron-up';
+	import IconVotedTwice from '~icons/mdi/chevron-double-up';
+	import IconVotedMany from '~icons/mdi/chevron-triple-up';
+	import IconMoveUp from '~icons/mdi/arrow-up';
 	import Thumbnail from './Thumbnail.svelte';
 
 	const {
@@ -22,8 +26,6 @@
 		song: QueuedSong;
 		permissions: QueuePermissions;
 	} = $props();
-
-	const songId = song.id;
 
 	async function likeSong(song: QueuedSong) {
 		await postLike(queue, song.id);
@@ -78,13 +80,24 @@
 		</ul>
 	</td>
 	<td class="likes">
-		<button onclick={() => likeSong(song)}>{$_('backoffice.queue.like')}</button>
-
+		<button onclick={() => likeSong(song)}>
+			{$_('backoffice.queue.like')}
+			<IconMoveUp height={24} width={24} />
+		</button>
 		<div class="byUser">
 			{#if song.user_likes && song.user_likes > 0}
-				{$_('backoffice.queue.liked.pre', { default: '' })}
-				<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
-				{$_('backoffice.queue.liked.post', { default: '' })}
+				<span>
+					{$_('backoffice.queue.liked.pre', { default: '' })}
+					<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
+					{$_('backoffice.queue.liked.post', { default: '' })}
+				</span>
+				{#if song.user_likes === 1}
+					<IconVotedOnce height={24} width={24} color="#379b46" />
+				{:else if song.user_likes === 2}
+					<IconVotedTwice height={24} width={24} color="#379b46" />
+				{:else}
+					<IconVotedMany height={24} width={24} color="#379b46" />
+				{/if}
 			{/if}
 		</div>
 	</td>
@@ -138,8 +151,7 @@
 				white-space: nowrap;
 				text-overflow: ellipsis;
 			}
-			ul,
-			ol {
+			ul {
 				margin: 0;
 				padding: 0;
 
@@ -188,6 +200,11 @@
 				background: #379b46;
 
 				cursor: pointer;
+
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 10px;
 			}
 
 			.byUser {
@@ -195,7 +212,9 @@
 
 				padding-top: 12px;
 
-				text-align: right;
+				display: flex;
+				align-items: center;
+				justify-content: end;
 
 				font-weight: 300;
 				font-size: 16px;

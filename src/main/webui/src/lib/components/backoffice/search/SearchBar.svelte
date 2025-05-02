@@ -1,8 +1,10 @@
 <script lang="ts">
 	import TextInput from '$lib/components/forms/TextInput.svelte';
 	import { _ } from 'svelte-i18n';
+	import IconSearch from '~icons/mdi/magnify';
 
 	let {
+		placeholder,
 		onsubmit: onsubmitInner
 	}: {
 		/**
@@ -11,6 +13,7 @@
 		 * @param e The search query
 		 */
 		onsubmit?: (e: string) => Promise<boolean>;
+		placeholder?: string;
 	} = $props();
 
 	let value: string | null = $state(null);
@@ -29,12 +32,11 @@
 </script>
 
 <form {onsubmit}>
-	<TextInput
-		bind:value
-		label={$_('backoffice.search.label')}
-		placeholder={$_('backoffice.search.placeholder')}
-	/>
-	<button>{$_('backoffice.search.submit')}</button>
+	<TextInput bind:value label={$_('backoffice.search.label')} {placeholder} />
+	<button>
+		{$_('backoffice.search.submit')}
+		<IconSearch width={24} height={24} />
+	</button>
 </form>
 
 <style lang="scss">
@@ -68,6 +70,11 @@
 
 			color: white;
 			background: #911616;
+
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 10px;
 
 			cursor: pointer;
 		}

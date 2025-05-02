@@ -11,6 +11,6 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"typeRoots": ["node_modules/@types"],
-		"types": ["unplugin-icons/types/svelte", "youtube"]
+		"types": ["youtube"]
 	}
 }
