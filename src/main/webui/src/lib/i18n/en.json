@@ -71,9 +71,12 @@
 				"pre": "Liked",
 				"unit": "times"
 			}
+        
 		},
 		"song": {
-			"durationFormat": "HH:mm:ss"
+			"durationFormat": "HH:mm:ss",
+            "duration": "Duration",
+            "likes": "Likes"
 		}
 	}
 }

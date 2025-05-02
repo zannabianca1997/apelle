@@ -64,22 +64,29 @@
 	</td>
 	<td class="card">
 		<h2>{song.name}</h2>
-		<span>
+		<ul>
 			{#if song.duration}
-				Duration: {song.duration.format($_('backoffice.song.durationFormat'))}
+				<li>
+					<span class="label">{$_('backoffice.song.duration')}</span>
+					<span class="value">{song.duration.format($_('backoffice.song.durationFormat'))}</span>
+				</li>
 			{/if}
-			Likes: {song.likes}
-		</span>
+			<li>
+				<span class="label">{$_('backoffice.song.likes')}</span>
+				<span class="value">{song.likes}</span>
+			</li>
+		</ul>
 	</td>
-	<td class="likeButton">
+	<td class="likes">
 		<button onclick={() => likeSong(song)}>{$_('backoffice.queue.like')}</button>
-	</td>
-	<td class="likesCount">
-		{#if song.user_likes && song.user_likes > 0}
-			{$_('backoffice.queue.liked.pre', { default: '' })}
-			<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
-			{$_('backoffice.queue.liked.post', { default: '' })}
-		{/if}
+
+		<div class="byUser">
+			{#if song.user_likes && song.user_likes > 0}
+				{$_('backoffice.queue.liked.pre', { default: '' })}
+				<em>{song.user_likes} {$_('backoffice.queue.liked.unit')}</em>
+				{$_('backoffice.queue.liked.post', { default: '' })}
+			{/if}
+		</div>
 	</td>
 </tr>
 
@@ -131,15 +138,35 @@
 				white-space: nowrap;
 				text-overflow: ellipsis;
 			}
-			span {
+			ul,
+			ol {
+				margin: 0;
+				padding: 0;
+
+				list-style: none;
+
 				font-weight: 300;
 				font-size: 16px;
 				line-height: 150%;
 				letter-spacing: 1%;
+
+				display: flex;
+				flex-direction: row;
+				gap: 10px;
+
+				li {
+					.label {
+						color: #ffffff88;
+
+						&::after {
+							content: ':';
+						}
+					}
+				}
 			}
 		}
 
-		td.likeButton {
+		td.likes {
 			width: 175px;
 
 			button {
@@ -162,20 +189,23 @@
 
 				cursor: pointer;
 			}
-		}
 
-		td.likesCount {
-			text-align: center;
-			width: 145px;
+			.byUser {
+				height: 24px;
 
-			font-weight: 300;
-			font-size: 16px;
-			line-height: 150%;
-			letter-spacing: 1%;
+				padding-top: 12px;
 
-			em {
-				color: #379b46;
-				font-style: normal;
+				text-align: right;
+
+				font-weight: 300;
+				font-size: 16px;
+				line-height: 150%;
+				letter-spacing: 1%;
+
+				em {
+					color: #379b46;
+					font-style: normal;
+				}
 			}
 		}
 	}
