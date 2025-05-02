@@ -7,10 +7,11 @@
 		postApiV1QueuesIQueueIdQueueSongIdPlay as playQueuedSong
 	} from '$lib/apis/apelle';
 	import type { QueuedSong } from '$lib/models/Queue.svelte';
-	import { _ } from 'svelte-i18n';
+	import { _, t } from 'svelte-i18n';
 	import IconRemove from '~icons/mdi/delete-empty-outline';
 	import IconBan from '~icons/mdi/cancel';
 	import IconPlay from '~icons/mdi/play';
+	import Thumbnail from './Thumbnail.svelte';
 
 	const {
 		queue,
@@ -27,17 +28,6 @@
 	async function likeSong(song: QueuedSong) {
 		await postLike(queue, song.id);
 	}
-
-	let thumbHeight: number = $state(176);
-	let thumbWidth: number = $state(99);
-
-	let choosedThumb = $derived.by(() => {
-		const thumbScore = (thumb: ThumbnailQueryDto) => {
-			return -((thumb.height - thumbHeight) ** 2 + (thumb.width - thumbWidth) ** 2);
-		};
-
-		return song.thumbnails?.reduce((t1, t2) => (thumbScore(t1) > thumbScore(t2) ? t1 : t2)).url;
-	});
 
 	async function remove() {
 		await deleteQueuedSong(queue, song.id);
@@ -67,9 +57,9 @@
 			</div></td
 		>
 	{/if}
-	<td class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
-		{#if choosedThumb}
-			<img alt="" src={choosedThumb} />
+	<td class="thumb">
+		{#if song.thumbnails}
+			<Thumbnail thumbnails={song.thumbnails} />
 		{/if}
 	</td>
 	<td class="card">
@@ -128,12 +118,6 @@
 			background-color: transparent;
 
 			padding: 0;
-			img {
-				width: 100%;
-				height: 100%;
-
-				display: block;
-			}
 		}
 
 		td.card {

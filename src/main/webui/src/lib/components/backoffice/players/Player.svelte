@@ -3,22 +3,12 @@
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import type { ThumbnailQueryDto } from '$lib/apis/apelle';
 	import YoutubePlayer from './sources/YoutubePlayer.svelte';
+	import Thumbnail from '../Thumbnail.svelte';
 
 	const {
 		current = $bindable(),
 		isPlayer = $bindable(false)
 	}: { current: CurrentSong; isPlayer: boolean } = $props();
-
-	let thumbHeight: number = $state(200);
-	let thumbWidth: number = $state(357);
-
-	let choosedThumb = $derived.by(() => {
-		const thumbScore = (thumb: ThumbnailQueryDto) => {
-			return -((thumb.height - thumbHeight) ** 2 + (thumb.width - thumbWidth) ** 2);
-		};
-
-		return current.thumbnails?.reduce((t1, t2) => (thumbScore(t1) > thumbScore(t2) ? t1 : t2)).url;
-	});
 </script>
 
 {#if isPlayer}
@@ -30,9 +20,9 @@
 		{/if}
 	</div>
 {:else}
-	<div class="thumb" bind:offsetHeight={thumbHeight} bind:offsetWidth={thumbWidth}>
-		{#if choosedThumb}
-			<img alt="" src={choosedThumb} />
+	<div class="thumb">
+		{#if current.thumbnails}
+			<Thumbnail thumbnails={current.thumbnails} />
 		{/if}
 	</div>
 {/if}
@@ -53,12 +43,6 @@
 
 	.thumb {
 		background-color: transparent;
-		img {
-			width: 100%;
-			height: 100%;
-
-			display: block;
-		}
 	}
 
 	.card {
