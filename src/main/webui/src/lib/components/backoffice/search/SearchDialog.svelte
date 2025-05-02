@@ -62,5 +62,11 @@
 
 		display: flex;
 		flex-direction: column;
+		gap: 39px;
+
+		border-radius: 8px;
+		background: #282828;
+
+		color: white;
 	}
 </style>

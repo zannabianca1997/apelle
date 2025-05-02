@@ -3,6 +3,7 @@
 	import type { Snapshot } from '@sveltejs/kit';
 	import SearchBar from './SearchBar.svelte';
 	import { _ } from 'svelte-i18n';
+	import Thumbnail from '../Thumbnail.svelte';
 
 	const {
 		onSongChosen: onSongChosenInner,
@@ -81,6 +82,11 @@
 			<tbody>
 				{#each songs.items as song}
 					<tr>
+						<td class="thumb">
+							{#if song.thumbnails}
+								<Thumbnail thumbnails={song.thumbnails} />
+							{/if}
+						</td>
 						<td>
 							{song.name}
 						</td>
@@ -130,6 +136,15 @@
 	.songList {
 		table {
 			width: 100%;
+		}
+
+		.thumb {
+			width: 176px;
+			height: 99px;
+
+			background-color: transparent;
+
+			padding: 0;
 		}
 	}
 
