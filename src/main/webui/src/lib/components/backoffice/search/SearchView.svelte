@@ -4,6 +4,10 @@
 	import SearchBar from './SearchBar.svelte';
 	import { _ } from 'svelte-i18n';
 	import Thumbnail from '../Thumbnail.svelte';
+	import IconAdd from '~icons/mdi/plus';
+	import IconExit from '~icons/mdi/close';
+	import IconNextPage from '~icons/mdi/chevron-right';
+	import IconPreviousPage from '~icons/mdi/chevron-left';
 
 	const {
 		onSongChosen: onSongChosenInner,
@@ -74,7 +78,7 @@
 </script>
 
 <section>
-	<SearchBar onsubmit={searchFor} />
+	<SearchBar onsubmit={searchFor} placeholder={query} />
 </section>
 <section class="songList">
 	{#if songs}
@@ -87,12 +91,13 @@
 								<Thumbnail thumbnails={song.thumbnails} />
 							{/if}
 						</td>
-						<td>
+						<td class="songCard">
 							{song.name}
 						</td>
-						<td>
+						<td class="addBtn">
 							<button onclick={() => onSongChosen?.(song.enqueue_data)}>
 								{$_('backoffice.search.add')}
+								<IconAdd height={24} width={24} />
 							</button>
 						</td>
 					</tr>
@@ -103,14 +108,22 @@
 </section>
 <nav>
 	{#if onDismiss}
-		<button onclick={onDismiss} class="dismiss">
-			{$_('backoffice.search.dismiss')}
+		<button
+			onclick={onDismiss}
+			class="dismiss iconOnly"
+			aria-label={$_('backoffice.search.dismiss')}
+		>
+			<IconExit height={24} width={24} />
 		</button>
 	{/if}
 	{#if songs}
 		{#if songs.page_info.prev}
-			<button onclick={() => goto(songs?.page_info.prev)}>
-				{$_('backoffice.search.prev')}
+			<button
+				onclick={() => goto(songs?.page_info.prev)}
+				aria-label={$_('backoffice.search.prev')}
+				class="iconOnly"
+			>
+				<IconPreviousPage height={24} width={24} />
 			</button>
 		{/if}
 		<span>
@@ -125,8 +138,12 @@
 			})}
 		</span>
 		{#if songs.page_info.next}
-			<button onclick={() => goto(songs?.page_info.next)}>
-				{$_('backoffice.search.next')}
+			<button
+				onclick={() => goto(songs?.page_info.next)}
+				aria-label={$_('backoffice.search.next')}
+				class="iconOnly"
+			>
+				<IconNextPage height={24} width={24} />
 			</button>
 		{/if}
 	{/if}
@@ -146,16 +163,64 @@
 
 			padding: 0;
 		}
+
+		.songCard {
+			padding-left: 15px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		.addBtn {
+			width: 175px;
+
+			button {
+				width: 100%;
+				height: 48px;
+				border-radius: 4px;
+				gap: 10px;
+				padding-top: 6px;
+				padding-right: 12px;
+				padding-bottom: 6px;
+				padding-left: 12px;
+
+				border: 0;
+
+				background: #3a3a3a;
+				color: white;
+
+				display: flex;
+				justify-content: center;
+				align-items: center;
+
+				cursor: pointer;
+			}
+		}
 	}
 
 	nav {
 		display: flex;
 		flex-direction: row;
+		align-items: center;
 
 		gap: 10px;
 
 		.dismiss {
 			margin-right: auto;
 		}
+	}
+
+	button.iconOnly {
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+
+		color: white;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		padding: 0;
 	}
 </style>

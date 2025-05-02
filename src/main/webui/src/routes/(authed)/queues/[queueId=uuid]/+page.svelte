@@ -91,7 +91,7 @@
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>
 		{#if user.queue_role.permissions.queue.enqueue}
-			<SearchBar onsubmit={openSearch} />
+			<SearchBar onsubmit={openSearch} placeholder="" />
 		{/if}
 	</section>
 	<section>
