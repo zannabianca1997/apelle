@@ -1,9 +1,6 @@
 package io.github.zannabianca1997.apelle.youtube.dtos;
 
-import java.net.URL;
 import java.time.Duration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Data;
