@@ -21,8 +21,6 @@ public class QueueUserService {
     QueueService queueService;
     @Inject
     UsersService usersService;
-    @Inject
-    QueueUserRolesService queueUserRolesService;
 
     /**
      * Get the queue user for the current user
@@ -75,7 +73,7 @@ public class QueueUserService {
             return QueueUser.builder()
                     .queue(queue)
                     .user(user)
-                    .role(queueUserRolesService.getDefaultRole())
+                    .role(queue.getConfig().getDefaultRole())
                     .likesFilled(true)
                     .build();
         }
@@ -84,7 +82,7 @@ public class QueueUserService {
 
     public void delete(QueueUser user) throws ActionNotPermittedException {
         QueueUser current = getCurrent(user.getQueue());
-        if (!current.getPermissions().queueUsers().remove()) {
+        if (!current.getPermissions().getQueueUsers().isRemove()) {
             throw new ActionNotPermittedException(current.getRole(), "remove user");
         }
         user.delete();

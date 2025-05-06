@@ -3,9 +3,7 @@ package io.github.zannabianca1997.apelle.queues.models;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.Type;
 
-import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig.Permissions;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
@@ -51,7 +49,6 @@ public class QueueUser extends PanacheEntityBase {
 
     @NonNull
     @Column(nullable = false)
-    @Type(QueueUserRole.Type.class)
     /// Role of the user in the queue
     private QueueUserRole role;
 
@@ -94,7 +91,7 @@ public class QueueUser extends PanacheEntityBase {
         return getRole().getMaxLikes();
     }
 
-    public Permissions getPermissions() {
+    public QueueUserRole.Permissions getPermissions() {
         return getRole().getPermissions();
     }
 }

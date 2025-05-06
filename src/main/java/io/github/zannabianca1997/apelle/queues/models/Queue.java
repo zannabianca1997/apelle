@@ -23,6 +23,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
@@ -107,6 +109,12 @@ public class Queue extends PanacheEntityBase {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
     /// The likes on this queue
     private Collection<Likes> likes;
+
+    @NonNull
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(nullable = false)
+    /// Configuration of the queue
+    private QueueConfig config;
 
     /**
      * Order of the queued songs

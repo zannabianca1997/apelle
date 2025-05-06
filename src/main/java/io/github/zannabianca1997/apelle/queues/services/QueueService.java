@@ -44,8 +44,6 @@ public class QueueService {
     @Inject
     UsersService usersService;
     @Inject
-    QueueUserRolesService queueUserRolesService;
-    @Inject
     QueueUserService queueUserService;
     @Inject
     QueueEventService queueEventService;
@@ -86,7 +84,7 @@ public class QueueService {
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(creator)
-                .role(queueUserRolesService.getCreatorRole())
+                .role(queue.getConfig().getCreatorRole())
                 .likesFilled(false)
                 .build());
 
@@ -153,7 +151,7 @@ public class QueueService {
      */
     public void start(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
-        if (!user.getPermissions().queue().start()) {
+        if (!user.getPermissions().getQueue().isStart()) {
             throw new ActionNotPermittedException(user.getRole(), "start playing");
         }
 
@@ -176,7 +174,7 @@ public class QueueService {
      */
     public void stop(Queue queue) throws ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
-        if (!user.getPermissions().queue().stop()) {
+        if (!user.getPermissions().getQueue().isStop()) {
             throw new ActionNotPermittedException(user.getRole(), "stop playing");
         }
 
@@ -201,7 +199,7 @@ public class QueueService {
      */
     public void next(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
-        if (!user.getPermissions().queue().next()) {
+        if (!user.getPermissions().getQueue().isNext()) {
             throw new ActionNotPermittedException(user.getRole(), "move to next song");
         }
 
@@ -222,7 +220,7 @@ public class QueueService {
         Queue queue = song.getQueue();
 
         QueueUser user = queueUserService.getCurrent(song.getQueue());
-        if (!user.getPermissions().queue().next()) {
+        if (!user.getPermissions().getQueue().isNext()) {
             throw new ActionNotPermittedException(user.getRole(), "move to song");
         }
 
@@ -245,7 +243,7 @@ public class QueueService {
      */
     public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueuedException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
-        if (!user.getPermissions().queue().enqueue()) {
+        if (!user.getPermissions().getQueue().isEnqueue()) {
             throw new ActionNotPermittedException(user.getRole(), "enqueue song");
         }
 
@@ -289,7 +287,7 @@ public class QueueService {
      * @throws ActionNotPermittedException
      */
     public void like(QueuedSong song, QueueUser user, short count) throws ActionNotPermittedException {
-        if (!user.getPermissions().queue().like()) {
+        if (!user.getPermissions().getQueue().isLike()) {
             throw new ActionNotPermittedException(user.getRole(), "like song");
         }
 
@@ -364,7 +362,7 @@ public class QueueService {
     }
 
     public void removeQueuedSong(QueuedSong song, QueueUser user) throws ActionNotPermittedException {
-        if (!user.getPermissions().queue().remove()) {
+        if (!user.getPermissions().getQueue().isRemove()) {
             throw new ActionNotPermittedException(user.getRole(), "remove song");
         }
 
@@ -382,7 +380,7 @@ public class QueueService {
 
     public void delete(Queue queue) throws ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
-        if (!user.getPermissions().delete()) {
+        if (!user.getPermissions().isDelete()) {
             throw new ActionNotPermittedException(user.getRole(), "delete queue");
         }
 
