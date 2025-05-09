@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { QueuePermissions } from '$lib/apis/apelle.ts';
-	import type { ThumbnailQueryDto, Uuid } from '$lib/apis/apelle';
+	import type { QueueUserRoleQueuePermissionsQueryDto } from '$lib/apis/apelle.ts';
+	import type { Uuid } from '$lib/apis/apelle';
 	import {
 		postApiV1QueuesIQueueIdQueueSongIdLikes as postLike,
 		deleteApiV1QueuesIQueueIdQueueSongId as deleteQueuedSong,
@@ -24,7 +24,7 @@
 	}: {
 		queue: Uuid;
 		song: QueuedSong;
-		permissions: QueuePermissions;
+		permissions: QueueUserRoleQueuePermissionsQueryDto;
 	} = $props();
 
 	async function likeSong(song: QueuedSong) {

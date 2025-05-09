@@ -18,7 +18,6 @@
 	import { config } from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
-	import TextInput from '$lib/components/forms/TextInput.svelte';
 
 	const { data }: PageProps = $props();
 

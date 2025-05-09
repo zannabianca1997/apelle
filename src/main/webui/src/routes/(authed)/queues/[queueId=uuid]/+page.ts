@@ -1,7 +1,7 @@
 import {
 	getApiV1QueuesIQueueId as getQueueById,
 	getApiV1QueuesIQueueIdUsersMe as getQueueUser,
-	getApiV1ConfigsQueueUserRolesRoleName as getRoleConfig,
+	getApiV1QueuesRolesId as getRoleConfig,
 	type QueueUserQueryDto
 } from '$lib/apis/apelle';
 import { AxiosError } from 'axios';

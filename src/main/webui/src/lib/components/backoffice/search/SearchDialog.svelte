@@ -2,7 +2,6 @@
 	import type { SongAddDto } from '$lib/apis/apelle';
 	import type { Snapshot } from '@sveltejs/kit';
 	import SearchView from './SearchView.svelte';
-	import TextInput from '$lib/components/forms/TextInput.svelte';
 
 	const {
 		onSongChosen: onSongChosenInner
