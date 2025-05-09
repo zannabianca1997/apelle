@@ -46,4 +46,9 @@ public class QueueQueryDto {
             song. Requests can be conditional on the state they refer to, so they are
             refused in case of a mismatch.""")
     private UUID playerStateId;
+
+    @NonNull
+    @Schema(description = "Configuration of the queue")
+    @JsonProperty(required = true)
+    private QueueConfigQueryDto config;
 }

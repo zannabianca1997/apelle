@@ -129,6 +129,17 @@ export interface PageSearchedSongQueryDto {
 	page_info: PageInfo;
 }
 
+export interface QueueConfigQueryDto {
+	/** If true, the user will like every song they add to the queue */
+	autolike: boolean;
+	/** The role that will be given to users when they join the queue */
+	default_role: Uuid;
+	/** The role that will be given to the user that created the queue */
+	creator_role: Uuid;
+	/** The role that will be given to users when they are banned from the queue */
+	banned_role: Uuid;
+}
+
 export type QueueDeleteEventDtoKind =
 	(typeof QueueDeleteEventDtoKind)[keyof typeof QueueDeleteEventDtoKind];
 
@@ -176,6 +187,8 @@ This is an opaque id that is regenerated at each modification of the playing
 song. Requests can be conditional on the state they refer to, so they are
 refused in case of a mismatch. */
 	player_state_id: Uuid;
+	/** Configuration of the queue */
+	config: QueueConfigQueryDto;
 }
 
 export type QueueStateEventDtoKind =
