@@ -7,13 +7,14 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Embeddable
 @Data
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QueueUserRoleQueueUsersPermissions {
     @NonNull
     @ManyToMany

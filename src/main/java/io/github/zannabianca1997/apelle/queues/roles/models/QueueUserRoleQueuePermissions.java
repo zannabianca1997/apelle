@@ -2,12 +2,13 @@ package io.github.zannabianca1997.apelle.queues.roles.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Embeddable
 @Data
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QueueUserRoleQueuePermissions {
     @Column(name = "permissions_queue_start", nullable = false)
     private boolean start;
