@@ -2,6 +2,8 @@ package io.github.zannabianca1997.apelle.queues.models;
 
 import java.util.UUID;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import io.github.zannabianca1997.apelle.queues.roles.models.QueueUserRole;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
@@ -63,4 +65,11 @@ public class QueueConfig extends PanacheEntityBase {
     @ManyToOne
     @JoinColumn(nullable = false, name = "banned_role_id")
     private QueueUserRole bannedRole;
+
+    public static QueueConfig findDefault() {
+        return findById(ConfigProvider
+                .getConfig()
+                .getOptionalValue("apelle.queues.config.default", UUID.class)
+                .orElse(new UUID(0, 0)));
+    }
 }

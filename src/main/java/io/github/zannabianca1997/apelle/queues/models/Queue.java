@@ -126,7 +126,8 @@ public class Queue extends PanacheEntityBase {
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
-    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs, @NonNull String code) {
+    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs, @NonNull String code,
+            @NonNull QueueConfig config) {
         super();
         // Sort the songs
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
@@ -138,6 +139,7 @@ public class Queue extends PanacheEntityBase {
         this.users = new ArrayList<>();
         this.likes = new ArrayList<>();
 
+        this.config = config;
         this.code = code;
     }
 

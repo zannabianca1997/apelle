@@ -23,6 +23,7 @@ import io.github.zannabianca1997.apelle.queues.mappers.QueueMapper;
 import io.github.zannabianca1997.apelle.queues.mappers.SongMapper;
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueueConfig;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
@@ -79,6 +80,7 @@ public class QueueService {
 
         var queue = Queue.builder()
                 .code(generateQueueCode(codeComplexity))
+                .config(QueueConfig.findDefault())
                 .build();
         var creator = usersService.getMe();
         queue.getUsers().add(QueueUser.builder()
