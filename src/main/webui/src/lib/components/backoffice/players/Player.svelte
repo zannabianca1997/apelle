@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
-	import type { ThumbnailQueryDto } from '$lib/apis/apelle';
 	import YoutubePlayer from './sources/YoutubePlayer.svelte';
 	import Thumbnail from '../Thumbnail.svelte';
 
@@ -28,7 +27,14 @@
 {/if}
 <div class="card">
 	<h2>{current.name}</h2>
-	<h3>{current.position.format($_('backoffice.song.durationFormat'))}</h3>
+	<h3>
+		{$_('backoffice.song.progress', {
+			values: {
+				position: current.position.format($_('backoffice.song.durationFormat')),
+				duration: current.duration.format($_('backoffice.song.durationFormat'))
+			}
+		})}
+	</h3>
 </div>
 
 <style lang="scss">
