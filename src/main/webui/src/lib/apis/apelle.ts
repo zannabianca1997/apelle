@@ -129,12 +129,6 @@ export interface PageSearchedSongQueryDto {
 	page_info: PageInfo;
 }
 
-export interface Permissions {
-	queue: QueuePermissions;
-	queueUsers: QueueUsersPermissions;
-	delete: boolean;
-}
-
 export type QueueDeleteEventDtoKind =
 	(typeof QueueDeleteEventDtoKind)[keyof typeof QueueDeleteEventDtoKind];
 
@@ -163,16 +157,6 @@ export type QueueEventDto =
 	| CurrentSongStateEventDto
 	| QueuedSongsStateEventDto
 	| QueuedSongDeleteEventDto;
-
-export interface QueuePermissions {
-	start: boolean;
-	stop: boolean;
-	next: boolean;
-	like: boolean;
-	enqueue: boolean;
-	remove: boolean;
-	ban: boolean;
-}
 
 /**
  * A queue of songs
@@ -222,36 +206,42 @@ export interface QueueUserQueryDto {
 	name: string;
 	/** Comma separated list of roles the user has */
 	roles: ApelleUserRole[];
-	/** Role of the user in the queue */
-	queue_role: string;
+	/** Role of the user in the queue. Fetch the actual permissions from `/queues/roles/{id}` */
+	queue_role: Uuid;
 	/** Number of likes given in the queue */
 	likes: number;
 	/** Maximum number of likes that can be given */
 	max_likes: number;
 }
 
-export interface QueueUserRole {
+export interface QueueUserRolePermissionsQueryDto {
+	queue: QueueUserRoleQueuePermissionsQueryDto;
+	queue_users: QueueUserRoleQueueUsersPermissionsQueryDto;
+	delete: boolean;
+}
+
+export interface QueueUserRoleQueryDto {
+	readonly id: Uuid;
 	name: string;
-	maxLikes: number;
-	permissions: Permissions;
+	max_likes: number;
+	permissions: QueueUserRolePermissionsQueryDto;
 }
 
-export interface QueueUserRolesConfig {
-	default: string;
-	creator: string;
-	banned: string;
-	roles: string[];
-}
-
-export type QueueUsersPermissionsGrantRoles = string[] | null;
-
-export type QueueUsersPermissionsRemoveRoles = string[] | null;
-
-export interface QueueUsersPermissions {
-	grantRoles: QueueUsersPermissionsGrantRoles;
-	removeRoles: QueueUsersPermissionsRemoveRoles;
+export interface QueueUserRoleQueuePermissionsQueryDto {
+	start: boolean;
+	stop: boolean;
+	next: boolean;
+	like: boolean;
+	enqueue: boolean;
 	remove: boolean;
 	ban: boolean;
+}
+
+export interface QueueUserRoleQueueUsersPermissionsQueryDto {
+	grant_roles: string[];
+	remove_roles: string[];
+	ban: boolean;
+	remove: boolean;
 }
 
 export type QueuedSongDeleteEventDtoKind =
@@ -469,27 +459,6 @@ export type GetApiV1SearchParams = {
 	 * Searched song query
 	 */
 	q: string;
-};
-
-/**
- * The list of all roles and the default ones.
- * @summary Get the list of roles and the default ones
- */
-export const getApiV1ConfigsQueueUserRoles = <TData = AxiosResponse<QueueUserRolesConfig>>(
-	options?: AxiosRequestConfig
-): Promise<TData> => {
-	return axios.get(`/api/v1/configs/queue-user/roles`, options);
-};
-
-/**
- * The extended configuration for a role.
- * @summary Get the configuration for a role
- */
-export const getApiV1ConfigsQueueUserRolesRoleName = <TData = AxiosResponse<QueueUserRole>>(
-	roleName: string,
-	options?: AxiosRequestConfig
-): Promise<TData> => {
-	return axios.get(`/api/v1/configs/queue-user/roles/${roleName}`, options);
 };
 
 /**
@@ -915,6 +884,17 @@ export const deleteApiV1QueuesIQueueIdUsersNUserName = <TData = AxiosResponse<vo
 };
 
 /**
+ * Obtain details about a queue role, with permissions and maximum number of likes
+ * @summary Get a queue role
+ */
+export const getApiV1QueuesRolesId = <TData = AxiosResponse<QueueUserRoleQueryDto>>(
+	id: Uuid,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/v1/queues/roles/${id}`, options);
+};
+
+/**
  * Search all available sources for a given song.
 
 The returned values are sorted by relevance. Each one contains the DTO one should send to the `/enqueue`
@@ -1016,8 +996,6 @@ export const getApiV1Version = <TData = AxiosResponse<string>>(
 	return axios.get(`/api/v1/version`, options);
 };
 
-export type GetApiV1ConfigsQueueUserRolesResult = AxiosResponse<QueueUserRolesConfig>;
-export type GetApiV1ConfigsQueueUserRolesRoleNameResult = AxiosResponse<QueueUserRole>;
 export type PostApiV1QueuesResult = AxiosResponse<QueueQueryDto>;
 export type GetApiV1QueuesCQueueCodeResult = AxiosResponse<QueueQueryDto>;
 export type DeleteApiV1QueuesCQueueCodeResult = AxiosResponse<void>;
@@ -1053,6 +1031,7 @@ export type GetApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<QueueUserQueryDt
 export type DeleteApiV1QueuesIQueueIdUsersMeResult = AxiosResponse<void>;
 export type GetApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<QueueUserQueryDto>;
 export type DeleteApiV1QueuesIQueueIdUsersNUserNameResult = AxiosResponse<void>;
+export type GetApiV1QueuesRolesIdResult = AxiosResponse<QueueUserRoleQueryDto>;
 export type GetApiV1SearchResult = AxiosResponse<PageSearchedSongQueryDto>;
 export type PostApiV1UsersResult = AxiosResponse<UserQueryDto>;
 export type GetApiV1UsersIUserIdResult = AxiosResponse<UserQueryDto>;

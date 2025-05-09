@@ -1,5 +1,7 @@
 package io.github.zannabianca1997.apelle.queues.dtos;
 
+import java.util.UUID;
+
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,8 +21,8 @@ import lombok.extern.jackson.Jacksonized;
 public class QueueUserQueryDto extends UserQueryDto {
     @NonNull
     @JsonProperty(value = "queue_role", required = true)
-    @Schema(description = "Role of the user in the queue", examples = { "PLAYER", "VOTER", "OBSERVER" })
-    private String queueRole;
+    @Schema(description = "Role of the user in the queue. Fetch the actual permissions from `/queues/roles/{id}`")
+    private UUID queueRole;
 
     @JsonProperty(required = true)
     @Schema(description = "Number of likes given in the queue")

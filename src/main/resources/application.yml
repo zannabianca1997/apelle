@@ -1,40 +1,5 @@
 # Program configuration
 apelle:
-  queue:
-    user:
-      roles:
-        # The role that will be given by default to every user in any queue
-        default: VOTER
-        # The role of the creator of the queue
-        creator: PLAYER
-        # The role of banned users
-        banned: OBSERVER
-        # Config of the roles
-        roles:
-          PLAYER:
-            max-likes: 32000
-            permissions:
-              queue:
-                start: true
-                stop: true
-                next: true
-                like: true
-                enqueue: true
-                remove: true
-                ban: true
-              queue-users:
-                grant-roles: PLAYER,VOTER,OBSERVER
-                remove-roles: VOTER,OBSERVER
-                remove: true
-                ban: true
-          VOTER:
-            max-likes: 4
-            permissions:
-              queue:
-                like: true
-                enqueue: true
-          OBSERVER:
-            max-likes: 0
   songs:
     sources:
       youtube:
