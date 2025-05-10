@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "**.md"
       - LICENSE
+      - src/test/**
 
 jobs:
   build:
