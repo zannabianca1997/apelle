@@ -3,11 +3,16 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.Check;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
@@ -23,11 +28,12 @@ import lombok.NonNull;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(callSuper = false, of = { "user", "queue", "song", "givenAt" })
+@EqualsAndHashCode(callSuper = false, of = { "user", "song", "givenAt" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "likes")
-@NamedNativeQuery(name = "Likes.countUserLikes", query = "SELECT COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = :queue_id AND l.song_id = :song_id AND l.user_id = :user_id), 0)", resultClass = Short.class)
+@Check(constraints = "count > 0")
+@NamedNativeQuery(name = "Likes.countUserLikes", query = "SELECT COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queued_song_ref = :queued_song_ref AND l.user_id = :user_id), 0)", resultClass = Short.class)
 /// A number of likes given on a song
 public class Likes extends PanacheEntityBase {
     /// The user of the queue
@@ -37,19 +43,14 @@ public class Likes extends PanacheEntityBase {
     @ToString.Exclude
     private ApelleUser user;
 
-    /// The queue
-    @NonNull
-    @ManyToOne
-    @Id
-    @ToString.Exclude
-    private Queue queue;
-
     /// The queued song
     @NonNull
-    @ManyToOne
     @Id
     @ToString.Exclude
-    private Song song;
+    @ManyToOne
+    @JoinColumn(name = "queued_song_ref", referencedColumnName = "ref")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private QueuedSong song;
 
     /// When these likes where assigned
     @NonNull
@@ -71,8 +72,7 @@ public class Likes extends PanacheEntityBase {
     @Builder
     public Likes(@NonNull ApelleUser user, @NonNull QueuedSong song, Instant givenAt, short count) {
         this.user = user;
-        this.queue = song.getQueue();
-        this.song = song.getSong();
+        this.song = song;
         this.givenAt = givenAt != null ? givenAt : Instant.now();
         this.count = count;
     }
@@ -88,36 +88,25 @@ public class Likes extends PanacheEntityBase {
     public static Likes findById(ApelleUser user, QueuedSong song, Instant givenAt) {
         var id = new Likes();
         id.user = user;
-        id.queue = song.getQueue();
-        id.song = song.getSong();
+        id.song = song;
         id.givenAt = givenAt;
         return findById(id);
     }
 
     public static Likes findOldests(QueueUser user) {
-        return find("user = ?1 AND queue = ?2 AND count > 0 ORDER BY givenAt ASC", user.getUser(), user.getQueue())
+        return find("user = ?1 AND song.queue = ?2 ORDER BY givenAt ASC", user.getUser(), user.getQueue())
                 .firstResult();
     }
 
     public static short givenBy(UUID userId, QueuedSong song) {
         return getSession()
                 .createNamedQuery("Likes.countUserLikes", Short.class)
-                .setParameter("queue_id", song.getQueue().getId())
-                .setParameter("song_id", song.getSong().getId())
-                .setParameter("user_id", userId)
-                .getSingleResult();
-    }
-
-    public static short givenBy(UUID userId, UUID queueId, UUID songId) {
-        return getSession()
-                .createNamedQuery("Likes.countUserLikes", Short.class)
-                .setParameter("queue_id", queueId)
-                .setParameter("song_id", songId)
+                .setParameter("queued_song_ref", song.getRef())
                 .setParameter("user_id", userId)
                 .getSingleResult();
     }
 
     public static long deleteReferringTo(QueuedSong song) {
-        return delete("queue = ?1 AND song = ?2", song.getQueue(), song.getSong());
+        return delete("song = ?1", song);
     }
 }

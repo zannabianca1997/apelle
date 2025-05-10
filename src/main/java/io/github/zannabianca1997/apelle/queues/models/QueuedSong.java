@@ -48,7 +48,12 @@ public class QueuedSong extends PanacheEntityBase {
     @Column(name = "queued_at", nullable = false)
     private Instant queuedAt;
 
-    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.song_id = song_id), 0)")
+    @NonNull
+    @Column(nullable = false, unique = true)
+    /** Id used to identify a queued song */
+    private UUID ref;
+
+    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queued_song_ref = ref), 0)")
     /// Number of likes on this song
     private short likes;
 
@@ -61,6 +66,7 @@ public class QueuedSong extends PanacheEntityBase {
         this.queuedAt = queuedAt;
         this.song = song;
         this.queue = queue;
+        this.ref = UUID.randomUUID();
     }
 
     public static QueuedSong findById(@NonNull UUID songId, @NonNull Queue queue) {

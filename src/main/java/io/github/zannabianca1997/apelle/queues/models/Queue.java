@@ -105,12 +105,6 @@ public class Queue extends PanacheEntityBase {
     private Collection<QueueUser> users;
 
     @NonNull
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue")
-    /// The likes on this queue
-    private Collection<Likes> likes;
-
-    @NonNull
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(nullable = false)
     /// Configuration of the queue
@@ -137,7 +131,6 @@ public class Queue extends PanacheEntityBase {
         setPlayerStateId();
         this.queuedSongs = queuedSongs;
         this.users = new ArrayList<>();
-        this.likes = new ArrayList<>();
 
         this.config = config;
         this.code = code;

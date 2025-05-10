@@ -3,6 +3,8 @@ package io.github.zannabianca1997.apelle.queues.services;
 import java.util.UUID;
 
 import io.github.zannabianca1997.apelle.queues.exceptions.ActionNotPermittedException;
+import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
+import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueuedException;
 import io.github.zannabianca1997.apelle.queues.models.Likes;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
@@ -101,7 +103,7 @@ public class QueueUserService {
         return Likes.givenBy(userId, song);
     }
 
-    public short likes(UUID userId, UUID queueId, UUID songId) {
-        return Likes.givenBy(userId, queueId, songId);
+    public short likes(UUID userId, UUID queueId, UUID songId) throws SongNotQueuedException, QueueNotFoundException {
+        return Likes.givenBy(userId, queueService.getQueuedSong(queueService.get(queueId), songId));
     }
 }

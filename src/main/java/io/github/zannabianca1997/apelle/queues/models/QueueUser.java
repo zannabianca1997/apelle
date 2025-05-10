@@ -30,7 +30,14 @@ import lombok.Getter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queue_user")
-@NamedNativeQuery(name = "QueueUser.countLikes", query = "SELECT COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = :queue_id AND l.user_id = :user_id), 0)", resultClass = Short.class)
+@NamedNativeQuery(name = "QueueUser.countLikes", query = """
+        SELECT COALESCE((
+            SELECT SUM(count)
+            FROM likes l
+            JOIN queued_song s ON s.ref = l.queued_song_ref
+            WHERE s.queue_id = :queue_id
+              AND l.user_id = :user_id)
+        , 0)""", resultClass = Short.class)
 /// A user relationship with a queue
 public class QueueUser extends PanacheEntityBase {
 
@@ -55,7 +62,14 @@ public class QueueUser extends PanacheEntityBase {
     /// Role of the user in the queue
     private QueueUserRole role;
 
-    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.user_id = user_id), 0)")
+    @Formula("""
+            COALESCE((
+                SELECT SUM(count)
+                FROM likes l
+                JOIN queued_song s ON s.ref = l.queued_song_ref
+                WHERE s.queue_id = queue_id
+                  AND l.user_id = user_id)
+            , 0)""")
     @Setter(AccessLevel.NONE)
     /// Number of likes given by this user
     private short likes;

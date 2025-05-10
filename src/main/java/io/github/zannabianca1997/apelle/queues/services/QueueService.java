@@ -323,9 +323,7 @@ public class QueueService {
             }
 
             // Remove likes from the queue in memory
-            QueuedSong removingFrom = queue.getQueuedSongs().stream()
-                    .filter(song2 -> song2.getSong().getId().equals(oldests.getSong().getId()))
-                    .findAny().orElseThrow();
+            QueuedSong removingFrom = oldests.getSong();
             removingFrom.setLikes((short) (removingFrom.getLikes() - removing));
         }
 
