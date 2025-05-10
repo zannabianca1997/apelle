@@ -3,6 +3,9 @@ name: Build and Push Native Quarkus Image
 on:
   push:
     branches: [development, main]
+    paths-ignore:
+      - "**.md"
+      - LICENSE
 
 jobs:
   build:
@@ -15,8 +18,8 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: "temurin"
+          java-version: "21"
 
       - name: Ghcr Login
         run: echo "${{ secrets.CR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.CR_USERNAME }}" --password-stdin
@@ -38,6 +41,6 @@ jobs:
             -Dquarkus.container-image.name=apelle \
             -Dquarkus.container-image.tag=${GITHUB_REF_NAME} \
             -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21
-  
+
       - name: Show pushed image info
         run: echo "Image pushed to ghcr.io."
