@@ -445,11 +445,19 @@ export interface YoutubeSongAddDto {
 	video_id: string;
 }
 
+export type PostApiV1QueuesCQueueCodeQueueParams = {
+	autolike?: boolean;
+};
+
 export type PostApiV1QueuesCQueueCodeQueueSongIdLikesParams = {
 	/**
 	 * How many time to like the song. If negative, nothing will happen.
 	 */
 	count?: number;
+};
+
+export type PostApiV1QueuesIQueueIdQueueParams = {
+	autolike?: boolean;
 };
 
 export type PostApiV1QueuesIQueueIdQueueSongIdLikesParams = {
@@ -535,9 +543,13 @@ export const postApiV1QueuesCQueueCodeNext = <TData = AxiosResponse<void>>(
 export const postApiV1QueuesCQueueCodeQueue = <TData = AxiosResponse<QueuedSongShortQueryDto>>(
 	queueCode: string,
 	songAddDto: SongAddDto,
+	params?: PostApiV1QueuesCQueueCodeQueueParams,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/v1/queues/c/${queueCode}/queue`, songAddDto, options);
+	return axios.post(`/api/v1/queues/c/${queueCode}/queue`, songAddDto, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**
@@ -741,9 +753,13 @@ export const postApiV1QueuesIQueueIdNext = <TData = AxiosResponse<void>>(
 export const postApiV1QueuesIQueueIdQueue = <TData = AxiosResponse<QueuedSongShortQueryDto>>(
 	queueId: Uuid,
 	songAddDto: SongAddDto,
+	params?: PostApiV1QueuesIQueueIdQueueParams,
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/v1/queues/i/${queueId}/queue`, songAddDto, options);
+	return axios.post(`/api/v1/queues/i/${queueId}/queue`, songAddDto, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**

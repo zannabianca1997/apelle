@@ -9,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.ResponseHeader;
 import org.jboss.resteasy.reactive.ResponseStatus;
+import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 import org.jboss.resteasy.reactive.RestResponse.StatusCode;
 
@@ -112,12 +113,21 @@ public class QueueResource {
     @ResponseStatus(StatusCode.CREATED)
     @Transactional
     @Tag(name = "Queued song")
-    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto)
+    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto, @RestQuery("autolike") Boolean autolikeOverride)
             throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
             YoutubeVideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
         QueuedSong enqueued = queueService.enqueue(queue, song);
-        return songMapper.toShortDto(enqueued, (short) 0);
+
+        // Check if the user asked to autolike, or if it is the default. Then check if
+        // the user has likes to give
+        final boolean autolike = (autolikeOverride == null ? queue.getConfig().isAutolike() : autolikeOverride)
+                && current.getPermissions().getQueue().isLike() && current.getAvailableLikes() > 0;
+        if (autolike) {
+            queueSongResource.of(enqueued, current).like((short) 1);
+        }
+
+        return songMapper.toShortDto(enqueued, (short) (autolike ? 1 : 0));
     }
 
     @Path("/queue/{songId}")

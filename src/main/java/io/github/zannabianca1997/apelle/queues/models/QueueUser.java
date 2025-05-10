@@ -94,6 +94,10 @@ public class QueueUser extends PanacheEntityBase {
         return getRole().getMaxLikes();
     }
 
+    public short getAvailableLikes() {
+        return (short) (getMaxLikes() - getLikes());
+    }
+
     public QueueUserRolePermissions getPermissions() {
         return getRole().getPermissions();
     }

@@ -72,7 +72,7 @@ public class QueueSongResource {
     @Operation(summary = "Play this song", description = """
             Play this song, ignoring the order of the queue.""")
     @Transactional
-    public void like() throws ActionNotPermittedException {
+    public void play() throws ActionNotPermittedException {
         queueService.next(song);
     }
 
