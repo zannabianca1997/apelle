@@ -19,16 +19,15 @@ import com.google.common.collect.Streams;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueueConfig;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
 import io.github.zannabianca1997.apelle.queues.models.Song;
-import io.github.zannabianca1997.apelle.queues.services.QueueUserRolesService;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
 import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiClientMock;
@@ -43,9 +42,6 @@ class QueueResourceTest {
 
     UUID queueId;
     Queue createdQueue;
-
-    @Inject
-    QueueUserRolesService queueUserRolesService;
 
     @BeforeEach
     @Transactional
@@ -69,11 +65,12 @@ class QueueResourceTest {
 
         var queue = Queue.builder()
                 .code("code")
+                .config(QueueConfig.findDefault())
                 .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(admin)
-                .role(queueUserRolesService.getCreatorRole())
+                .role(queue.getConfig().getCreatorRole())
                 .likesFilled(false)
                 .build());
         queue.persist();
@@ -115,7 +112,8 @@ class QueueResourceTest {
 
         YoutubeVideoDataDto videoData = YoutubeApiClientMock.RESPONSES.get(videoId).unwrapSingle();
 
-        assertEquals(0, created.getLikes());
+        final int expectedLikes = createdQueue.getConfig().isAutolike() ? 1 : 0;
+        assertEquals(expectedLikes, created.getLikes());
         assertEquals(videoData.getSnippet().getTitle(), created.getName());
 
         Queue queue = Queue.findById(queueId);
@@ -124,7 +122,7 @@ class QueueResourceTest {
 
         QueuedSong enqueued = queue.getQueuedSongs().get(0);
 
-        assertEquals(0, enqueued.getLikes());
+        assertEquals(expectedLikes, enqueued.getLikes());
         assertInstanceOf(YoutubeSong.class, enqueued.getSong());
 
         YoutubeSong song = (YoutubeSong) enqueued.getSong();
