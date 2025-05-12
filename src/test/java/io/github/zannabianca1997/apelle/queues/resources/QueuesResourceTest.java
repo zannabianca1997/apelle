@@ -47,7 +47,7 @@ class QueuesResourceTest {
 
     @Test
     void shouldCreateQueue() {
-        QueueQueryDto created = given()
+        final QueueQueryDto created = given()
                 .auth().basic("zanna", "zanna")
                 .post().then()
                 .statusCode(StatusCode.CREATED)
@@ -58,7 +58,7 @@ class QueuesResourceTest {
         assertEquals(0, created.getQueuedSongs().size());
 
         assertEquals(1, Queue.findAll().count());
-        Queue createdEntity = Queue.findById(created.getId());
+        final Queue createdEntity = Queue.findById(created.getId());
 
         assertNotNull(createdEntity);
         assertNull(createdEntity.getCurrent());

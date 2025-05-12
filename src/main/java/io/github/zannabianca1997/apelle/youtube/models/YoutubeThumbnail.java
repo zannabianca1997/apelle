@@ -58,7 +58,8 @@ public class YoutubeThumbnail extends PanacheEntityBase implements Thumbnail {
     private int height;
 
     @Builder
-    public YoutubeThumbnail(@NonNull YoutubeThumbnailSize size, @NonNull URL url, int width, int height) {
+    public YoutubeThumbnail(final @NonNull YoutubeThumbnailSize size, final @NonNull URL url, final int width,
+            final int height) {
         this.size = size;
         this.url = url;
         this.width = width;

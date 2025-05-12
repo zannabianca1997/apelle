@@ -19,7 +19,6 @@ import io.github.zannabianca1997.apelle.users.mappers.UserMapper;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import jakarta.annotation.security.PermitAll;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -27,13 +26,16 @@ import jakarta.ws.rs.Path;
 @Path("/users")
 @Tag(name = "Users", description = "User management")
 public class UsersResource {
+    private final UserMapper userMapper;
+    private final UsersService usersService;
+    private final UserResource userResource;
 
-    @Inject
-    UserMapper userMapper;
-    @Inject
-    UsersService usersService;
-    @Inject
-    UserResource userResource;
+    public UsersResource(final UserMapper userMapper, final UsersService usersService,
+            final UserResource userResource) {
+        this.userMapper = userMapper;
+        this.usersService = usersService;
+        this.userResource = userResource;
+    }
 
     @POST
     @PermitAll
@@ -43,24 +45,24 @@ public class UsersResource {
             @Content(mediaType = "application/json", schema = @Schema(implementation = UserQueryDto.class))
     })
     @ResponseStatus(StatusCode.CREATED)
-    public UserQueryDto signup(UserCreateDto userCreateDto) throws UserAlreadyExistsException {
-        ApelleUser user = userMapper.createUser(userCreateDto);
+    public UserQueryDto signup(final UserCreateDto userCreateDto) throws UserAlreadyExistsException {
+        final ApelleUser user = userMapper.createUser(userCreateDto);
         usersService.signup(user);
         return userMapper.toDto(user);
     }
 
     @Path("/me")
     public UserResource me() {
-        return userResource.ofMe(usersService.getMe());
+        return userResource.of(usersService.getMe());
     }
 
     @Path("/n/{userName}")
-    public UserResource byName(String userName) throws UserNotFoundByNameException {
+    public UserResource byName(final String userName) throws UserNotFoundByNameException {
         return userResource.of(usersService.getByName(userName));
     }
 
     @Path("/i/{userId}")
-    public UserResource byId(UUID userId) throws UserNotFoundByIdException {
+    public UserResource byId(final UUID userId) throws UserNotFoundByIdException {
         return userResource.of(usersService.getById(userId));
     }
 }

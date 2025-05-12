@@ -19,7 +19,7 @@ public class BadYoutubeApiResponseException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<BadYoutubeApiResponseException> {
         @Override
-        public Response toResponse(BadYoutubeApiResponseException exception) {
+        public Response toResponse(final BadYoutubeApiResponseException exception) {
             return RestResponse.status(Status.BAD_GATEWAY, exception.getMessage()).toResponse();
         }
     }

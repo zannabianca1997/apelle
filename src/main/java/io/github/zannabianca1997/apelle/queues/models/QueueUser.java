@@ -76,10 +76,10 @@ public class QueueUser extends PanacheEntityBase {
 
     @Builder
     public QueueUser(
-            @NonNull ApelleUser user,
-            @NonNull Queue queue,
-            @NonNull QueueUserRole role,
-            boolean likesFilled) {
+            final @NonNull ApelleUser user,
+            final @NonNull Queue queue,
+            final @NonNull QueueUserRole role,
+            final boolean likesFilled) {
         super();
 
         this.user = user;
@@ -97,8 +97,8 @@ public class QueueUser extends PanacheEntityBase {
         }
     }
 
-    public static QueueUser findById(@NonNull ApelleUser user, @NonNull Queue queue) {
-        var id = new QueueUser();
+    public static QueueUser findById(final @NonNull ApelleUser user, final @NonNull Queue queue) {
+        final var id = new QueueUser();
         id.user = user;
         id.queue = queue;
         return findById(id);

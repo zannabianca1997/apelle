@@ -14,7 +14,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
@@ -23,29 +22,23 @@ import jakarta.ws.rs.GET;
 @RequestScoped
 @Authenticated
 public class UserResource {
+    private final UserMapper userMapper;
+    private final UsersService usersService;
 
-    @Inject
-    UserMapper userMapper;
-    @Inject
-    UsersService usersService;
-
-    ApelleUser user = null;
-    boolean isMe;
-
-    public UserResource of(ApelleUser user) {
-        this.user = user;
-        this.isMe = false;
-        return this;
+    public UserResource(final UserMapper userMapper, final UsersService usersService) {
+        this.userMapper = userMapper;
+        this.usersService = usersService;
     }
 
-    public UserResource ofMe(ApelleUser user) {
+    private ApelleUser user = null;
+
+    public UserResource of(final ApelleUser user) {
         this.user = user;
-        this.isMe = true;
         return this;
     }
 
     @PermitAll
-    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
+    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) final Object event) {
         if (user != null)
             user = ApelleUser.getEntityManager().merge(user);
     }

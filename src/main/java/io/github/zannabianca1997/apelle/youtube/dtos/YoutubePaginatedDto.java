@@ -40,7 +40,7 @@ public class YoutubePaginatedDto<T> {
         return items.get(0);
     }
 
-    public static <T> YoutubePaginatedDto<T> ofOne(T t) {
+    public static <T> YoutubePaginatedDto<T> ofOne(final T t) {
         return new YoutubePaginatedDto<T>(new PageInfo(1), List.of(t), null);
     }
 

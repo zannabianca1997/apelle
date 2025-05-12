@@ -20,7 +20,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
@@ -60,36 +59,47 @@ import io.github.zannabianca1997.apelle.youtube.exceptions.YoutubeVideoNotFoundE
 @Authenticated
 @RequestScoped
 public class QueueResource {
-    @Inject
-    QueueMapper queueMapper;
-    @Inject
-    SongMapper songMapper;
-    @Inject
-    EventMapper eventMapper;
+    private final QueueMapper queueMapper;
+    private final SongMapper songMapper;
+    private final EventMapper eventMapper;
 
-    @Inject
-    QueueService queueService;
-    @Inject
-    SongService songService;
-    @Inject
-    QueueUserService queueUserService;
+    private final QueueService queueService;
+    private final SongService songService;
+    private final QueueUserService queueUserService;
 
-    @Inject
-    QueueSongResource queueSongResource;
-    @Inject
-    QueueUserResource queueUserResource;
+    private final QueueSongResource queueSongResource;
+    private final QueueUserResource queueUserResource;
 
-    Queue queue = null;
-    QueueUser current = null;
+    public QueueResource(
+            final QueueMapper queueMapper,
+            final SongMapper songMapper,
+            final EventMapper eventMapper,
+            final QueueService queueService,
+            final SongService songService,
+            final QueueUserService queueUserService,
+            final QueueSongResource queueSongResource,
+            final QueueUserResource queueUserResource) {
+        this.queueMapper = queueMapper;
+        this.songMapper = songMapper;
+        this.eventMapper = eventMapper;
+        this.queueService = queueService;
+        this.songService = songService;
+        this.queueUserService = queueUserService;
+        this.queueSongResource = queueSongResource;
+        this.queueUserResource = queueUserResource;
+    }
 
-    public QueueResource of(Queue queue) {
+    private Queue queue = null;
+    private QueueUser current = null;
+
+    public QueueResource of(final Queue queue) {
         this.queue = queue;
         this.current = queueUserService.getCurrent(queue);
         return this;
     }
 
     @PermitAll
-    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
+    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) final Object event) {
         if (queue != null)
             queue = Queue.getEntityManager().merge(queue);
         if (current != null)
@@ -114,17 +124,17 @@ public class QueueResource {
     @ResponseStatus(StatusCode.CREATED)
     @Transactional
     @Tag(name = "Queued song")
-    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto, @RestQuery("autolike") Boolean autolike)
+    public QueuedSongShortQueryDto enqueue(final SongAddDto songAddDto, @RestQuery("autolike") final Boolean autolike)
             throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
             YoutubeVideoNotFoundException {
-        Song song = songService.fromDto(songAddDto);
-        EnqueueResult enqueued = queueService.enqueue(queue, song, autolike);
+        final Song song = songService.fromDto(songAddDto);
+        final EnqueueResult enqueued = queueService.enqueue(queue, song, autolike);
         return songMapper.toShortDto(enqueued.queuedSong(), enqueued.autolikes());
     }
 
     @Path("/queue/{songId}")
-    public QueueSongResource queueSong(UUID songId) throws SongNotQueuedException {
-        QueuedSong song = queueService.getQueuedSong(queue, songId);
+    public QueueSongResource queueSong(final UUID songId) throws SongNotQueuedException {
+        final QueuedSong song = queueService.getQueuedSong(queue, songId);
         return queueSongResource.of(song, current);
     }
 
@@ -134,8 +144,10 @@ public class QueueResource {
     @APIResponse(responseCode = "204", description = "The music started")
     @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public Response start(@Context Request request) throws CantPlayEmptyQueueException, ActionNotPermittedException {
-        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+    public Response start(@Context final Request request)
+            throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        final var preconditions = request
+                .evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
         if (preconditions != null) {
             return preconditions.build();
         }
@@ -150,8 +162,9 @@ public class QueueResource {
     @APIResponse(responseCode = "204", description = "The music started")
     @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public Response stop(@Context Request request) throws ActionNotPermittedException {
-        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+    public Response stop(@Context final Request request) throws ActionNotPermittedException {
+        final var preconditions = request
+                .evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
         if (preconditions != null) {
             return preconditions.build();
         }
@@ -168,8 +181,10 @@ public class QueueResource {
     @APIResponse(responseCode = "204", description = "The music started")
     @APIResponse(responseCode = "412", description = "The player state id did not match")
     @Transactional
-    public Response next(@Context Request request) throws CantPlayEmptyQueueException, ActionNotPermittedException {
-        var preconditions = request.evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
+    public Response next(@Context final Request request)
+            throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        final var preconditions = request
+                .evaluatePreconditions(new EntityTag(queue.getPlayerStateId().toString(), true));
         if (preconditions != null) {
             return preconditions.build();
         }
@@ -179,20 +194,20 @@ public class QueueResource {
     }
 
     @Path("/users/i/{userId}")
-    public QueueUserResource userById(UUID userId) throws UserNotFoundByIdException {
-        QueueUser otherUser = queueUserService.getById(queue, userId);
+    public QueueUserResource userById(final UUID userId) throws UserNotFoundByIdException {
+        final QueueUser otherUser = queueUserService.getById(queue, userId);
         return queueUserResource.of(otherUser);
     }
 
     @Path("/users/n/{userName}")
-    public QueueUserResource userByName(String userName) throws UserNotFoundByNameException {
-        QueueUser otherUser = queueUserService.getByName(queue, userName);
+    public QueueUserResource userByName(final String userName) throws UserNotFoundByNameException {
+        final QueueUser otherUser = queueUserService.getByName(queue, userName);
         return queueUserResource.of(otherUser);
     }
 
     @Path("/users/me")
     public QueueUserResource userByName() {
-        return queueUserResource.ofMe(current);
+        return queueUserResource.of(current);
     }
 
     @DELETE

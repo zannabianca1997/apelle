@@ -120,8 +120,9 @@ public class Queue extends PanacheEntityBase {
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
-    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs, @NonNull String code,
-            @NonNull QueueConfig config) {
+    public Queue(final CurrentSong current, @Singular @NonNull final List<QueuedSong> queuedSongs,
+            @NonNull final String code,
+            @NonNull final QueueConfig config) {
         super();
         // Sort the songs
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
@@ -142,8 +143,8 @@ public class Queue extends PanacheEntityBase {
      * @param song The song to add
      * @return The added song
      */
-    public QueuedSong enqueue(@NonNull Song song) {
-        var enqueued = QueuedSong.builder()
+    public QueuedSong enqueue(@NonNull final Song song) {
+        final var enqueued = QueuedSong.builder()
                 .song(song)
                 .queue(this)
                 .queuedAt(Instant.now())
@@ -156,7 +157,7 @@ public class Queue extends PanacheEntityBase {
         }
         index = -index - 1;
 
-        List<QueuedSong> editQueuedSongs = getQueuedSongs();
+        final List<QueuedSong> editQueuedSongs = getQueuedSongs();
         editQueuedSongs.add(index, enqueued);
         setQueuedSongs(editQueuedSongs);
 
@@ -174,7 +175,7 @@ public class Queue extends PanacheEntityBase {
     public boolean start() throws CantPlayEmptyQueueException {
         // If a song is running, start playing
         if (getCurrent() != null) {
-            var started = getCurrent().start();
+            final var started = getCurrent().start();
             if (started) {
                 setPlayerStateId();
             }
@@ -186,7 +187,7 @@ public class Queue extends PanacheEntityBase {
             throw new CantPlayEmptyQueueException(getId());
         }
 
-        QueuedSong next = getQueuedSongs().remove(0);
+        final QueuedSong next = getQueuedSongs().remove(0);
         Likes.deleteReferringTo(next);
         setCurrent(CurrentSong.builder()
                 .song(next.getSong())
@@ -207,7 +208,7 @@ public class Queue extends PanacheEntityBase {
             return false;
         }
 
-        var stopped = getCurrent().stop();
+        final var stopped = getCurrent().stop();
         if (stopped) {
             setPlayerStateId();
         }
@@ -225,7 +226,7 @@ public class Queue extends PanacheEntityBase {
                 getCurrent().jumpTo(Duration.ZERO);
             } else {
                 // Pop the current song and put it in the queue
-                var removingCurrent = getCurrent().getSong();
+                final var removingCurrent = getCurrent().getSong();
                 setCurrent(null);
                 enqueue(removingCurrent);
             }
@@ -237,12 +238,12 @@ public class Queue extends PanacheEntityBase {
     /**
      * Move to a given song
      */
-    public void next(QueuedSong next) {
+    public void next(final QueuedSong next) {
         assert next.getQueue().getId().equals(getId());
 
         if (getCurrent() != null) {
             // Pop the current song and put it in the queue
-            var removingCurrent = getCurrent().getSong();
+            final var removingCurrent = getCurrent().getSong();
             setCurrent(null);
             enqueue(removingCurrent);
         }
@@ -270,21 +271,21 @@ public class Queue extends PanacheEntityBase {
                 getQueuedSongs().stream().map(QueuedSong::getSong));
     }
 
-    public static boolean exists(UUID queueId) {
+    public static boolean exists(final UUID queueId) {
         return findById(queueId) != null;
     }
 
     public void sortSongs() {
-        List<QueuedSong> sortingQueuedSongs = getQueuedSongs();
+        final List<QueuedSong> sortingQueuedSongs = getQueuedSongs();
         sortingQueuedSongs.sort(QUEUED_SONGS_COMPARATOR);
         setQueuedSongs(sortingQueuedSongs);
     }
 
-    public static Queue findByCode(String queueCode) {
+    public static Queue findByCode(final String queueCode) {
         return Queue.<Queue>find("code", queueCode).singleResultOptional().orElse(null);
     }
 
-    public static boolean existByCode(String queueCode) {
+    public static boolean existByCode(final String queueCode) {
         return Queue.find("code", queueCode).count() > 0;
     }
 }

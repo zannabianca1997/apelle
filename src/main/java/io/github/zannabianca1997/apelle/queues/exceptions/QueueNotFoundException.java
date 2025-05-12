@@ -17,13 +17,13 @@ public class QueueNotFoundException extends Exception {
     private final UUID queueId;
     private final String queueCode;
 
-    public QueueNotFoundException(UUID queueId) {
+    public QueueNotFoundException(final UUID queueId) {
         super(String.format("Queue `%s` not found", queueId));
         this.queueId = queueId;
         this.queueCode = null;
     }
 
-    public QueueNotFoundException(String queueCode) {
+    public QueueNotFoundException(final String queueCode) {
         super(String.format("Queue `%s` not found", queueCode));
         this.queueCode = queueCode;
         this.queueId = null;
@@ -35,7 +35,7 @@ public class QueueNotFoundException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<QueueNotFoundException> {
         @Override
-        public Response toResponse(QueueNotFoundException exception) {
+        public Response toResponse(final QueueNotFoundException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

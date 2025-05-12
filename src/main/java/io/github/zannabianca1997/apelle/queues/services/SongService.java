@@ -1,7 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.services;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import io.github.zannabianca1997.apelle.queues.dtos.SongAddDto;
 import io.github.zannabianca1997.apelle.queues.models.Song;
@@ -13,8 +12,11 @@ import io.github.zannabianca1997.apelle.youtube.services.YoutubeService;
 @ApplicationScoped
 public class SongService {
 
-    @Inject
-    YoutubeService youtubeService;
+    private final YoutubeService youtubeService;
+
+    public SongService(final YoutubeService youtubeService) {
+        this.youtubeService = youtubeService;
+    }
 
     /**
      * Complete the definition of a song by querying eventual apis
@@ -25,12 +27,13 @@ public class SongService {
      *                                        youtube
      * @throws YoutubeVideoNotFoundException
      */
-    public Song fromDto(SongAddDto songAddDto) throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
+    public Song fromDto(final SongAddDto songAddDto)
+            throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
         if (songAddDto == null) {
             return null;
         }
         switch (songAddDto) {
-            case YoutubeSongAddDto youtubeSongAddDto:
+            case final YoutubeSongAddDto youtubeSongAddDto:
                 return youtubeService.fromDto(youtubeSongAddDto);
             default:
                 throw new IllegalArgumentException(

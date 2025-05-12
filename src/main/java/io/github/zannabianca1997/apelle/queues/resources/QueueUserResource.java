@@ -10,7 +10,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
@@ -26,23 +25,18 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 @RequestScoped
 public class QueueUserResource {
 
-    @Inject
-    QueueUserService queueUserService;
-    @Inject
-    QueueUserMapper queueUserMapper;
+    private final QueueUserService queueUserService;
+    private final QueueUserMapper queueUserMapper;
 
-    QueueUser user = null;
-    boolean isMe;
+    public QueueUserResource(final QueueUserService queueUserService, final QueueUserMapper queueUserMapper) {
+        this.queueUserService = queueUserService;
+        this.queueUserMapper = queueUserMapper;
+    }
+
+    private QueueUser user = null;
 
     public QueueUserResource of(QueueUser user) {
         this.user = user;
-        this.isMe = false;
-        return this;
-    }
-
-    public QueueUserResource ofMe(QueueUser user) {
-        this.user = user;
-        this.isMe = true;
         return this;
     }
 

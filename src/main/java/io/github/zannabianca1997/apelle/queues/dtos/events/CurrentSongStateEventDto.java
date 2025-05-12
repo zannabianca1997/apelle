@@ -28,7 +28,7 @@ import lombok.extern.jackson.Jacksonized;
                 CurrentSongStateEventDto.JSON_TYPE_NAME })
 }, requiredProperties = { "kind" })
 public final class CurrentSongStateEventDto extends QueueEventDto {
-    final static String JSON_TYPE_NAME = "current-song-state";
+    public final static String JSON_TYPE_NAME = "current-song-state";
 
     @JsonProperty(required = false)
     private CurrentSongQueryDto current;

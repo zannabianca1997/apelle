@@ -28,7 +28,7 @@ import lombok.extern.jackson.Jacksonized;
                 QueuedSongDeleteEventDto.JSON_TYPE_NAME })
 }, requiredProperties = { "kind" })
 public final class QueuedSongDeleteEventDto extends QueueEventDto {
-    final static String JSON_TYPE_NAME = "queued-song-delete";
+    public final static String JSON_TYPE_NAME = "queued-song-delete";
 
     @NonNull
     @JsonProperty(value = "deleted_id", required = true)

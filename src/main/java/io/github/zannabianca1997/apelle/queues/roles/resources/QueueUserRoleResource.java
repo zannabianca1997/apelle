@@ -11,7 +11,6 @@ import io.github.zannabianca1997.apelle.queues.roles.mappers.QueueUserRoleMapper
 import io.github.zannabianca1997.apelle.queues.roles.models.QueueUserRole;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.constraint.NotNull;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -20,8 +19,11 @@ import jakarta.ws.rs.Path;
 @Tag(name = "Queue roles", description = "Roles of the user in a queue")
 @Authenticated
 public class QueueUserRoleResource {
-    @Inject
-    QueueUserRoleMapper queueUserRoleMapper;
+    private final QueueUserRoleMapper queueUserRoleMapper;
+
+    public QueueUserRoleResource(final QueueUserRoleMapper queueUserRoleMapper) {
+        this.queueUserRoleMapper = queueUserRoleMapper;
+    }
 
     @GET
     @Path("{id}")

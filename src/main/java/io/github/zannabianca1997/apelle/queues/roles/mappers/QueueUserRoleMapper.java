@@ -13,7 +13,7 @@ public interface QueueUserRoleMapper {
 
     QueueUserRoleQueryDto toDto(QueueUserRole queueUserRole);
 
-    default UUID toId(QueueUserRole queueUserRole) {
+    default UUID toId(final QueueUserRole queueUserRole) {
         if (queueUserRole == null) {
             return null;
         }

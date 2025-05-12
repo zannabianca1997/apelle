@@ -16,7 +16,7 @@ import lombok.Getter;
 public class CantPlayEmptyQueueException extends Exception {
     private final UUID queueId;
 
-    public CantPlayEmptyQueueException(UUID queueId) {
+    public CantPlayEmptyQueueException(final UUID queueId) {
         super(String.format("Queue `%s` is empty, no song to play", queueId));
         this.queueId = queueId;
     }
@@ -27,7 +27,7 @@ public class CantPlayEmptyQueueException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<CantPlayEmptyQueueException> {
         @Override
-        public Response toResponse(CantPlayEmptyQueueException exception) {
+        public Response toResponse(final CantPlayEmptyQueueException exception) {
             return RestResponse.status(Status.BAD_REQUEST, exception.getMessage()).toResponse();
         }
     }

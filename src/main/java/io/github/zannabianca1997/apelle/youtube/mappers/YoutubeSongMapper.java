@@ -38,16 +38,16 @@ public interface YoutubeSongMapper {
     YoutubeSong fromDto(YoutubeSongAddDto youtubeSongAddDto, YoutubeVideoDataDto videoData);
 
     @AfterMapping
-    default void fixThumbnailsRefs(@MappingTarget YoutubeSong song) {
+    default void fixThumbnailsRefs(@MappingTarget final YoutubeSong song) {
         song.getThumbnails().forEach((size, thumbnail) -> thumbnail.setSong(song));
     }
 
-    default Map<YoutubeThumbnailSize, YoutubeThumbnail> fromDto(YoutubeThumbnailsDto value) {
+    default Map<YoutubeThumbnailSize, YoutubeThumbnail> fromDto(final YoutubeThumbnailsDto value) {
         if (value == null) {
             return null;
         }
 
-        Map<YoutubeThumbnailSize, YoutubeThumbnail> map = new EnumMap<>(YoutubeThumbnailSize.class);
+        final Map<YoutubeThumbnailSize, YoutubeThumbnail> map = new EnumMap<>(YoutubeThumbnailSize.class);
 
         if (value.getDefault_() != null) {
             map.put(YoutubeThumbnailSize.DEFAULT, fromDto(value.getDefault_(), YoutubeThumbnailSize.DEFAULT));
@@ -76,7 +76,7 @@ public interface YoutubeSongMapper {
     @Mapping(source = "id.videoId", target = "enqueueData", qualifiedByName = "toAddDto")
     SearchedSongQueryDto toSearchedDto(YoutubeSearchResultDto searchResultDto);
 
-    default Collection<ThumbnailQueryDto> toSearchedDto(YoutubeThumbnailsDto youtubeThumbnailsDto) {
+    default Collection<ThumbnailQueryDto> toSearchedDto(final YoutubeThumbnailsDto youtubeThumbnailsDto) {
         return Stream.of(
                 youtubeThumbnailsDto.getDefault_(),
                 youtubeThumbnailsDto.getHigh(),
@@ -88,20 +88,20 @@ public interface YoutubeSongMapper {
     ThumbnailQueryDto toSearchedDto(YoutubeThumbnailsDto.Thumbnail thumbnail);
 
     @Named("watchUrl")
-    default URL watchURL(String videoId) {
+    default URL watchURL(final String videoId) {
         try {
             return new URIBuilder(
                     ConfigProvider.getConfig()
                             .getValue("apelle.songs.sources.youtube.watch-uri", URI.class))
                     .addParameter("v", videoId)
                     .build().toURL();
-        } catch (URISyntaxException | MalformedURLException e) {
+        } catch (final URISyntaxException | MalformedURLException e) {
             throw new RuntimeException("The youtube url should always form a valid url", e);
         }
     }
 
     @Named("toAddDto")
-    default YoutubeSongAddDto toAddDto(String videoId) {
+    default YoutubeSongAddDto toAddDto(final String videoId) {
         return YoutubeSongAddDto.builder().videoId(videoId).build();
     }
 }

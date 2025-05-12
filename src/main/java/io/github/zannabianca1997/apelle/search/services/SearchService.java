@@ -9,22 +9,23 @@ import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.github.zannabianca1997.apelle.youtube.services.YoutubeService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class SearchService {
+    private final Logger log;
 
-    @Inject
-    Logger log;
+    private final YoutubeService youtubeService;
 
-    @Inject
-    YoutubeService youtubeService;
+    private final UsersService usersService;
 
-    @Inject
-    UsersService usersService;
+    public SearchService(final YoutubeService youtubeService, final UsersService usersService, final Logger log) {
+        this.youtubeService = youtubeService;
+        this.usersService = usersService;
+        this.log = log;
+    }
 
-    public Page<SearchedSongQueryDto> search(String query, PageRequest pageRequest) {
-        ApelleUser current = usersService.getMe();
+    public Page<SearchedSongQueryDto> search(final String query, final PageRequest pageRequest) {
+        final ApelleUser current = usersService.getMe();
 
         log.infof("[user=%s] Searched `%s`", current.getId(), query);
 

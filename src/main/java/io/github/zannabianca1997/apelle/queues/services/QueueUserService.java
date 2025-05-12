@@ -14,15 +14,17 @@ import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameExcep
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.services.UsersService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class QueueUserService {
 
-    @Inject
-    QueueService queueService;
-    @Inject
-    UsersService usersService;
+    private final QueueService queueService;
+    private final UsersService usersService;
+
+    public QueueUserService(final QueueService queueService, final UsersService usersService) {
+        this.queueService = queueService;
+        this.usersService = usersService;
+    }
 
     /**
      * Get the queue user for the current user
@@ -30,7 +32,7 @@ public class QueueUserService {
      * @param queueId The queue id
      * @return The queue user
      */
-    public QueueUser getCurrent(Queue queue) {
+    public QueueUser getCurrent(final Queue queue) {
         return findOrCreate(queue, usersService.getMe());
     }
 
@@ -42,7 +44,7 @@ public class QueueUserService {
      * @return The queue user
      * @throws UserNotFoundByNameException The user does not exist
      */
-    public QueueUser getByName(Queue queue, String userName)
+    public QueueUser getByName(final Queue queue, final String userName)
             throws UserNotFoundByNameException {
         return findOrCreate(queue, usersService.getByName(userName));
     }
@@ -55,7 +57,7 @@ public class QueueUserService {
      * @return The queue user
      * @throws UserNotFoundByIdException The user does not exist
      */
-    public QueueUser getById(Queue queue, UUID userId) throws UserNotFoundByIdException {
+    public QueueUser getById(final Queue queue, final UUID userId) throws UserNotFoundByIdException {
         return findOrCreate(queue, usersService.getById(userId));
     }
 
@@ -69,8 +71,8 @@ public class QueueUserService {
      * @param user    The user to link
      * @return The found or created queue user
      */
-    private QueueUser findOrCreate(Queue queue, ApelleUser user) {
-        QueueUser queueUser = QueueUser.findById(user, queue);
+    private QueueUser findOrCreate(final Queue queue, final ApelleUser user) {
+        final QueueUser queueUser = QueueUser.findById(user, queue);
         if (queueUser == null) {
             return QueueUser.builder()
                     .queue(queue)
@@ -82,28 +84,29 @@ public class QueueUserService {
         return queueUser;
     }
 
-    public void delete(QueueUser user) throws ActionNotPermittedException {
-        QueueUser current = getCurrent(user.getQueue());
+    public void delete(final QueueUser user) throws ActionNotPermittedException {
+        final QueueUser current = getCurrent(user.getQueue());
         if (!current.getPermissions().getQueueUsers().isRemove()) {
             throw new ActionNotPermittedException(current.getRole(), "remove user");
         }
         user.delete();
     }
 
-    public short likes(QueueUser user, QueuedSong song) {
+    public short likes(final QueueUser user, final QueuedSong song) {
         assert user.getQueue().getId().equals(song.getQueue().getId());
         return likes(user.getUser(), song);
     }
 
-    public short likes(ApelleUser user, QueuedSong song) {
+    public short likes(final ApelleUser user, final QueuedSong song) {
         return likes(user.getId(), song);
     }
 
-    public short likes(UUID userId, QueuedSong song) {
+    public short likes(final UUID userId, final QueuedSong song) {
         return Likes.givenBy(userId, song);
     }
 
-    public short likes(UUID userId, UUID queueId, UUID songId) throws SongNotQueuedException, QueueNotFoundException {
+    public short likes(final UUID userId, final UUID queueId, final UUID songId)
+            throws SongNotQueuedException, QueueNotFoundException {
         return Likes.givenBy(userId, queueService.getQueuedSong(queueService.get(queueId), songId));
     }
 }

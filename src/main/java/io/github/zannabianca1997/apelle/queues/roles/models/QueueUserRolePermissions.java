@@ -12,17 +12,15 @@ import lombok.NonNull;
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QueueUserRolePermissions {
+    @NonNull
+    @Embedded
+    private QueueUserRoleQueuePermissions queue;
 
     @NonNull
     @Embedded
-    QueueUserRoleQueuePermissions queue;
-
-    @NonNull
-    @Embedded
-    QueueUserRoleQueueUsersPermissions queueUsers;
+    private QueueUserRoleQueueUsersPermissions queueUsers;
 
     /** Can delete the queue */
     @Column(name = "permissions_delete", nullable = false)
-    boolean delete;
-
+    private boolean delete;
 }

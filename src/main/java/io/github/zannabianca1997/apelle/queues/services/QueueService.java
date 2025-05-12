@@ -33,33 +33,38 @@ import io.github.zannabianca1997.apelle.users.services.UsersService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class QueueService {
-    @Inject
-    QueueMapper queueMapper;
-    @Inject
-    SongMapper songMapper;
+    private final QueueMapper queueMapper;
+    private final SongMapper songMapper;
 
-    @Inject
-    UsersService usersService;
-    @Inject
-    QueueUserService queueUserService;
-    @Inject
-    QueueEventService queueEventService;
+    private final UsersService usersService;
+    private final QueueUserService queueUserService;
+    private final QueueEventService queueEventService;
 
-    @Inject
-    QueueCodeConfigs queueCodeConfigs;
+    private final QueueCodeConfigs queueCodeConfigs;
 
-    @Inject
-    QueueEventBus queueEventBus;
+    private final QueueEventBus queueEventBus;
 
-    @Inject
-    StringUtils stringUtils;
+    private final StringUtils stringUtils;
 
-    @Inject
-    Logger log;
+    private final Logger log;
+
+    public QueueService(final QueueMapper queueMapper, final SongMapper songMapper, final UsersService usersService,
+            final QueueUserService queueUserService, final QueueEventService queueEventService,
+            final QueueCodeConfigs queueCodeConfigs, final QueueEventBus queueEventBus, final StringUtils stringUtils,
+            final Logger log) {
+        this.queueMapper = queueMapper;
+        this.songMapper = songMapper;
+        this.usersService = usersService;
+        this.queueUserService = queueUserService;
+        this.queueEventService = queueEventService;
+        this.queueCodeConfigs = queueCodeConfigs;
+        this.queueEventBus = queueEventBus;
+        this.stringUtils = stringUtils;
+        this.log = log;
+    }
 
     /**
      * Create a new queue
@@ -78,11 +83,11 @@ public class QueueService {
         var codeComplexity = Integer.max(queueCodeConfigs.complexity().min(),
                 queueCodeConfigs.complexity().margin() + (int) (Math.log1p(Queue.count()) / Math.log(256)));
 
-        var queue = Queue.builder()
+        final var queue = Queue.builder()
                 .code(generateQueueCode(codeComplexity))
                 .config(QueueConfig.findDefault())
                 .build();
-        var creator = usersService.getMe();
+        final var creator = usersService.getMe();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(creator)
@@ -109,7 +114,7 @@ public class QueueService {
         return queue;
     }
 
-    private String generateQueueCode(int codeComplexity) {
+    private String generateQueueCode(final int codeComplexity) {
         return stringUtils.random(codeComplexity, queueCodeConfigs.alphabet());
     }
 
@@ -120,8 +125,8 @@ public class QueueService {
      * @return The found queue
      * @throws QueueNotFoundException The queue does not exist
      */
-    public Queue get(UUID queueId) throws QueueNotFoundException {
-        Queue queue = Queue.findById(queueId);
+    public Queue get(final UUID queueId) throws QueueNotFoundException {
+        final Queue queue = Queue.findById(queueId);
         if (queue == null) {
             throw new QueueNotFoundException(queueId);
         }
@@ -135,8 +140,8 @@ public class QueueService {
      * @return The found queue
      * @throws QueueNotFoundException The queue does not exist
      */
-    public Queue get(String queueCode) throws QueueNotFoundException {
-        Queue queue = Queue.findByCode(queueCode);
+    public Queue get(final String queueCode) throws QueueNotFoundException {
+        final Queue queue = Queue.findByCode(queueCode);
         if (queue == null) {
             throw new QueueNotFoundException(queueCode);
         }
@@ -151,15 +156,15 @@ public class QueueService {
      * @throws CantPlayEmptyQueueException The queue is empty
      * @throws ActionNotPermittedException
      */
-    public void start(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
-        QueueUser user = queueUserService.getCurrent(queue);
+    public void start(final Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        final QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().getQueue().isStart()) {
             throw new ActionNotPermittedException(user.getRole(), "start playing");
         }
 
         log.infof("[user=%s, queue=%s] Start playing requested", user.getUser().getId(), queue.getId());
 
-        boolean startedNow = queue.start();
+        final boolean startedNow = queue.start();
         if (startedNow) {
             queueEventBus
                     .publish(QueueStartEvent.builder().queueId(queue.getId())
@@ -174,15 +179,15 @@ public class QueueService {
      * @throws ActionNotPermittedException
      * @throws QueueNotFoundException      The queue does not exist
      */
-    public void stop(Queue queue) throws ActionNotPermittedException {
-        QueueUser user = queueUserService.getCurrent(queue);
+    public void stop(final Queue queue) throws ActionNotPermittedException {
+        final QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().getQueue().isStop()) {
             throw new ActionNotPermittedException(user.getRole(), "stop playing");
         }
 
         log.infof("[user=%s, queue=%s] Stop playing requested", user.getUser().getId(), queue.getId());
 
-        boolean stoppedNow = queue.stop();
+        final boolean stoppedNow = queue.stop();
         if (stoppedNow) {
             queueEventBus
                     .publish(QueueStopEvent.builder().queueId(queue.getId())
@@ -199,8 +204,8 @@ public class QueueService {
      * @throws CantPlayEmptyQueueException The queue is empty
      * @throws ActionNotPermittedException
      */
-    public void next(Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
-        QueueUser user = queueUserService.getCurrent(queue);
+    public void next(final Queue queue) throws CantPlayEmptyQueueException, ActionNotPermittedException {
+        final QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().getQueue().isNext()) {
             throw new ActionNotPermittedException(user.getRole(), "move to next song");
         }
@@ -218,10 +223,10 @@ public class QueueService {
      * @param song The song to skip to
      * @throws ActionNotPermittedException The user can't skip songs
      */
-    public void next(QueuedSong song) throws ActionNotPermittedException {
-        Queue queue = song.getQueue();
+    public void next(final QueuedSong song) throws ActionNotPermittedException {
+        final Queue queue = song.getQueue();
 
-        QueueUser user = queueUserService.getCurrent(song.getQueue());
+        final QueueUser user = queueUserService.getCurrent(song.getQueue());
         if (!user.getPermissions().getQueue().isNext()) {
             throw new ActionNotPermittedException(user.getRole(), "move to song");
         }
@@ -246,9 +251,9 @@ public class QueueService {
      * @throws SongAlreadyQueuedException  The song is already in the queue
      * @throws ActionNotPermittedException
      */
-    public EnqueueResult enqueue(Queue queue, Song song, Boolean autolikeOverride)
+    public EnqueueResult enqueue(final Queue queue, final Song song, final Boolean autolikeOverride)
             throws SongAlreadyQueuedException, ActionNotPermittedException {
-        QueueUser user = queueUserService.getCurrent(queue);
+        final QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().getQueue().isEnqueue()) {
             throw new ActionNotPermittedException(user.getRole(), "enqueue song");
         }
@@ -260,7 +265,7 @@ public class QueueService {
 
         log.infof("[user=%s, queue=%s] Song added: %s", user.getUser().getId(), queue.getId(), song.getId());
 
-        QueuedSong enqueued = queue.enqueue(song);
+        final QueuedSong enqueued = queue.enqueue(song);
 
         // Calculate autolike
         final boolean autolike = autolikeOverride != null ? autolikeOverride : queue.getConfig().isAutolike();
@@ -293,7 +298,7 @@ public class QueueService {
      * @param userId The user liking the song
      * @throws ActionNotPermittedException
      */
-    public void like(QueuedSong song, QueueUser user) throws ActionNotPermittedException {
+    public void like(final QueuedSong song, final QueueUser user) throws ActionNotPermittedException {
         like(song, user, (short) 1);
     }
 
@@ -305,7 +310,7 @@ public class QueueService {
      * @param count  The number of like to add
      * @throws ActionNotPermittedException
      */
-    public void like(QueuedSong song, QueueUser user, short count) throws ActionNotPermittedException {
+    public void like(final QueuedSong song, final QueueUser user, short count) throws ActionNotPermittedException {
         if (!user.getPermissions().getQueue().isLike()) {
             throw new ActionNotPermittedException(user.getRole(), "like song");
         }
@@ -315,7 +320,7 @@ public class QueueService {
             return;
         }
 
-        Queue queue = song.getQueue();
+        final Queue queue = song.getQueue();
 
         log.infof("[user=%s, queue=%s] User adds %s likes to the song %s", user.getUser().getId(), queue.getId(), count,
                 song.getSong().getId());
@@ -327,10 +332,10 @@ public class QueueService {
         int toRemove = Math.max(count - (user.getMaxLikes() - user.getLikes()), 0);
         while (toRemove > 0) {
             // Find the oldest group of likes
-            Likes oldests = Likes.findOldests(user);
+            final Likes oldests = Likes.findOldests(user);
 
             // calculate how many to remove
-            var removing = Math.min(toRemove, oldests.getCount());
+            final var removing = Math.min(toRemove, oldests.getCount());
             oldests.setCount((short) (oldests.getCount() - removing));
             toRemove -= removing;
 
@@ -340,11 +345,11 @@ public class QueueService {
             }
 
             // Remove likes from the queue in memory
-            QueuedSong removingFrom = oldests.getSong();
+            final QueuedSong removingFrom = oldests.getSong();
             removingFrom.setLikes((short) (removingFrom.getLikes() - removing));
         }
 
-        Instant now = Instant.now();
+        final Instant now = Instant.now();
         Likes likes = Likes.findById(user.getUser(), song, now);
 
         if (likes == null) {
@@ -355,7 +360,7 @@ public class QueueService {
         }
 
         // Adding likes to the queue in memory
-        QueuedSong addingTo = queue.getQueuedSongs().stream()
+        final QueuedSong addingTo = queue.getQueuedSongs().stream()
                 .filter(song2 -> song2.getSong().getId().equals(song.getSong().getId()))
                 .findAny().orElseThrow();
         addingTo.setLikes((short) (addingTo.getLikes() + count));
@@ -370,15 +375,15 @@ public class QueueService {
                 .build());
     }
 
-    public QueuedSong getQueuedSong(Queue queue, UUID songId) throws SongNotQueuedException {
-        QueuedSong queuedSong = QueuedSong.findById(songId, queue);
+    public QueuedSong getQueuedSong(final Queue queue, final UUID songId) throws SongNotQueuedException {
+        final QueuedSong queuedSong = QueuedSong.findById(songId, queue);
         if (queuedSong == null) {
             throw new SongNotQueuedException(queue, songId);
         }
         return queuedSong;
     }
 
-    public void removeQueuedSong(QueuedSong song, QueueUser user) throws ActionNotPermittedException {
+    public void removeQueuedSong(final QueuedSong song, final QueueUser user) throws ActionNotPermittedException {
         if (!user.getPermissions().getQueue().isRemove()) {
             throw new ActionNotPermittedException(user.getRole(), "remove song");
         }
@@ -395,8 +400,8 @@ public class QueueService {
                 .deletedId(song.getSong().getId()).build());
     }
 
-    public void delete(Queue queue) throws ActionNotPermittedException {
-        QueueUser user = queueUserService.getCurrent(queue);
+    public void delete(final Queue queue) throws ActionNotPermittedException {
+        final QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().isDelete()) {
             throw new ActionNotPermittedException(user.getRole(), "delete queue");
         }
@@ -409,11 +414,11 @@ public class QueueService {
         queueEventBus.publish(QueueDeleteEvent.builder().queueId(queue.getId()).build());
     }
 
-    public Multi<QueueEvent> events(Queue queue, QueueUser seenBy) {
+    public Multi<QueueEvent> events(final Queue queue, final QueueUser seenBy) {
         // Extract the ids, ensuring the entities are not captured by the multi and
         // persist for the entire request
-        UUID queueId = queue.getId();
-        UUID userId = seenBy.getUser().getId();
+        final UUID queueId = queue.getId();
+        final UUID userId = seenBy.getUser().getId();
 
         return queueEventBus.events(queueId)
                 // The `asSeenBy` call need to contact the db, so it must run on the worker pool

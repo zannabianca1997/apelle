@@ -64,18 +64,18 @@ public class YoutubeSong extends Song {
                             .getValue("apelle.songs.sources.youtube.watch-uri", URI.class))
                     .addParameter("v", videoId)
                     .build();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new RuntimeException("The youtube uri should always form a valid uri", e);
         }
     }
 
     @Override
-    public URI getUri(@NonNull Duration position) {
+    public URI getUri(final @NonNull Duration position) {
         try {
             return new URIBuilder(getUri())
                     .addParameter("t", Long.toString(position.toSeconds()))
                     .build();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new RuntimeException("The built url should be valid", e);
         }
     }
@@ -92,10 +92,10 @@ public class YoutubeSong extends Song {
 
     @Builder
     public YoutubeSong(
-            @NonNull String name,
-            @NonNull Duration duration,
-            @NonNull String videoId,
-            Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails) {
+            final @NonNull String name,
+            final @NonNull Duration duration,
+            final @NonNull String videoId,
+            final Map<YoutubeThumbnailSize, YoutubeThumbnail> thumbnails) {
         super(name, duration);
         this.videoId = videoId;
         this.thumbnails = thumbnails != null
@@ -104,16 +104,16 @@ public class YoutubeSong extends Song {
     }
 
     @Override
-    public boolean isSame(Song b) {
+    public boolean isSame(final Song b) {
         switch (b) {
-            case YoutubeSong bYoutubeSong:
+            case final YoutubeSong bYoutubeSong:
                 return getVideoId().equals(bYoutubeSong.getVideoId());
             default:
                 return false;
         }
     }
 
-    public static YoutubeSong findByVideoId(@NonNull String videoId) {
+    public static YoutubeSong findByVideoId(final @NonNull String videoId) {
         return YoutubeSong.<YoutubeSong>find("videoId", videoId).singleResultOptional().orElse(null);
     }
 }

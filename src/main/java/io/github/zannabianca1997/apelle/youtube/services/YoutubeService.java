@@ -7,7 +7,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import lombok.NonNull;
 import io.github.zannabianca1997.apelle.common.dtos.Page;
@@ -31,19 +30,28 @@ import io.quarkus.redis.datasource.value.ValueCommands;
 @ApplicationScoped
 public class YoutubeService {
 
-    @Inject
-    @RestClient
-    YoutubeApiClient youtubeApiVideosClient;
+    private final YoutubeApiClient youtubeApiVideosClient;
+    private final YoutubeSongMapper songMapper;
+    private final Logger log;
+    private final ValueCommands<String, CachedYoutubeSearch> redisDataSource;
+    private final SearchConfig searchConfig;
 
-    @Inject
-    YoutubeSongMapper songMapper;
+    public YoutubeService(
+            @RestClient final YoutubeApiClient youtubeApiVideosClient,
+            final YoutubeSongMapper songMapper,
+            final Logger log,
+            final RedisDataSource redisDataSource,
+            final SearchConfig searchConfig) {
+        this.youtubeApiVideosClient = youtubeApiVideosClient;
+        this.songMapper = songMapper;
+        this.log = log;
+        this.redisDataSource = redisDataSource.value(CachedYoutubeSearch.class);
+        this.searchConfig = searchConfig;
+    }
 
-    @Inject
-    Logger log;
-
-    private YoutubeVideoDataDto getVideoData(String videoId)
+    private YoutubeVideoDataDto getVideoData(final String videoId)
             throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
-        var videos = youtubeApiVideosClient.getDataById(videoId);
+        final var videos = youtubeApiVideosClient.getDataById(videoId);
         if (videos.getItems().size() > 1) {
             throw new BadYoutubeApiResponseException("Multiple videos returned for a single id");
         }
@@ -62,30 +70,23 @@ public class YoutubeService {
      *                                        youtube
      * @throws YoutubeVideoNotFoundException
      */
-    public YoutubeSong fromDto(YoutubeSongAddDto youtubeSongAddDto)
+    public YoutubeSong fromDto(final YoutubeSongAddDto youtubeSongAddDto)
             throws BadYoutubeApiResponseException, YoutubeVideoNotFoundException {
         // Try to obtain it from the database
-        YoutubeSong cached = YoutubeSong.findByVideoId(youtubeSongAddDto.getVideoId());
+        final YoutubeSong cached = YoutubeSong.findByVideoId(youtubeSongAddDto.getVideoId());
         if (cached != null) {
             return cached;
         }
 
         // Failed: asking the youtube gods
-        var videoData = getVideoData(youtubeSongAddDto.getVideoId());
+        final var videoData = getVideoData(youtubeSongAddDto.getVideoId());
         return songMapper.fromDto(youtubeSongAddDto, videoData);
-    }
-
-    ValueCommands<String, CachedYoutubeSearch> redisDataSource;
-
-    @Inject
-    void setRedisCommand(RedisDataSource redisDataSource) {
-        this.redisDataSource = redisDataSource.value(CachedYoutubeSearch.class);
     }
 
     /**
      * Normalize a query to improve cache reuse
      */
-    private String normalizeQuery(String query) {
+    private String normalizeQuery(final String query) {
         // TODO: trim the query to a maximum lenght
         return query
                 .trim()
@@ -99,14 +100,11 @@ public class YoutubeService {
      * 
      * The key is namespaced with the class name,
      */
-    private String redisKey(String query) {
+    private String redisKey(final String query) {
         return getClass().getName() + ":search:" + query;
     }
 
-    @Inject
-    SearchConfig searchConfig;
-
-    public Page<SearchedSongQueryDto> search(@NonNull String query, @NonNull PageRequest pageRequest) {
+    public Page<SearchedSongQueryDto> search(@NonNull String query, @NonNull final PageRequest pageRequest) {
         query = normalizeQuery(query);
         final var key = redisKey(query);
 
@@ -188,14 +186,14 @@ public class YoutubeService {
                 .build();
     }
 
-    private String pageNumberToPageToken(int pageNumber) {
+    private String pageNumberToPageToken(final int pageNumber) {
         return Integer.toString(pageNumber, 16);
     }
 
-    private int pageTokenToPageNumber(String pageToken) {
+    private int pageTokenToPageNumber(final String pageToken) {
         try {
             return Integer.parseUnsignedInt(pageToken, 16);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             // TODO: change in a application exception
             throw new BadRequestException("Invalid page token");
         }

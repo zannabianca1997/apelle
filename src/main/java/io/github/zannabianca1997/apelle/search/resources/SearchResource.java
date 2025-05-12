@@ -10,7 +10,6 @@ import io.github.zannabianca1997.apelle.common.dtos.PageRequest;
 import io.github.zannabianca1997.apelle.search.dtos.SearchedSongQueryDto;
 import io.github.zannabianca1997.apelle.search.services.SearchService;
 import io.quarkus.security.Authenticated;
-import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
@@ -20,9 +19,11 @@ import jakarta.ws.rs.Path;
 @Tag(name = "Search", description = "Search songs to add to queues")
 @Authenticated
 public class SearchResource {
+    private final SearchService searchService;
 
-    @Inject
-    SearchService searchService;
+    public SearchResource(final SearchService searchService) {
+        this.searchService = searchService;
+    }
 
     @GET
     @Operation(summary = "Search a song", description = """
@@ -32,8 +33,8 @@ public class SearchResource {
             endpoint to add the corresponding song.""")
 
     public Page<SearchedSongQueryDto> get(
-            @RestQuery("q") @Parameter(description = "Searched song query") @NotBlank String query,
-            @BeanParam PageRequest pageRequest) {
+            @RestQuery("q") @Parameter(description = "Searched song query") @NotBlank final String query,
+            @BeanParam final PageRequest pageRequest) {
         return searchService.search(query, pageRequest);
     }
 }

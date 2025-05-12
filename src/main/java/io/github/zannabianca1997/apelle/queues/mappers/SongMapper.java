@@ -31,8 +31,8 @@ public interface SongMapper {
     @Mapping(source = "queuedSong.song", target = ".")
     QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong, short userLikes);
 
-    default QueuedSongShortQueryDto toShortDto(QueuedSong queuedSong,
-            @Context Function<QueuedSong, Short> getUserLikes) {
+    default QueuedSongShortQueryDto toShortDto(final QueuedSong queuedSong,
+            @Context final Function<QueuedSong, Short> getUserLikes) {
         return toShortDto(queuedSong, getUserLikes.apply(queuedSong));
     }
 
@@ -47,10 +47,10 @@ public interface SongMapper {
     @Mapping(source = "song.allThumbnails", target = "thumbnails")
     CurrentSongQueryDto toDto(CurrentSong currentSong);
 
-    default URL toUrl(URI uri) {
+    default URL toUrl(final URI uri) {
         try {
             return uri.toURL();
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             // This should not happen, as the url generated should always be valid
             throw new RuntimeException(e);
         }

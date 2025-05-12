@@ -18,8 +18,11 @@ import jakarta.ws.rs.core.MediaType;
 @Tag(name = "Other", description = "General endpoints")
 public class VersionResource {
 
-    @ConfigProperty(name = "quarkus.application.version")
-    String version;
+    private final String version;
+
+    public VersionResource(@ConfigProperty(name = "quarkus.application.version") final String version) {
+        this.version = version;
+    }
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

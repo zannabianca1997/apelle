@@ -11,24 +11,25 @@ import io.github.zannabianca1997.apelle.queues.exceptions.InvalidEvent;
 import io.github.zannabianca1997.apelle.queues.exceptions.QueueNotFoundException;
 import io.github.zannabianca1997.apelle.queues.exceptions.SongNotQueuedException;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class QueueEventService {
+    private final QueueUserService queueUserService;
 
-    @Inject
-    QueueUserService queueUserService;
+    public QueueEventService(final QueueUserService queueUserService) {
+        this.queueUserService = queueUserService;
+    }
 
     /**
      * Fill an event with user specific data, like likes given, etc
      */
-    public QueueEvent asSeenBy(QueueEvent event, UUID userId) throws InvalidEvent {
+    public QueueEvent asSeenBy(final QueueEvent event, final UUID userId) throws InvalidEvent {
         try {
             return switch (event) {
-                case QueueEnqueueEvent queueEnqueueEvent -> fillUserLikes(queueEnqueueEvent, userId);
-                case QueueLikeEvent queueLikeEvent -> fillUserLikes(queueLikeEvent, userId);
-                case QueueNextEvent queueNextEvent -> fillUserLikes(queueNextEvent, userId);
-                case QueueStartEvent queueStartEvent -> fillUserLikes(queueStartEvent, userId);
+                case final QueueEnqueueEvent queueEnqueueEvent -> fillUserLikes(queueEnqueueEvent, userId);
+                case final QueueLikeEvent queueLikeEvent -> fillUserLikes(queueLikeEvent, userId);
+                case final QueueNextEvent queueNextEvent -> fillUserLikes(queueNextEvent, userId);
+                case final QueueStartEvent queueStartEvent -> fillUserLikes(queueStartEvent, userId);
                 default -> event;
             };
         } catch (SongNotQueuedException | QueueNotFoundException e) {
@@ -36,7 +37,7 @@ public class QueueEventService {
         }
     }
 
-    private QueueEnqueueEvent fillUserLikes(QueueEnqueueEvent queueEnqueueEvent, UUID userId)
+    private QueueEnqueueEvent fillUserLikes(final QueueEnqueueEvent queueEnqueueEvent, final UUID userId)
             throws SongNotQueuedException, QueueNotFoundException {
         for (final var queuedSongShortQueryDto : queueEnqueueEvent.getQueuedSongs()) {
             queuedSongShortQueryDto.setUserLikes(
@@ -45,7 +46,7 @@ public class QueueEventService {
         return queueEnqueueEvent;
     }
 
-    private QueueLikeEvent fillUserLikes(QueueLikeEvent queueLikeEvent, UUID userId)
+    private QueueLikeEvent fillUserLikes(final QueueLikeEvent queueLikeEvent, final UUID userId)
             throws SongNotQueuedException, QueueNotFoundException {
         for (final var queuedSongShortQueryDto : queueLikeEvent.getQueuedSongs()) {
             queuedSongShortQueryDto.setUserLikes(
@@ -54,7 +55,7 @@ public class QueueEventService {
         return queueLikeEvent;
     }
 
-    private QueueNextEvent fillUserLikes(QueueNextEvent queueNextEvent, UUID userId)
+    private QueueNextEvent fillUserLikes(final QueueNextEvent queueNextEvent, final UUID userId)
             throws SongNotQueuedException, QueueNotFoundException {
         for (final var queuedSongShortQueryDto : queueNextEvent.getState().getQueuedSongs()) {
             queuedSongShortQueryDto.setUserLikes(
@@ -63,7 +64,7 @@ public class QueueEventService {
         return queueNextEvent;
     }
 
-    private QueueStartEvent fillUserLikes(QueueStartEvent queueStartEvent, UUID userId)
+    private QueueStartEvent fillUserLikes(final QueueStartEvent queueStartEvent, final UUID userId)
             throws SongNotQueuedException, QueueNotFoundException {
         for (final var queuedSongShortQueryDto : queueStartEvent.getState().getQueuedSongs()) {
             queuedSongShortQueryDto.setUserLikes(

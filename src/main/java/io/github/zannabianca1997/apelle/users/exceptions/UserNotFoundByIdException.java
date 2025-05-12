@@ -14,9 +14,9 @@ import lombok.Getter;
 
 @Getter
 public class UserNotFoundByIdException extends UserNotFoundException {
-    private UUID userId;
+    private final UUID userId;
 
-    public UserNotFoundByIdException(UUID userId) {
+    public UserNotFoundByIdException(final UUID userId) {
         super(String.format("User `%s` not found", userId));
         this.userId = userId;
     }
@@ -27,7 +27,7 @@ public class UserNotFoundByIdException extends UserNotFoundException {
     })
     public static class Mapper implements ExceptionMapper<UserNotFoundByIdException> {
         @Override
-        public Response toResponse(UserNotFoundByIdException exception) {
+        public Response toResponse(final UserNotFoundByIdException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

@@ -18,7 +18,7 @@ public class SongNotQueuedException extends Exception {
     private final UUID queueId;
     private final UUID songId;
 
-    public SongNotQueuedException(Queue queue, UUID songId) {
+    public SongNotQueuedException(final Queue queue, final UUID songId) {
         super(String.format("Song `%s` is not queued inside queue %s", songId, queue.getId()));
         this.queueId = queue.getId();
         this.songId = songId;
@@ -30,7 +30,7 @@ public class SongNotQueuedException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<SongNotQueuedException> {
         @Override
-        public Response toResponse(SongNotQueuedException exception) {
+        public Response toResponse(final SongNotQueuedException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

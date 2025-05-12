@@ -11,17 +11,15 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class QueueUserRolePermissionsQueryDto {
-
     @NonNull
     @JsonProperty(required = true)
-    QueueUserRoleQueuePermissionsQueryDto queue;
+    private QueueUserRoleQueuePermissionsQueryDto queue;
 
     @NonNull
     @JsonProperty(value = "queue_users", required = true)
-    QueueUserRoleQueueUsersPermissionsQueryDto queueUsers;
+    private QueueUserRoleQueueUsersPermissionsQueryDto queueUsers;
 
     /** Can delete the queue */
     @JsonProperty(required = true)
-    boolean delete;
-
+    private boolean delete;
 }

@@ -24,7 +24,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class YoutubeApiClientMock implements YoutubeApiClient {
 
-    private static final record MockedVideo(
+    private final record MockedVideo(
             String id, String title, Duration duration) {
     }
 
@@ -52,7 +52,7 @@ public class YoutubeApiClientMock implements YoutubeApiClient {
     public static final YoutubePaginatedDto<YoutubeVideoDataDto> NOT_FOUND = YoutubePaginatedDto.ofNone();
 
     @Override
-    public YoutubePaginatedDto<YoutubeVideoDataDto> getDataById(String videoId) {
+    public YoutubePaginatedDto<YoutubeVideoDataDto> getDataById(final String videoId) {
         return RESPONSES.getOrDefault(videoId, NOT_FOUND);
     }
 
@@ -64,13 +64,14 @@ public class YoutubeApiClientMock implements YoutubeApiClient {
     }
 
     @Override
-    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchByKeywords(int maxResults, String query) {
+    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchByKeywords(final int maxResults, final String query) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getSearchByKeywords'");
     }
 
     @Override
-    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchPage(int maxResults, String query, String pageToken) {
+    public YoutubePaginatedDto<YoutubeSearchResultDto> getSearchPage(final int maxResults, final String query,
+            final String pageToken) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getSearchPage'");
     }

@@ -23,5 +23,5 @@ import lombok.extern.jackson.Jacksonized;
         @SchemaProperty(name = "kind", type = SchemaType.STRING, enumeration = { QueueDeleteEventDto.JSON_TYPE_NAME })
 }, requiredProperties = { "kind" })
 public final class QueueDeleteEventDto extends QueueEventDto {
-    final static String JSON_TYPE_NAME = "queue-delete";
+    public final static String JSON_TYPE_NAME = "queue-delete";
 }

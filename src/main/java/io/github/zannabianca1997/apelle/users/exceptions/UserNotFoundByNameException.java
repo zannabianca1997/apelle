@@ -12,9 +12,9 @@ import lombok.Getter;
 
 @Getter
 public class UserNotFoundByNameException extends UserNotFoundException {
-    private String username;
+    private final String username;
 
-    public UserNotFoundByNameException(String username) {
+    public UserNotFoundByNameException(final String username) {
         super(String.format("User named `%s` not found", username));
         this.username = username;
     }
@@ -25,7 +25,7 @@ public class UserNotFoundByNameException extends UserNotFoundException {
     })
     public static class Mapper implements ExceptionMapper<UserNotFoundByNameException> {
         @Override
-        public Response toResponse(UserNotFoundByNameException exception) {
+        public Response toResponse(final UserNotFoundByNameException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

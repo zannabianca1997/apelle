@@ -15,7 +15,7 @@ import lombok.NonNull;
 public class YoutubeVideoNotFoundException extends Exception {
     private final String videoId;
 
-    public YoutubeVideoNotFoundException(@NonNull String videoId) {
+    public YoutubeVideoNotFoundException(final @NonNull String videoId) {
         super("The video `%s` does not exist".formatted(videoId));
         this.videoId = videoId;
     }
@@ -26,7 +26,7 @@ public class YoutubeVideoNotFoundException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<YoutubeVideoNotFoundException> {
         @Override
-        public Response toResponse(YoutubeVideoNotFoundException exception) {
+        public Response toResponse(final YoutubeVideoNotFoundException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

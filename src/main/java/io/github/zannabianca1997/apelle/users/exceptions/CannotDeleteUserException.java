@@ -21,7 +21,7 @@ public class CannotDeleteUserException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<CannotDeleteUserException> {
         @Override
-        public Response toResponse(CannotDeleteUserException exception) {
+        public Response toResponse(final CannotDeleteUserException exception) {
             return RestResponse.status(Status.FORBIDDEN, exception.getMessage()).toResponse();
         }
     }

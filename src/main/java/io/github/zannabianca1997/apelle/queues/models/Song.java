@@ -80,13 +80,13 @@ public abstract class Song extends PanacheEntityBase {
      * 
      * @return The uri, or null if not available
      */
-    public URI getUri(Duration time) {
+    public URI getUri(final Duration time) {
         return getUri();
     }
 
     protected Song(
-            @NonNull String name,
-            @NonNull Duration duration) {
+            final @NonNull String name,
+            final @NonNull Duration duration) {
         super();
         this.id = null;
         this.name = name;
@@ -99,7 +99,7 @@ public abstract class Song extends PanacheEntityBase {
      * @param b The other song
      * @return If the two song match
      */
-    public boolean isSame(Song b) {
+    public boolean isSame(final Song b) {
         return false;
     }
 

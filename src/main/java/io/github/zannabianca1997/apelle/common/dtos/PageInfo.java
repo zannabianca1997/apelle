@@ -20,17 +20,17 @@ public class PageInfo {
     @JsonProperty(value = "total_items")
     @PositiveOrZero
     @NonNull
-    public Integer totalItems;
+    private Integer totalItems;
     @Schema(description = "Number of items in the page", required = true)
     @NotNull
     @PositiveOrZero
-    public int items;
+    private int items;
     @Schema(description = "Page number", required = true)
     @NotNull
     @PositiveOrZero
-    public int number;
+    private int number;
     @Schema(description = "Next page token", required = false, nullable = true)
-    public String next;
+    private String next;
     @Schema(description = "Previous page token", required = false, nullable = true)
-    public String prev;
+    private String prev;
 }

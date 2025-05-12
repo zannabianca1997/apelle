@@ -17,7 +17,7 @@ public class ActionNotPermittedException extends Exception {
     private final String roleName;
     private final String action;
 
-    public ActionNotPermittedException(@NonNull QueueUserRole role, @NonNull String action) {
+    public ActionNotPermittedException(final @NonNull QueueUserRole role, final @NonNull String action) {
         super(String.format("Action `%s` is not permitted for role `%s`", action, role.getName()));
         this.roleName = role.getName();
         this.action = action;
@@ -29,7 +29,7 @@ public class ActionNotPermittedException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<ActionNotPermittedException> {
         @Override
-        public Response toResponse(ActionNotPermittedException exception) {
+        public Response toResponse(final ActionNotPermittedException exception) {
             return RestResponse.status(Status.FORBIDDEN, exception.getMessage()).toResponse();
         }
     }

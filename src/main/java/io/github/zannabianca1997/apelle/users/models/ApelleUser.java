@@ -88,12 +88,13 @@ public class ApelleUser extends PanacheEntityBase {
      * @param name the username
      * @return The user found, or null if no user was found
      */
-    public static ApelleUser findByName(String name) {
+    public static ApelleUser findByName(final String name) {
         return find("name", name).firstResult();
     }
 
     @Builder
-    public ApelleUser(@NonNull String name, @NonNull String password, @Singular Set<ApelleUserRole> roles) {
+    public ApelleUser(final @NonNull String name, final @NonNull String password,
+            final @Singular Set<ApelleUserRole> roles) {
         super();
         this.name = name;
         this.password = BcryptUtil.bcryptHash(password);

@@ -12,7 +12,7 @@ public class CommonJavaBeans {
      * @return The created random number generator
      */
     @Singleton
-    SecureRandom rng() {
+    public SecureRandom rng() {
         return new SecureRandom();
     }
 }

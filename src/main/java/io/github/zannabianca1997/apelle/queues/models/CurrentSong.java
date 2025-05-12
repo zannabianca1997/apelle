@@ -50,14 +50,14 @@ public class CurrentSong {
     private Instant startsAt;
 
     public Instant getStartsAt() {
-        Instant now = Instant.now();
+        final Instant now = Instant.now();
 
         if (startsAt == null) {
             return now.minus(position);
         }
         // Check: if it passed the end, it is considered stopped
-        Duration timePassed = Duration.between(startsAt, now);
-        Duration duration = getSong().getDuration();
+        final Duration timePassed = Duration.between(startsAt, now);
+        final Duration duration = getSong().getDuration();
         return timePassed.compareTo(duration) < 0 ? startsAt : now.minus(duration);
     }
 
@@ -71,8 +71,8 @@ public class CurrentSong {
             return position;
         }
         // If a song passed the end, is considered stopped by default
-        Duration timePassed = Duration.between(startsAt, Instant.now());
-        Duration duration = getSong().getDuration();
+        final Duration timePassed = Duration.between(startsAt, Instant.now());
+        final Duration duration = getSong().getDuration();
         return timePassed.compareTo(duration) < 0 ? timePassed : duration;
     }
 
@@ -94,7 +94,7 @@ public class CurrentSong {
             return false;
         }
 
-        var stopPosition = getPosition();
+        final var stopPosition = getPosition();
 
         setPosition(stopPosition);
         setStartsAt(null);
@@ -112,7 +112,7 @@ public class CurrentSong {
             return false;
         }
 
-        var playStartsAt = getStartsAt();
+        final var playStartsAt = getStartsAt();
 
         if (playStartsAt.plus(getSong().getDuration()).isBefore(Instant.now())) {
             // The song reached his end, not starting it
@@ -164,7 +164,7 @@ public class CurrentSong {
     public static class CurrentSongBuilder {
         public Song song;
 
-        public CurrentSongBuilder song(@NonNull Song song) {
+        public CurrentSongBuilder song(@NonNull final Song song) {
             this.song = song;
             return this;
         }
@@ -175,14 +175,14 @@ public class CurrentSong {
 
         public static class Stopped extends CurrentSongBuilder {
             @Override
-            public Stopped song(Song song) {
+            public Stopped song(final Song song) {
                 this.song = song;
                 return this;
             }
 
             public Duration position;
 
-            public Stopped position(@NonNull Duration position) {
+            public Stopped position(@NonNull final Duration position) {
                 this.position = position;
                 return this;
             }
@@ -197,7 +197,7 @@ public class CurrentSong {
                     throw new InvalidParameterException("Cannot make a song positioned after its end");
                 }
 
-                var built = new CurrentSong();
+                final var built = new CurrentSong();
                 built.song = this.song;
                 built.position = this.position;
                 built.startsAt = null;
@@ -210,14 +210,14 @@ public class CurrentSong {
         }
 
         public static class Playing extends CurrentSongBuilder {
-            public Playing song(Song song) {
+            public Playing song(final Song song) {
                 this.song = song;
                 return this;
             }
 
             public Instant startsAt;
 
-            public Playing startsAt(@NonNull Instant startsAt) {
+            public Playing startsAt(@NonNull final Instant startsAt) {
                 this.startsAt = startsAt;
                 return this;
             }
@@ -226,14 +226,14 @@ public class CurrentSong {
                 if (this.song == null) {
                     throw new NullPointerException("field song is marked non-null but is null");
                 }
-                Instant now = Instant.now();
+                final Instant now = Instant.now();
                 if (this.startsAt == null) {
                     this.startsAt = now;
                 } else if (startsAt.isAfter(now)) {
                     throw new InvalidParameterException("Cannot make a song starting in the future");
                 }
 
-                var built = new CurrentSong();
+                final var built = new CurrentSong();
                 built.song = this.song;
                 built.position = null;
                 built.startsAt = this.startsAt;

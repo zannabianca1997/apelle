@@ -59,9 +59,9 @@ public class QueuedSong extends PanacheEntityBase {
 
     @Builder
     public QueuedSong(
-            @NonNull Song song,
-            @NonNull Queue queue,
-            @NonNull Instant queuedAt) {
+            final @NonNull Song song,
+            final @NonNull Queue queue,
+            final @NonNull Instant queuedAt) {
         super();
         this.queuedAt = queuedAt;
         this.song = song;
@@ -69,12 +69,12 @@ public class QueuedSong extends PanacheEntityBase {
         this.ref = UUID.randomUUID();
     }
 
-    public static QueuedSong findById(@NonNull UUID songId, @NonNull Queue queue) {
+    public static QueuedSong findById(final @NonNull UUID songId, final @NonNull Queue queue) {
         return Song.<Song>findByIdOptional(songId).map(song -> findById(song, queue)).orElse(null);
     }
 
-    public static QueuedSong findById(@NonNull Song song, @NonNull Queue queue) {
-        var id = new QueuedSong();
+    public static QueuedSong findById(final @NonNull Song song, final @NonNull Queue queue) {
+        final var id = new QueuedSong();
         id.song = song;
         id.queue = queue;
         return findById(id);

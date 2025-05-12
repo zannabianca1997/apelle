@@ -11,7 +11,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
@@ -32,25 +31,30 @@ import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 @Authenticated
 @RequestScoped
 public class QueueSongResource {
+    private final SongMapper songMapper;
+    private final QueueUserService queueUserService;
+    private final QueueService queueService;
 
-    @Inject
-    SongMapper songMapper;
-    @Inject
-    QueueUserService queueUserService;
-    @Inject
-    QueueService queueService;
+    public QueueSongResource(
+            final SongMapper songMapper,
+            final QueueUserService queueUserService,
+            final QueueService queueService) {
+        this.songMapper = songMapper;
+        this.queueUserService = queueUserService;
+        this.queueService = queueService;
+    }
 
-    QueuedSong song = null;
-    QueueUser user = null;
+    private QueuedSong song = null;
+    private QueueUser user = null;
 
-    public QueueSongResource of(QueuedSong song, QueueUser user) {
+    public QueueSongResource of(final QueuedSong song, final QueueUser user) {
         this.song = song;
         this.user = user;
         return this;
     }
 
     @PermitAll
-    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) Object event) {
+    void onBeginTransaction(@Observes @Initialized(TransactionScoped.class) final Object event) {
         if (song != null)
             song = QueuedSong.getEntityManager().merge(song);
         if (user != null)
@@ -86,7 +90,7 @@ public class QueueSongResource {
             effectively removing all likes and moving them to the song.""")
     @Parameter(name = "count", description = "How many time to like the song. If negative, nothing will happen.")
     @Transactional
-    public void like(@QueryParam("count") @DefaultValue("1") short count)
+    public void like(@QueryParam("count") @DefaultValue("1") final short count)
             throws ActionNotPermittedException {
         queueService.like(song, user, count);
     }

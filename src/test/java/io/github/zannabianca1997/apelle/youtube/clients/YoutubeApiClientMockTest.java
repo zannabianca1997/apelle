@@ -8,14 +8,15 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 
 @QuarkusTest
 @Tag("testEnviroment")
 class YoutubeApiClientMockTest {
-    @Inject
-    @RestClient
-    YoutubeApiClient youtubeApiVideosClient;
+    private final YoutubeApiClient youtubeApiVideosClient;
+
+    public YoutubeApiClientMockTest(final @RestClient YoutubeApiClient youtubeApiVideosClient) {
+        this.youtubeApiVideosClient = youtubeApiVideosClient;
+    }
 
     @BeforeEach
     void installYoutubeMock() {
@@ -24,8 +25,8 @@ class YoutubeApiClientMockTest {
 
     @Test
     void isMocked() {
-        String id = YoutubeApiClientMock.RESPONSES.keySet().iterator().next();
-        var gotten = youtubeApiVideosClient.getDataById(id);
+        final String id = YoutubeApiClientMock.RESPONSES.keySet().iterator().next();
+        final var gotten = youtubeApiVideosClient.getDataById(id);
         assertEquals(YoutubeApiClientMock.RESPONSES.get(id), gotten);
     }
 }

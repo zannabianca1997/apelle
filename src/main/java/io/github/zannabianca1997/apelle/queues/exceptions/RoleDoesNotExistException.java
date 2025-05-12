@@ -14,7 +14,7 @@ import lombok.Getter;
 public class RoleDoesNotExistException extends Exception {
     private final String name;
 
-    public RoleDoesNotExistException(String name) {
+    public RoleDoesNotExistException(final String name) {
         super(String.format("Role `%s` does not exist", name));
         this.name = name;
     }
@@ -25,7 +25,7 @@ public class RoleDoesNotExistException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<RoleDoesNotExistException> {
         @Override
-        public Response toResponse(RoleDoesNotExistException exception) {
+        public Response toResponse(final RoleDoesNotExistException exception) {
             return RestResponse.status(Status.NOT_FOUND, exception.getMessage()).toResponse();
         }
     }

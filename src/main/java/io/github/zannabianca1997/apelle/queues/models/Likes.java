@@ -70,7 +70,8 @@ public class Likes extends PanacheEntityBase {
      * @param count   The count of the likes
      */
     @Builder
-    public Likes(@NonNull ApelleUser user, @NonNull QueuedSong song, Instant givenAt, short count) {
+    public Likes(final @NonNull ApelleUser user, final @NonNull QueuedSong song, final Instant givenAt,
+            final short count) {
         this.user = user;
         this.song = song;
         this.givenAt = givenAt != null ? givenAt : Instant.now();
@@ -85,20 +86,20 @@ public class Likes extends PanacheEntityBase {
      * @param givenAt The moment the likes were given
      * @return The likes, or null if none were found
      */
-    public static Likes findById(ApelleUser user, QueuedSong song, Instant givenAt) {
-        var id = new Likes();
+    public static Likes findById(final ApelleUser user, final QueuedSong song, final Instant givenAt) {
+        final var id = new Likes();
         id.user = user;
         id.song = song;
         id.givenAt = givenAt;
         return findById(id);
     }
 
-    public static Likes findOldests(QueueUser user) {
+    public static Likes findOldests(final QueueUser user) {
         return find("user = ?1 AND song.queue = ?2 ORDER BY givenAt ASC", user.getUser(), user.getQueue())
                 .firstResult();
     }
 
-    public static short givenBy(UUID userId, QueuedSong song) {
+    public static short givenBy(final UUID userId, final QueuedSong song) {
         return getSession()
                 .createNamedQuery("Likes.countUserLikes", Short.class)
                 .setParameter("queued_song_ref", song.getRef())
@@ -106,7 +107,7 @@ public class Likes extends PanacheEntityBase {
                 .getSingleResult();
     }
 
-    public static long deleteReferringTo(QueuedSong song) {
+    public static long deleteReferringTo(final QueuedSong song) {
         return delete("song = ?1", song);
     }
 }

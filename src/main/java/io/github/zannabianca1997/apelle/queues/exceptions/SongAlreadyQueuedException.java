@@ -18,7 +18,7 @@ public class SongAlreadyQueuedException extends Exception {
     private final UUID queueId;
     private final UUID songId;
 
-    public SongAlreadyQueuedException(UUID queueId, Song song) {
+    public SongAlreadyQueuedException(final UUID queueId, final Song song) {
         super(String.format("Song `%s` is already queued with id `%s", song.getName(), song.getId()));
         this.queueId = queueId;
         this.songId = song.getId();
@@ -30,7 +30,7 @@ public class SongAlreadyQueuedException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<SongAlreadyQueuedException> {
         @Override
-        public Response toResponse(SongAlreadyQueuedException exception) {
+        public Response toResponse(final SongAlreadyQueuedException exception) {
             return RestResponse.status(Status.CONFLICT, exception.getMessage()).toResponse();
         }
     }

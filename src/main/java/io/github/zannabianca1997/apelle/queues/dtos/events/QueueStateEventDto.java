@@ -26,7 +26,7 @@ import lombok.extern.jackson.Jacksonized;
         @SchemaProperty(name = "kind", type = SchemaType.STRING, enumeration = { QueueStateEventDto.JSON_TYPE_NAME })
 }, requiredProperties = { "kind" })
 public final class QueueStateEventDto extends QueueEventDto {
-    final static String JSON_TYPE_NAME = "queue-state";
+    public final static String JSON_TYPE_NAME = "queue-state";
 
     @NonNull
     @JsonProperty(required = true)
