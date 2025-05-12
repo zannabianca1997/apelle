@@ -22,4 +22,4 @@
 - [x] Adding musics/making any change make the player jumps erratically
 - [ ] Player is not synced when manually started
 - [x] CI runs even if the changes are non-functional (e.g. changes in the README.md or TODO.md)
-- [ ] Autolike not counted in song ordering
+- [x] Autolike not counted in song ordering
