@@ -51,6 +51,7 @@ import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.queues.services.QueueService;
 import io.github.zannabianca1997.apelle.queues.services.QueueUserService;
 import io.github.zannabianca1997.apelle.queues.services.SongService;
+import io.github.zannabianca1997.apelle.queues.services.QueueService.EnqueueResult;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByIdException;
 import io.github.zannabianca1997.apelle.users.exceptions.UserNotFoundByNameException;
 import io.github.zannabianca1997.apelle.youtube.exceptions.BadYoutubeApiResponseException;
@@ -113,21 +114,12 @@ public class QueueResource {
     @ResponseStatus(StatusCode.CREATED)
     @Transactional
     @Tag(name = "Queued song")
-    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto, @RestQuery("autolike") Boolean autolikeOverride)
+    public QueuedSongShortQueryDto enqueue(SongAddDto songAddDto, @RestQuery("autolike") Boolean autolike)
             throws BadYoutubeApiResponseException, SongAlreadyQueuedException, ActionNotPermittedException,
             YoutubeVideoNotFoundException {
         Song song = songService.fromDto(songAddDto);
-        QueuedSong enqueued = queueService.enqueue(queue, song);
-
-        // Check if the user asked to autolike, or if it is the default. Then check if
-        // the user has likes to give
-        final boolean autolike = (autolikeOverride == null ? queue.getConfig().isAutolike() : autolikeOverride)
-                && current.getPermissions().getQueue().isLike() && current.getAvailableLikes() > 0;
-        if (autolike) {
-            queueSongResource.of(enqueued, current).like((short) 1);
-        }
-
-        return songMapper.toShortDto(enqueued, (short) (autolike ? 1 : 0));
+        EnqueueResult enqueued = queueService.enqueue(queue, song, autolike);
+        return songMapper.toShortDto(enqueued.queuedSong(), enqueued.autolikes());
     }
 
     @Path("/queue/{songId}")

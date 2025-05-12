@@ -234,6 +234,9 @@ public class QueueService {
                 .state(queueMapper.toDto(queue, s -> (short) -1)).build());
     }
 
+    public record EnqueueResult(QueuedSong queuedSong, short autolikes) {
+    }
+
     /**
      * Add a song to the queueu
      * 
@@ -243,7 +246,8 @@ public class QueueService {
      * @throws SongAlreadyQueuedException  The song is already in the queue
      * @throws ActionNotPermittedException
      */
-    public QueuedSong enqueue(Queue queue, Song song) throws SongAlreadyQueuedException, ActionNotPermittedException {
+    public EnqueueResult enqueue(Queue queue, Song song, Boolean autolikeOverride)
+            throws SongAlreadyQueuedException, ActionNotPermittedException {
         QueueUser user = queueUserService.getCurrent(queue);
         if (!user.getPermissions().getQueue().isEnqueue()) {
             throw new ActionNotPermittedException(user.getRole(), "enqueue song");
@@ -258,6 +262,19 @@ public class QueueService {
 
         QueuedSong enqueued = queue.enqueue(song);
 
+        // Calculate autolike
+        final boolean autolike = autolikeOverride != null ? autolikeOverride : queue.getConfig().isAutolike();
+        final short likesGiven;
+        if (autolike && user.getAvailableLikes() > 0) {
+            Likes.builder().user(user.getUser()).song(enqueued).givenAt(Instant.now()).count((short) 1).build()
+                    .persist();
+            enqueued.setLikes((short) 1);
+            queue.sortSongs();
+            likesGiven = (short) 1;
+        } else {
+            likesGiven = (short) 0;
+        }
+
         queueEventBus
                 .publish(
                         QueueEnqueueEvent.builder().queueId(queue.getId())
@@ -266,7 +283,7 @@ public class QueueService {
                                         .toList())
                                 .build());
 
-        return enqueued;
+        return new EnqueueResult(enqueued, likesGiven);
     }
 
     /**
