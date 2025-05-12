@@ -85,9 +85,10 @@ public class QueueUserService {
     }
 
     public void delete(final QueueUser user) throws ActionNotPermittedException {
-        final QueueUser current = getCurrent(user.getQueue());
-        if (!current.getPermissions().getQueueUsers().isRemove()) {
-            throw new ActionNotPermittedException(current.getRole(), "remove user");
+        final QueueUser deleter = getCurrent(user.getQueue());
+        if (!deleter.getPermissions().getQueueUsers().isRemove()
+                && deleter.getUser().getId() != user.getUser().getId()) {
+            throw new ActionNotPermittedException(deleter.getRole(), "remove user");
         }
         user.delete();
     }
