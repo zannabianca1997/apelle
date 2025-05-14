@@ -24,7 +24,8 @@
     "navbar": {
         "title": "Apelle",
         "logout": "Logout",
-        "autoplay": "Autoplay"
+        "autoplay": "Autoplay",
+        "playFromHere": "Play from this device"
     },
     "frontoffice": {
         "title": "Welcome to Apelle",

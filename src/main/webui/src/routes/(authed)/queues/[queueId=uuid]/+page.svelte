@@ -19,8 +19,8 @@
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
 	import { PageNavBar } from '$lib/components/navbar/stores';
-	import NavBarButton from '$lib/components/navbar/NavBarButton.svelte';
 	import NavBarToggle from '$lib/components/navbar/NavBarToggle.svelte';
+	import { page } from '$app/state';
 
 	const { data }: PageProps = $props();
 
@@ -28,6 +28,15 @@
 	let queue: Queue = $state(data.queue);
 
 	let isPlayer: boolean = $state(data.isPlayer);
+	$effect(() => {
+		const url = page.url;
+		if (isPlayer === (url.searchParams.get('player') == 'true')) {
+			return;
+		}
+		url.searchParams.set('player', isPlayer ? 'true' : 'false');
+		goto(url);
+	});
+
 	const user: QueueUserQueryWithRoleDto = $state(data.user);
 
 	const SSELogger = new Logger(config.log.sse);
@@ -91,6 +100,9 @@
 {#snippet navbar()}
 	<NavBarToggle icons bind:value={queue.autoplay}>
 		{$_('navbar.autoplay')}
+	</NavBarToggle>
+	<NavBarToggle icons bind:value={isPlayer}>
+		{$_('navbar.playFromHere')}
 	</NavBarToggle>
 {/snippet}
 
