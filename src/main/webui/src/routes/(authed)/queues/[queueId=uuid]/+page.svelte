@@ -18,6 +18,8 @@
 	import { config } from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
+	import { PageNavBar } from '$lib/components/navbar/stores';
+	import NavBarButton from '$lib/components/navbar/NavBarButton.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -77,11 +79,15 @@
 			searchDialog.snapshot.restore(value.dialog);
 		}
 	};
+
+	$PageNavBar = navbar;
 </script>
 
 <svelte:head>
 	<title>Apelle - {queue.code}</title>
 </svelte:head>
+
+{#snippet navbar()}{/snippet}
 
 <main>
 	<Current

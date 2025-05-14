@@ -49,7 +49,8 @@ export const load: PageLoad = async ({ params: { queueId }, url }) => {
 	return (await Promise.all([queue, user]).then(([queue, user]) => {
 		if (user == null) {
 			throw new Error(
-				'This should not be possible as the only case in which 404 is returned for users/me is if the queue does not exist.'
+				'This should not be possible as the only case in which 404 ' +
+					'is returned for users/me is if the queue does not exist.'
 			);
 		}
 
