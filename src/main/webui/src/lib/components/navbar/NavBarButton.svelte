@@ -39,6 +39,8 @@
 		align-items: center;
 		gap: 5px;
 
+		border-radius: 4px;
+
 		span {
 			text-transform: uppercase;
 
@@ -49,17 +51,7 @@
 		}
 
 		&:hover {
-			background: linear-gradient(0deg, #911616 0%, #691010 77.5%);
-		}
-
-		&:first-child {
-			border-top-left-radius: 4px;
-			border-bottom-left-radius: 4px;
-		}
-
-		&:last-child {
-			border-top-right-radius: 4px;
-			border-bottom-right-radius: 4px;
+			background: linear-gradient(#911616 0%, #691010 77.5%);
 		}
 	}
 </style>

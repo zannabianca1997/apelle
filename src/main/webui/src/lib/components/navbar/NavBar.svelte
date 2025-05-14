@@ -11,16 +11,20 @@
 
 <style lang="scss">
 	nav {
-		position: absolute;
+		position: fixed;
+		top: 0;
+		width: 100%;
 
-		top: 12px;
-		left: 55px;
+		padding-top: 12px;
+		padding-right: 55px;
+		padding-bottom: 12px;
+		padding-left: 55px;
+
+		border-bottom: 1px solid #e182824f;
+
+		background-color: #0a0a0a;
 
 		display: flex;
-		gap: 10px;
-
-		border-radius: 4px;
-
-		background: linear-gradient(180deg, #911616 0%, #691010 77.5%);
+		justify-content: space-between;
 	}
 </style>
