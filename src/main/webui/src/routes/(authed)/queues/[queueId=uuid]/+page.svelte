@@ -79,6 +79,10 @@
 	};
 </script>
 
+<svelte:head>
+	<title>Apelle - {queue.code}</title>
+</svelte:head>
+
 <main>
 	<Current
 		{queueId}
