@@ -118,13 +118,14 @@ export class Queue {
 		this.current?.destroy();
 		if (data) {
 			this.current = new CurrentSong(data.id);
-			await this.current.init(data, this.autoplay ? () => this.stopEvent() : undefined);
+			await this.current.init(data, () => this.stopEvent());
 		} else {
 			this.current = undefined;
 		}
 	}
 
 	private async stopEvent(): Promise<void> {
+		if (!this.autoplay) return;
 		try {
 			await postNext(this.id, {
 				headers: {

@@ -23,7 +23,8 @@
     },
     "navbar": {
         "title": "Apelle",
-        "logout": "Logout"
+        "logout": "Logout",
+        "autoplay": "Autoplay"
     },
     "frontoffice": {
         "title": "Welcome to Apelle",

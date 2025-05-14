@@ -20,6 +20,7 @@
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
 	import { PageNavBar } from '$lib/components/navbar/stores';
 	import NavBarButton from '$lib/components/navbar/NavBarButton.svelte';
+	import NavBarToggle from '$lib/components/navbar/NavBarToggle.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -87,7 +88,11 @@
 	<title>Apelle - {queue.code}</title>
 </svelte:head>
 
-{#snippet navbar()}{/snippet}
+{#snippet navbar()}
+	<NavBarToggle icons bind:value={queue.autoplay}>
+		{$_('navbar.autoplay')}
+	</NavBarToggle>
+{/snippet}
 
 <main>
 	<Current
