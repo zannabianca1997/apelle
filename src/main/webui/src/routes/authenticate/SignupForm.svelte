@@ -55,5 +55,5 @@
 </form>
 
 <style lang="scss">
-	@import './form.scss';
+	@use './form.scss';
 </style>

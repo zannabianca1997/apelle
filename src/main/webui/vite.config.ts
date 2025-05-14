@@ -6,5 +6,12 @@ export default defineConfig({
 	plugins: [sveltekit(), Icons({ compiler: 'svelte' })],
 	server: {
 		port: 3000
+	},
+	css: {
+		preprocessorOptions: {
+			scss: {
+				api: 'modern-compiler'
+			}
+		}
 	}
 });
