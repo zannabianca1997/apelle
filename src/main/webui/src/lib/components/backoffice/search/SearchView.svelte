@@ -152,6 +152,7 @@
 <style lang="scss">
 	.songList {
 		table {
+			table-layout: fixed;
 			width: 100%;
 		}
 
