@@ -3,7 +3,7 @@ import axios, { AxiosError, type AxiosBasicCredentials } from 'axios';
 import { getApiV1UsersMe, postApiV1Users, type UserQueryDto } from '$lib/apis/apelle';
 import { browser } from '$app/environment';
 import { Logger } from '$lib/logger';
-import { config } from '$lib/config';
+import config from '$lib/config';
 
 const logger = new Logger(config.log.auth);
 

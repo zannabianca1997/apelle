@@ -15,7 +15,7 @@
 	import { onMount } from 'svelte';
 	import { Queue } from '$lib/models/Queue.svelte';
 	import { Logger } from '$lib/logger';
-	import { config } from '$lib/config';
+	import config from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
 	import { PageNavBar } from '$lib/components/navbar/stores';
