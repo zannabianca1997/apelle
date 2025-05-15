@@ -25,7 +25,7 @@
 # Chores
 
 - [x] Move all configurations to the database and enable per-queue configuration
-- [ ] Complete the i18n for italian
+- [x] Complete the i18n for italian
 
 # Bugs
 
@@ -34,3 +34,4 @@
 - [x] Player is not synced when manually started
 - [x] CI runs even if the changes are non-functional (e.g. changes in the README.md or TODO.md)
 - [x] Autolike not counted in song ordering
+- [x] When the tab is not active, the song is repeatedly synced to the wrong position

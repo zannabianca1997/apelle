@@ -165,7 +165,7 @@ export class CurrentSong {
 	/** Current position in the song */
 	position: durationjs.Duration = $state(dayjs.duration(0));
 
-	private animationFrame?: number;
+	private updateWorker?: { interval: NodeJS.Timeout; stopEvent?: () => void };
 
 	constructor(id: Uuid) {
 		this.id = id;
@@ -184,26 +184,28 @@ export class CurrentSong {
 		this.starts_at = dayjs(data.starts_at);
 
 		if (!this.stopped) {
-			this.setTimeout(stopEvent);
+			this.updateWorker = {
+				interval: setInterval(() => this.update(), 1000),
+				stopEvent
+			};
 		}
 	}
 
-	private setTimeout(stopEvent?: () => void) {
+	private update() {
 		const now = dayjs();
 
 		this.position = dayjs.duration(now.diff(this.starts_at));
 
 		if (this.position >= this.duration) {
 			this.stopped = true;
-			stopEvent?.();
-		} else {
-			this.animationFrame = window.requestAnimationFrame(() => this.setTimeout(stopEvent));
+			clearInterval(this.updateWorker!.interval);
+			this.updateWorker!.stopEvent?.();
 		}
 	}
 
 	destroy() {
-		if (this.animationFrame) {
-			window.cancelAnimationFrame(this.animationFrame);
+		if (this.updateWorker) {
+			clearInterval(this.updateWorker.interval);
 		}
 	}
 }
