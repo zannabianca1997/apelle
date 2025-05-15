@@ -1,15 +1,82 @@
 {
     "login": {
         "signinForm": {
-            "username": "Username",
+            "username": "Nome utente",
             "password": "Password",
-            "submit": "Entra"
+            "submit": "Accedi",
+            "errors": {
+                "usernameRequired": "Il nome utente è obbligatorio",
+                "passwordRequired": "La password è obbligatoria"
+            }
         },
         "signupForm": {
-            "username": "Username",
+            "username": "Nome utente",
             "password": "Password",
-            "passwordCheck": "Conferma password",
-            "submit": "Registrati"
+            "passwordCheck": "Ripeti password",
+            "submit": "Registrati",
+            "errors": {
+                "usernameRequired": "Il nome utente è obbligatorio",
+                "passwordRequired": "La password è obbligatoria",
+                "passwordDoesNotMatch": "Le password non coincidono"
+            }
+        }
+    },
+    "navbar": {
+        "title": "Apelle",
+        "logout": "Esci",
+        "autoplay": "Riproduzione automatica",
+        "playFromHere": "Riproduci da questo dispositivo"
+    },
+    "frontoffice": {
+        "title": "Benvenuto in Apelle",
+        "subtitle": "Complimenti per il tuo primo passo. Scegli un'opzione qui sotto e inizia ad aggiungere canzoni.",
+        "choices": {
+            "host": {
+                "text": "Ospita",
+                "anything": "Qualsiasi cosa"
+            },
+            "join": {
+                "text": "Partecipa",
+                "id": {
+                    "label": "Codice party",
+                    "placeholder": "HASTGA"
+                },
+                "submit": "Entra",
+                "errors": {
+                    "queueCodeRequired": "Il codice della coda è obbligatorio",
+                    "queueNotFound": "La coda {queueCode} non esiste"
+                }
+            }
+        }
+    },
+    "backoffice": {
+        "partyName": "Nome party: ",
+        "currentSong": {
+            "nothingPlaying": "Nessuna canzone in riproduzione"
+        },
+        "search": {
+            "label": "Ora voglio ascoltare...",
+            "submit": "Cerca",
+            "add": "Aggiungi",
+            "dismiss": "Esci",
+            "pageOnTotal": "{number} di {total}",
+            "unknowPageNumber": "molte",
+            "prev": "Indietro",
+            "next": "Altro"
+        },
+        "queue": {
+            "title": "Coda",
+            "like": "Spingi in su",
+            "liked": {
+                "pre": "Piaciuta",
+                "unit": "volte"
+            }
+        },
+        "song": {
+            "durationFormat": "HH:mm:ss",
+            "duration": "Durata",
+            "progress": "{position} di {duration}",
+            "likes": "Mi piace"
         }
     }
 }
