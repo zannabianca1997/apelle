@@ -2,6 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import { onMount, untrack } from 'svelte';
+	import config from '$lib/config';
 
 	const id = $props.id();
 	const { current = $bindable() }: { current: CurrentSong } = $props();
@@ -37,6 +38,8 @@
 		}
 	});
 
+	let desyncCheckerId: NodeJS.Timeout | undefined;
+
 	onMount(() => {
 		function load() {
 			player = new YT.Player(id, {
@@ -53,6 +56,15 @@
 				}
 			});
 
+			desyncCheckerId = setInterval(() => {
+				const time = player?.getCurrentTime?.();
+				if (!time) return;
+
+				if (Math.abs(time - current.position.asSeconds()) > config.player.allowedDesync) {
+					player?.seekTo?.(current.position.asSeconds(), true);
+				}
+			}, 1000);
+
 			loaded = true;
 		}
 
@@ -63,6 +75,7 @@
 		}
 
 		return () => {
+			clearInterval(desyncCheckerId);
 			player?.destroy?.();
 			player = undefined;
 			loaded = false;
