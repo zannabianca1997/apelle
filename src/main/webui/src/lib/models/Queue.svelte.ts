@@ -112,6 +112,8 @@ export class Queue {
 		this.queue = newQueue;
 
 		await Promise.all(promises);
+
+		this.queue.sort((a, b) => b.likes - a.likes || a.queued_at.diff(b.queued_at));
 	}
 
 	private async updateCurrent(data: CurrentSongQueryDto | undefined): Promise<void> {
