@@ -98,9 +98,11 @@
 </svelte:head>
 
 {#snippet navbar()}
-	<NavBarToggle icons bind:value={queue.autoplay}>
-		{$_('navbar.autoplay')}
-	</NavBarToggle>
+	{#if user.queue_role.permissions.queue.next}
+		<NavBarToggle icons bind:value={queue.autoplay}>
+			{$_('navbar.autoplay')}
+		</NavBarToggle>
+	{/if}
 	<NavBarToggle icons bind:value={isPlayer}>
 		{$_('navbar.playFromHere')}
 	</NavBarToggle>
