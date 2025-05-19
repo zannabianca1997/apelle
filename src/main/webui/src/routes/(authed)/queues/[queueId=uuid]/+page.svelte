@@ -81,12 +81,15 @@
 
 	export const snapshot: Snapshot<{
 		dialog: typeof searchDialog.snapshot extends Snapshot<infer T> ? T : never;
+		autoplay: boolean;
 	}> = {
 		capture: () => ({
-			dialog: searchDialog.snapshot.capture()
+			dialog: searchDialog.snapshot.capture(),
+			autoplay: queue.autoplay
 		}),
 		restore: (value) => {
 			searchDialog.snapshot.restore(value.dialog);
+			queue.autoplay = value.autoplay;
 		}
 	};
 
