@@ -5,13 +5,13 @@
 - [x] Autostart of the next song
 - [x] Buttons to control autoplay, player, navigation (nav bar)
 - [ ] Change the party name
-- [ ] Volume selector
+- [x] Volume selector
 - [ ] Progress bar
 - [x] Buttons to delete/ban queued song and insta-start it
 - [x] Search functionality
 - [ ] Add multiple songs/show if a song has already been added
 - [x] Autolike: songs that are added will be automatically liked
-- [ ] Move buttons under a context menu
+- [x] Move buttons under a context menu
 - [ ] Full configuration at queue creation
 - [ ] Change other user type (make admin)
 - [ ] Private queue (no default role + invite links)
