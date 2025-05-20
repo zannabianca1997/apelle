@@ -26,7 +26,8 @@
         "logout": "Logout",
         "autoplay": "Autoplay",
         "playFromHere": "Play from this device",
-        "volume": "Volume"
+        "volume": "Volume",
+        "dropdown": "Menu"
     },
     "frontoffice": {
         "title": "Welcome to Apelle",

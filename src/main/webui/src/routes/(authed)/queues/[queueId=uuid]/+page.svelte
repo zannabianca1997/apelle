@@ -18,9 +18,9 @@
 	import config from '$lib/config';
 	import SearchBar from '$lib/components/backoffice/search/SearchBar.svelte';
 	import SearchDialog from '$lib/components/backoffice/search/SearchDialog.svelte';
-	import { PageNavBar } from '$lib/components/navbar/stores';
-	import NavBarToggle from '$lib/components/navbar/NavBarToggle.svelte';
+	import NavBarToggle from '$lib/components/navbar/elements/NavBarToggle.svelte';
 	import { page } from '$app/state';
+	import NavBarSection from '$lib/components/navbar/NavBarSection.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -30,6 +30,7 @@
 	let isPlayer: boolean = $state(data.isPlayer);
 	$effect(() => {
 		const url = page.url;
+
 		if (isPlayer === (url.searchParams.get('player') == 'true')) {
 			return;
 		}
@@ -98,25 +99,19 @@
 			queue.autoplay = value.autoplay;
 		}
 	};
-
-	$PageNavBar = navbar;
 </script>
 
 <svelte:head>
 	<title>Apelle - {queue.code}</title>
 </svelte:head>
 
-{#snippet navbar()}
-	{#if user.queue_role.permissions.queue.next}
+{#if user.queue_role.permissions.queue.next}
+	<NavBarSection menu order={1}>
 		<NavBarToggle icons bind:value={queue.autoplay}>
 			{$_('navbar.autoplay')}
 		</NavBarToggle>
-	{/if}
-	<NavBarToggle icons bind:value={isPlayer}>
-		{$_('navbar.playFromHere')}
-	</NavBarToggle>
-	{@render current?.navbar()}
-{/snippet}
+	</NavBarSection>
+{/if}
 
 <main>
 	<Current
@@ -125,7 +120,7 @@
 		bind:playerStateId={queue.player_state_id}
 		bind:current={queue.current}
 		{user}
-		{isPlayer}
+		bind:isPlayer
 	/>
 	<section>
 		<h1>{$_('backoffice.partyName')}<code>{queue.code}</code></h1>

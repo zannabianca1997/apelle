@@ -1,29 +1,34 @@
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 	import { _ } from 'svelte-i18n';
 
-	const {
+	let {
 		icon: Icon,
-		onclick,
-		children
+		value = $bindable(0),
+		children,
+		...inputAttributes
 	}: {
-		icon?: Component<{ height: string; width: string }>;
-		onclick?: () => void;
-		children?: Snippet;
-	} = $props();
+		icon?: Component<{ height: number; width: number }>;
+		value?: number;
+		children?: Snippet<[{ value: number }]>;
+	} & Omit<HTMLInputAttributes, 'type' | 'value'> = $props();
+
+	const id = $props.id();
 </script>
 
-<button {onclick}>
+<div>
 	{#if Icon}
-		<Icon height="24px" width="24px" />
+		<Icon height={24} width={24} />
 	{/if}
 	{#if children}
-		<span>{@render children()}</span>
+		<label for="input-{id}">{@render children({ value })}</label>
 	{/if}
-</button>
+	<input type="range" bind:value {...inputAttributes} id="input-{id}" />
+</div>
 
 <style lang="scss">
-	button {
+	div {
 		height: 36px;
 
 		padding-top: 6px;
@@ -41,8 +46,10 @@
 
 		border-radius: 4px;
 
-		span {
+		label {
 			text-transform: uppercase;
+
+			text-wrap: nowrap;
 
 			font-weight: 900;
 			font-size: 16px;

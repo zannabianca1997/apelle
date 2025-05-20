@@ -4,6 +4,8 @@
 	import IconOffDefault from '~icons/mdi/checkbox-blank-circle-outline';
 	import { _ } from 'svelte-i18n';
 
+	type IconComponent = Component<{ height: number; width: number }>;
+
 	let {
 		value = $bindable(false),
 		icons,
@@ -11,24 +13,18 @@
 	}: {
 		value?: boolean;
 		children?: Snippet<[{ value: boolean }]>;
-
 		icons?:
-			| true
+			| boolean
 			| {
-					on?: Component<{ height: number; width: number }>;
-					off?: Component<{ height: number; width: number }>;
+					on?: IconComponent;
+					off?: IconComponent;
 			  };
 	} = $props();
 
-	const IconOn = icons === true ? IconOnDefault : (icons?.on ?? IconOnDefault);
-	const IconOff = icons === true ? IconOffDefault : (icons?.off ?? IconOffDefault);
+	const { on: IconOn = IconOnDefault, off: IconOff = IconOffDefault } =
+		typeof icons === 'boolean' || !icons ? {} : icons;
 
 	const Icon = $derived(value ? IconOn : IconOff);
-
-	const iconProps = {
-		height: 24,
-		width: 24
-	};
 
 	function onclick() {
 		value = !value;
@@ -37,7 +33,7 @@
 
 <button {onclick}>
 	{#if icons}
-		<Icon {...iconProps} />
+		<Icon height={24} width={24} />
 	{/if}
 	{#if children}
 		<span>{@render children({ value })}</span>
@@ -65,6 +61,7 @@
 
 		span {
 			text-transform: uppercase;
+			text-wrap: nowrap;
 
 			font-weight: 900;
 			font-size: 16px;

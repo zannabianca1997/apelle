@@ -1,27 +1,29 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import type { HTMLInputAttributes } from 'svelte/elements';
+	import type { Component, Snippet } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import type { HTMLButtonAttributes } from 'svelte/elements';
 
-	let {
-		value = $bindable(0),
+	const {
+		icon: Icon,
 		children,
-		...inputAttributes
+		...buttonProps
 	}: {
-		value?: number;
-		children?: Snippet<[{ value: number }]>;
-	} & Omit<HTMLInputAttributes, 'type' | 'value'> = $props();
+		icon?: Component<{ height: number; width: number }>;
+		children?: Snippet;
+	} & HTMLButtonAttributes = $props();
 </script>
 
-<div>
-	<input type="range" bind:value {...inputAttributes} />
-	{#if children}
-		<span>{@render children({ value })}</span>
+<button {...buttonProps}>
+	{#if Icon}
+		<Icon height={24} width={24} />
 	{/if}
-</div>
+	{#if children}
+		<span>{@render children()}</span>
+	{/if}
+</button>
 
 <style lang="scss">
-	div {
+	button {
 		height: 36px;
 
 		padding-top: 6px;
@@ -41,6 +43,8 @@
 
 		span {
 			text-transform: uppercase;
+
+			text-wrap: nowrap;
 
 			font-weight: 900;
 			font-size: 16px;

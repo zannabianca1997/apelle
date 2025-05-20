@@ -18,7 +18,6 @@
 	import { goto } from '$app/navigation';
 	import { isUuid } from '$lib/matchers';
 	import { AxiosError } from 'axios';
-	import { PageNavBar } from '$lib/components/navbar/stores';
 
 	let expanded: string = $state('join');
 
@@ -86,11 +85,7 @@
 		// navigate to the queue page
 		goto(`/queues/${id}`);
 	}
-
-	$PageNavBar = navbar;
 </script>
-
-{#snippet navbar()}{/snippet}
 
 <header>
 	<h1>{$_('frontoffice.title')}</h1>

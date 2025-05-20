@@ -3,11 +3,11 @@
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import { onMount, untrack } from 'svelte';
 	import config from '$lib/config';
-	import NavBarSlider from '$lib/components/navbar/NavBarSlider.svelte';
-	import type { Snapshot } from '../../../../../routes/$types';
+	import type { Snapshot } from '@sveltejs/kit';
 
 	const id = $props.id();
-	const { current = $bindable() }: { current: CurrentSong } = $props();
+	let { current = $bindable(), volume = $bindable(50) }: { current: CurrentSong; volume?: number } =
+		$props();
 
 	let videoId = $derived(current.url!.searchParams.get('v')!);
 
@@ -65,6 +65,20 @@
 				if (Math.abs(time - current.position.asSeconds()) > config.player.allowedDesync) {
 					player?.seekTo?.(current.position.asSeconds(), true);
 				}
+
+				const state = player?.getPlayerState?.();
+				if (!state) return;
+				const isPlayerRunning = [YT.PlayerState.PLAYING, YT.PlayerState.BUFFERING].includes(state);
+
+				if (current.stopped) {
+					if (isPlayerRunning) {
+						player?.stopVideo?.();
+					}
+				} else {
+					if (!isPlayerRunning) {
+						player?.playVideo?.();
+					}
+				}
 			}, 1000);
 
 			loaded = true;
@@ -84,23 +98,16 @@
 		};
 	});
 
-	let volume = $state(50);
+	$effect(() => {
+		const newVolume = volume;
+		player?.setVolume?.(newVolume);
+	});
 
-	export const snapshot: Snapshot<{ volume: number }> = {
-		capture: () => ({ volume }),
-		restore: (value) => {
-			volume = value.volume;
-		}
+	export const snapshot: Snapshot<{}> = {
+		capture: () => ({}),
+		restore: (value) => {}
 	};
-
-	export { navbar };
 </script>
-
-{#snippet navbar()}
-	<NavBarSlider bind:value={volume} min={0} max={100} oninput={() => player?.setVolume?.(volume)}>
-		{$_('navbar.volume')}
-	</NavBarSlider>
-{/snippet}
 
 <svelte:head>
 	<!--Youtube embedded js-->

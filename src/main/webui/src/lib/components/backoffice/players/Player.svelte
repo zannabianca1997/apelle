@@ -5,11 +5,15 @@
 	import Thumbnail from '../Thumbnail.svelte';
 	import { Logger } from '$lib/logger';
 	import config from '$lib/config';
-	import type { Snapshot } from '../../../../routes/$types';
+	import type { Snapshot } from '@sveltejs/kit';
+	import NavBarSection from '$lib/components/navbar/NavBarSection.svelte';
+	import NavBarToggle from '$lib/components/navbar/elements/NavBarToggle.svelte';
+	import NavBarSlider from '$lib/components/navbar/elements/NavBarSlider.svelte';
+	import IconVolume from '~icons/mdi/volume';
 
 	const logger = new Logger(config.log.player);
 
-	const {
+	let {
 		current = $bindable(),
 		isPlayer = $bindable(false)
 	}: { current: CurrentSong; isPlayer: boolean } = $props();
@@ -26,22 +30,36 @@
 	});
 	let sourcePlayer: YoutubePlayer | undefined = $state();
 
-	export const snapshot: Snapshot<
-		| (NonNullable<typeof sourcePlayer> extends { snapshot: Snapshot<infer T> } ? T : never)
-		| undefined
-	> = {
-		capture: () => sourcePlayer?.snapshot.capture(),
-		restore: (value) => value && sourcePlayer?.snapshot.restore(value)
-	};
+	let volume: number = $state(50);
 
-	export { navbar };
+	export const snapshot: Snapshot<{
+		sourcePlayer?: NonNullable<typeof sourcePlayer> extends { snapshot: Snapshot<infer T> }
+			? T
+			: never;
+		volume: number;
+	}> = {
+		capture: () => ({ sourcePlayer: sourcePlayer?.snapshot.capture(), volume }),
+		restore: (value) => {
+			value.sourcePlayer && sourcePlayer?.snapshot.restore(value.sourcePlayer);
+			volume = value.volume;
+		}
+	};
 </script>
 
-{#snippet navbar()}{@render sourcePlayer?.navbar()}{/snippet}
+<NavBarSection menu order={2}>
+	<NavBarToggle icons bind:value={isPlayer}>
+		{$_('navbar.playFromHere')}
+	</NavBarToggle>
+	{#if isPlayer}
+		<NavBarSlider icon={IconVolume} bind:value={volume} min={0} max={100}>
+			{$_('navbar.volume')}
+		</NavBarSlider>
+	{/if}
+</NavBarSection>
 
 {#if isPlayer}
 	<div class="iframe">
-		<SourcePlayer bind:this={sourcePlayer} {current} />
+		<SourcePlayer bind:this={sourcePlayer} {current} bind:volume />
 	</div>
 {:else}
 	<div class="thumb">

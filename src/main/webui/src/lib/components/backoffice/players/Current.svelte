@@ -58,15 +58,11 @@
 		capture: () => player?.snapshot.capture(),
 		restore: (value) => value && player?.snapshot.restore(value)
 	};
-
-	export { navbar };
 </script>
-
-{#snippet navbar()}{@render player?.navbar()}{/snippet}
 
 <section>
 	{#if current}
-		<Player bind:this={player} bind:current {isPlayer} />
+		<Player bind:this={player} bind:current bind:isPlayer />
 	{:else}
 		<h1>{$_('backoffice.currentSong.nothingPlaying')}</h1>
 	{/if}
