@@ -78,17 +78,23 @@
 	}
 
 	let searchDialog: SearchDialog;
+	let current: Current | undefined = $state();
 
 	export const snapshot: Snapshot<{
 		dialog: typeof searchDialog.snapshot extends Snapshot<infer T> ? T : never;
+		current:
+			| (NonNullable<typeof current> extends { snapshot: Snapshot<infer T> } ? T : never)
+			| undefined;
 		autoplay: boolean;
 	}> = {
 		capture: () => ({
 			dialog: searchDialog.snapshot.capture(),
+			current: current?.snapshot.capture(),
 			autoplay: queue.autoplay
 		}),
 		restore: (value) => {
 			searchDialog.snapshot.restore(value.dialog);
+			current?.snapshot.restore(value.current);
 			queue.autoplay = value.autoplay;
 		}
 	};
@@ -109,10 +115,12 @@
 	<NavBarToggle icons bind:value={isPlayer}>
 		{$_('navbar.playFromHere')}
 	</NavBarToggle>
+	{@render current?.navbar()}
 {/snippet}
 
 <main>
 	<Current
+		bind:this={current}
 		{queueId}
 		bind:playerStateId={queue.player_state_id}
 		bind:current={queue.current}

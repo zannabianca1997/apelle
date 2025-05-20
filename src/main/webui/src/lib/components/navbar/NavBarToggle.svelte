@@ -10,8 +10,6 @@
 		children
 	}: {
 		value?: boolean;
-
-		onclick?: () => void;
 		children?: Snippet<[{ value: boolean }]>;
 
 		icons?:
@@ -25,6 +23,8 @@
 	const IconOn = icons === true ? IconOnDefault : (icons?.on ?? IconOnDefault);
 	const IconOff = icons === true ? IconOffDefault : (icons?.off ?? IconOffDefault);
 
+	const Icon = $derived(value ? IconOn : IconOff);
+
 	const iconProps = {
 		height: 24,
 		width: 24
@@ -37,11 +37,7 @@
 
 <button {onclick}>
 	{#if icons}
-		{#if value}
-			<IconOn {...iconProps} />
-		{:else}
-			<IconOff {...iconProps} />
-		{/if}
+		<Icon {...iconProps} />
 	{/if}
 	{#if children}
 		<span>{@render children({ value })}</span>

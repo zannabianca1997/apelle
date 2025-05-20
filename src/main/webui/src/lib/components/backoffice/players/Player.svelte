@@ -3,20 +3,45 @@
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import YoutubePlayer from './sources/YoutubePlayer.svelte';
 	import Thumbnail from '../Thumbnail.svelte';
+	import { Logger } from '$lib/logger';
+	import config from '$lib/config';
+	import type { Snapshot } from '../../../../routes/$types';
+
+	const logger = new Logger(config.log.player);
 
 	const {
 		current = $bindable(),
 		isPlayer = $bindable(false)
 	}: { current: CurrentSong; isPlayer: boolean } = $props();
+
+	const SourcePlayer = $derived.by(() => {
+		switch (current.kind) {
+			case 'Youtube':
+				return YoutubePlayer;
+			default:
+				const unknownKind: never = current.kind;
+				logger.error('Unknown song kind: %o', unknownKind);
+				throw new Error(`Unknown song kind: ${unknownKind}`);
+		}
+	});
+	let sourcePlayer: YoutubePlayer | undefined = $state();
+
+	export const snapshot: Snapshot<
+		| (NonNullable<typeof sourcePlayer> extends { snapshot: Snapshot<infer T> } ? T : never)
+		| undefined
+	> = {
+		capture: () => sourcePlayer?.snapshot.capture(),
+		restore: (value) => value && sourcePlayer?.snapshot.restore(value)
+	};
+
+	export { navbar };
 </script>
+
+{#snippet navbar()}{@render sourcePlayer?.navbar()}{/snippet}
 
 {#if isPlayer}
 	<div class="iframe">
-		{#if current.kind == 'Youtube'}
-			<YoutubePlayer {current} />
-		{:else}
-			<!--No other kinds are possible-->
-		{/if}
+		<SourcePlayer bind:this={sourcePlayer} {current} />
 	</div>
 {:else}
 	<div class="thumb">

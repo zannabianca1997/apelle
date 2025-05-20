@@ -3,6 +3,8 @@
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
 	import { onMount, untrack } from 'svelte';
 	import config from '$lib/config';
+	import NavBarSlider from '$lib/components/navbar/NavBarSlider.svelte';
+	import type { Snapshot } from '../../../../../routes/$types';
 
 	const id = $props.id();
 	const { current = $bindable() }: { current: CurrentSong } = $props();
@@ -81,7 +83,24 @@
 			loaded = false;
 		};
 	});
+
+	let volume = $state(50);
+
+	export const snapshot: Snapshot<{ volume: number }> = {
+		capture: () => ({ volume }),
+		restore: (value) => {
+			volume = value.volume;
+		}
+	};
+
+	export { navbar };
 </script>
+
+{#snippet navbar()}
+	<NavBarSlider bind:value={volume} min={0} max={100} oninput={() => player?.setVolume?.(volume)}>
+		{$_('navbar.volume')}
+	</NavBarSlider>
+{/snippet}
 
 <svelte:head>
 	<!--Youtube embedded js-->

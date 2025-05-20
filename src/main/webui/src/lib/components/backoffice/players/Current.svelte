@@ -12,6 +12,7 @@
 	import IconPause from '~icons/mdi/pause';
 	import IconNext from '~icons/mdi/skip-next';
 	import type { CurrentSong } from '$lib/models/Queue.svelte';
+	import type { Snapshot } from '@sveltejs/kit';
 
 	let {
 		queueId,
@@ -48,11 +49,24 @@
 			}
 		});
 	}
+
+	let player: Player | undefined = $state();
+
+	export const snapshot: Snapshot<
+		(NonNullable<typeof player> extends { snapshot: Snapshot<infer T> } ? T : never) | undefined
+	> = {
+		capture: () => player?.snapshot.capture(),
+		restore: (value) => value && player?.snapshot.restore(value)
+	};
+
+	export { navbar };
 </script>
+
+{#snippet navbar()}{@render player?.navbar()}{/snippet}
 
 <section>
 	{#if current}
-		<Player bind:current {isPlayer} />
+		<Player bind:this={player} bind:current {isPlayer} />
 	{:else}
 		<h1>{$_('backoffice.currentSong.nothingPlaying')}</h1>
 	{/if}
