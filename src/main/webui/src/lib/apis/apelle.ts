@@ -11,7 +11,7 @@ playing song.
 
 It also fetch the song data from the sources (for now, only Youtube is supported).
 Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
- * OpenAPI spec version: 0.0.1
+ * OpenAPI spec version: 1.0.0
  */
 import axios from 'axios';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';

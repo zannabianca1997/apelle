@@ -29,7 +29,7 @@ public class VersionResource {
     @PermitAll
     @Operation(summary = "Version of the server", description = "Return the version of the server")
     @APIResponse(responseCode = "200", description = "The version of the server", content = {
-            @Content(mediaType = "text/plain", example = "0.0.1", schema = @Schema(type = SchemaType.STRING, pattern = "\\d+\\.\\d+\\.\\d+"))
+            @Content(mediaType = "text/plain", example = "1.0.0", schema = @Schema(type = SchemaType.STRING, pattern = "\\d+\\.\\d+\\.\\d+"))
     })
     public String version() {
         return version;
