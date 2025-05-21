@@ -8,9 +8,18 @@ apelle:
 
 # Quarkus configuration
 quarkus:
+  # Banner
+  banner:
+    path: banner.txt
   # Database: the application for now support only PostgreSQL
   datasource:
     db-kind: postgresql
+  hibernate-orm:
+    database:
+      generation: none
+    sql-load-script: no-file
+  flyway:
+    migrate-at-start: true
   # Run basic globally
   http:
     auth:
@@ -37,12 +46,7 @@ quarkus:
         VITE_QUARKUS_PROFILE: ${quarkus.profile}
       dev-env:
         VITE_QUARKUS_PROFILE: ${quarkus.profile}
-  hibernate-orm:
-    database:
-      generation: none
-    sql-load-script: no-file
-  flyway:
-    migrate-at-start: true
+  # Cache: redis/keyval is for now the only supported
   redis:
     configure-client-name: true
     client-name: ${quarkus.application.name:apelle}
