@@ -1,91 +1,87 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
-import java.util.UUID;
-
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-import io.github.zannabianca1997.apelle.queues.configs.QueueUserRolesConfig.QueueUserRoleConfig.Permissions;
+import io.github.zannabianca1997.apelle.queues.roles.models.QueueUserRole;
+import io.github.zannabianca1997.apelle.queues.roles.models.QueueUserRolePermissions;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "user", "queue" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queue_user")
-@NamedNativeQuery(name = "QueueUser.countLikes", query = "COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = :queue_id AND l.user_id = :user_id), 0)", resultClass = Short.class)
+@NamedNativeQuery(name = "QueueUser.countLikes", query = """
+        SELECT COALESCE((
+            SELECT SUM(count)
+            FROM likes l
+            JOIN queued_song s ON s.ref = l.queued_song_ref
+            WHERE s.queue_id = :queue_id
+              AND l.user_id = :user_id)
+        , 0)""", resultClass = Short.class)
 /// A user relationship with a queue
 public class QueueUser extends PanacheEntityBase {
 
-    @Embeddable
-    @Data
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Link {
-        @NonNull
-        @Column(nullable = false)
-        /// The user
-        private UUID user;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queue
-        private UUID queue;
-    }
-
-    @EmbeddedId
-    @NonNull
-    private Link link;
-
+    /// The user of the queue
     @NonNull
     @ManyToOne
-    @MapsId("user")
-    /// The user of the queue
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Id
     private ApelleUser user;
 
+    /// The queue
     @NonNull
     @ManyToOne
-    @MapsId("queue")
-    /// The queue
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Id
+    @ToString.Exclude
     private Queue queue;
 
     @NonNull
-    @Column(nullable = false)
-    @Type(QueueUserRole.Type.class)
+    @ManyToOne
+    @JoinColumn(nullable = false)
     /// Role of the user in the queue
     private QueueUserRole role;
 
-    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.user_id = user_id), 0)")
+    @Formula("""
+            COALESCE((
+                SELECT SUM(count)
+                FROM likes l
+                JOIN queued_song s ON s.ref = l.queued_song_ref
+                WHERE s.queue_id = queue_id
+                  AND l.user_id = user_id)
+            , 0)""")
     @Setter(AccessLevel.NONE)
     /// Number of likes given by this user
     private short likes;
 
     @Builder
     public QueueUser(
-            @NonNull ApelleUser user,
-            @NonNull Queue queue,
-            @NonNull QueueUserRole role,
-            boolean likesFilled) {
+            final @NonNull ApelleUser user,
+            final @NonNull Queue queue,
+            final @NonNull QueueUserRole role,
+            final boolean likesFilled) {
         super();
 
-        this.link = new Link();
         this.user = user;
         this.queue = queue;
         this.role = role;
@@ -101,15 +97,22 @@ public class QueueUser extends PanacheEntityBase {
         }
     }
 
-    public static QueueUser findById(@NonNull UUID userId, @NonNull UUID queueId) {
-        return findById(new Link(userId, queueId));
+    public static QueueUser findById(final @NonNull ApelleUser user, final @NonNull Queue queue) {
+        final var id = new QueueUser();
+        id.user = user;
+        id.queue = queue;
+        return findById(id);
     }
 
     public short getMaxLikes() {
         return getRole().getMaxLikes();
     }
 
-    public Permissions getPermissions() {
+    public short getAvailableLikes() {
+        return (short) (getMaxLikes() - getLikes());
+    }
+
+    public QueueUserRolePermissions getPermissions() {
         return getRole().getPermissions();
     }
 }

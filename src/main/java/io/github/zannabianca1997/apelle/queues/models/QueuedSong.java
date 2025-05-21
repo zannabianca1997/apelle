@@ -6,90 +6,78 @@ import java.util.UUID;
 import org.hibernate.annotations.Formula;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "queue", "song" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queued_song")
 /// A queued song
 public class QueuedSong extends PanacheEntityBase {
 
-    @Embeddable
-    @Data
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Link {
-        @NonNull
-        @Column(nullable = false)
-        /// The queued song
-        private UUID song;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queue
-        private UUID queue;
-    }
-
-    @EmbeddedId
-    @NonNull
-    private Link link;
-
-    @NonNull
-    @ManyToOne
-    @MapsId("song")
     /// The queued song
+    @NonNull
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @Id
     private Song song;
 
+    /// The queue
     @NonNull
     @ManyToOne
-    @MapsId("queue")
-    /// The queue
+    @Id
+    @ToString.Exclude
     private Queue queue;
 
     @NonNull
     @Column(name = "queued_at", nullable = false)
     private Instant queuedAt;
 
-    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queue_id = queue_id AND l.song_id = song_id), 0)")
+    @NonNull
+    @Column(nullable = false, unique = true)
+    /** Id used to identify a queued song */
+    private UUID ref;
+
+    @Formula("COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queued_song_ref = ref), 0)")
     /// Number of likes on this song
     private short likes;
 
     @Builder
     public QueuedSong(
-            @NonNull Song song,
-            @NonNull Queue queue,
-            @NonNull Instant queuedAt) {
+            final @NonNull Song song,
+            final @NonNull Queue queue,
+            final @NonNull Instant queuedAt) {
         super();
-        this.link = new Link();
         this.queuedAt = queuedAt;
         this.song = song;
         this.queue = queue;
+        this.ref = UUID.randomUUID();
     }
 
-    public static QueuedSong findById(@NonNull UUID songId, @NonNull UUID queueId) {
-        return findById(new Link(songId, queueId));
+    public static QueuedSong findById(final @NonNull UUID songId, final @NonNull Queue queue) {
+        return Song.<Song>findByIdOptional(songId).map(song -> findById(song, queue)).orElse(null);
     }
 
-    @Override
-    public void delete() {
-        // Remove all likes
-        Likes.deleteReferringTo(getLink());
-        // Delete the entity
-        super.delete();
+    public static QueuedSong findById(final @NonNull Song song, final @NonNull Queue queue) {
+        final var id = new QueuedSong();
+        id.song = song;
+        id.queue = queue;
+        return findById(id);
     }
+
 }

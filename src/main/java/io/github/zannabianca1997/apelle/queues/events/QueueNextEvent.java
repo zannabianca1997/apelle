@@ -15,4 +15,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public final class QueueNextEvent extends QueueEvent {
     private QueueQueryDto state;
+
 }

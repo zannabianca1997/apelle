@@ -10,21 +10,26 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-hibernate-validator'
+    implementation 'io.quarkus:quarkus-redis-client'
+    implementation 'io.quarkus:quarkus-container-image-docker'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    
     implementation 'io.quarkus:quarkus-config-yaml'
-    implementation 'io.quarkus:quarkus-websockets-next'
+    
     implementation 'io.quarkus:quarkus-vertx'
 
     implementation 'io.quarkus:quarkus-rest-jackson'
-    implementation 'io.quarkus:quarkus-smallrye-openapi'
     implementation 'io.quarkus:quarkus-security-jpa'
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-arc'
-    implementation 'io.quarkus:quarkus-rest'
-    
 
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    
     implementation 'io.quarkus:quarkus-hibernate-orm-panache' 
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    
+    implementation 'io.quarkus:quarkus-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
 
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
@@ -34,10 +39,12 @@ dependencies {
 
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
     implementation 'io.quarkus:quarkus-rest-client-jackson'
+
+    implementation 'io.quarkiverse.quinoa:quarkus-quinoa:2.5.3'
 }
 
 group = 'io.github.zannabianca1997.apelle'
-version = '0.0.1'
+version = '1.0.0'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21

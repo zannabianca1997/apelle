@@ -5,15 +5,18 @@ import java.time.Instant;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
+@Jacksonized
 @Schema(description = "The song currently being played")
 public class CurrentSongQueryDto extends SongQueryDto {
     @JsonProperty(required = true)
@@ -23,6 +26,7 @@ public class CurrentSongQueryDto extends SongQueryDto {
     @Schema(description = "Moment at which the song should have started to reach the current position")
     private Instant startsAt;
     @JsonProperty(required = true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     @Schema(description = "Current position in the song")
     private Duration position;
 }

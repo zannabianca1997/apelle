@@ -1,0 +1,47 @@
+name: Build and Push Native Quarkus Image
+
+on:
+  push:
+    branches: [development, main]
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - src/test/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Ghcr Login
+        run: echo "${{ secrets.CR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.CR_USERNAME }}" --password-stdin
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build native image and push container
+        run: |
+          ./gradlew quarkusBuild \
+            -Dquarkus.profile=$([ "$GITHUB_REF_NAME" == 'main' ] && echo 'prod' || echo 'staging') \
+            -Dquarkus.native.enabled=true \
+            -Dquarkus.native.container-build=true \
+            -Dquarkus.container-image.build=true \
+            -Dquarkus.container-image.push=true \
+            -Dquarkus.package.jar.enabled=false \
+            -Dquarkus.container-image.registry=ghcr.io \
+            -Dquarkus.container-image.group=${{ secrets.CR_USERNAME }} \
+            -Dquarkus.container-image.name=apelle \
+            -Dquarkus.container-image.tag=${GITHUB_REF_NAME} \
+            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21
+
+      - name: Show pushed image info
+        run: echo "Image pushed to ghcr.io."

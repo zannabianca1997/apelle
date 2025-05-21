@@ -2,7 +2,7 @@
 
 > A communist music queue
 
-`apelle` is a backend for handling a shared music queue. 
+`apelle` is a backend for handling a shared music queue.
 Users can insert songs in the queues, and upvote them to push them upward. `apelle`
 will track the position of each song in the queue, and the position of the currently
 playing song.
@@ -16,11 +16,13 @@ Users provides only the minimal necessary to identify the song (e.g. the youtube
 
 ### Google
 
-`apelle` needs access to Google Youtube API to fetch the video data. Provide the key in the property `apelle.youtube.api.key`.
+`apelle` needs access to Google Youtube API to fetch the video data. Provide the key in the property `apelle.songs.sources.youtube.api-key`.
 For example, using a `.env` in the project root:
+
 ```env
-apelle.youtube.api.key=<your-key-here>
+apelle.songs.sources.youtube.api-key=<your-key-here>
 ```
+
 The key need to be able to query the youtube API v3.
 
 ## Running the application in dev mode
@@ -28,11 +30,14 @@ The key need to be able to query the youtube API v3.
 You can run your application in dev mode that enables live coding using:
 
 ```shell script
-./gradlew quarkusDev
+./gradlew quarkusDev -Dvertx.disableURIValidation=true
 ```
 
-You can then found the dev UI at <http://localhost:8080/q/dev/>. 
-You can also found the Swagged OpenAPI documentation at <http://localhost:8080/q/swagger-ui/>.
+You can then found the web UI at <http://localhost:8080/>. Hot reloading is enabled both on the frontend and the backend.
+
+You can also find the dev UI at <http://localhost:8080/q/dev/>, and the Swagged OpenAPI documentation at <http://localhost:8080/q/swagger-ui/>.
+
+The `-Dvertx.disableURIValidation=true` is needed to handle sveltekit dynamic routes. It should not be enabled in production.
 
 ## Packaging and running the application
 
@@ -69,6 +74,6 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true -Dquarkus.package.jar.enabled=false
 ```
 
-You can then execute your native executable with: `./build/apelle-0.0.1-runner`
+You can then execute your native executable with: `./build/apelle-1.0.0-runner`
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/gradle-tooling>.

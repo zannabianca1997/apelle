@@ -4,7 +4,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.GET;
@@ -16,15 +18,18 @@ import jakarta.ws.rs.core.MediaType;
 @Tag(name = "Other", description = "General endpoints")
 public class VersionResource {
 
-    @ConfigProperty(name = "quarkus.application.version")
-    String version;
+    private final String version;
+
+    public VersionResource(@ConfigProperty(name = "quarkus.application.version") final String version) {
+        this.version = version;
+    }
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @PermitAll
     @Operation(summary = "Version of the server", description = "Return the version of the server")
     @APIResponse(responseCode = "200", description = "The version of the server", content = {
-            @Content(mediaType = "text/plain", example = "0.0.1")
+            @Content(mediaType = "text/plain", example = "1.0.0", schema = @Schema(type = SchemaType.STRING, pattern = "\\d+\\.\\d+\\.\\d+"))
     })
     public String version() {
         return version;

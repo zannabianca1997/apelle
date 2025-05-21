@@ -19,16 +19,19 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Getter;
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -52,13 +55,8 @@ public abstract class Song extends PanacheEntityBase {
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
-    /// The likes on this song, on any queue
-    private Collection<Likes> likes;
-
-    @NonNull
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.song")
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "song")
+    @ToString.Exclude
     /// The queues this song is inside
     private Collection<QueuedSong> queues;
 
@@ -77,9 +75,18 @@ public abstract class Song extends PanacheEntityBase {
         return null;
     }
 
+    /**
+     * The uri for this song at the given time, if available
+     * 
+     * @return The uri, or null if not available
+     */
+    public URI getUri(final Duration time) {
+        return getUri();
+    }
+
     protected Song(
-            @NonNull String name,
-            @NonNull Duration duration) {
+            final @NonNull String name,
+            final @NonNull Duration duration) {
         super();
         this.id = null;
         this.name = name;
@@ -92,7 +99,14 @@ public abstract class Song extends PanacheEntityBase {
      * @param b The other song
      * @return If the two song match
      */
-    public boolean isSame(Song b) {
+    public boolean isSame(final Song b) {
         return false;
+    }
+
+    /**
+     * @return All available thumbnails for this song
+     */
+    public Collection<Thumbnail> getAllThumbnails() {
+        return null;
     }
 }

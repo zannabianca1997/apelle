@@ -3,78 +3,60 @@ package io.github.zannabianca1997.apelle.queues.models;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.Check;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
+import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "user", "song", "givenAt" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "likes")
+@Check(constraints = "count > 0")
+@NamedNativeQuery(name = "Likes.countUserLikes", query = "SELECT COALESCE((SELECT SUM(count) FROM Likes l WHERE l.queued_song_ref = :queued_song_ref AND l.user_id = :user_id), 0)", resultClass = Short.class)
 /// A number of likes given on a song
 public class Likes extends PanacheEntityBase {
-
-    @Embeddable
-    @Data
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Link {
-        @NonNull
-        @Column(nullable = false)
-        /// The user
-        private UUID user;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queue
-        private UUID queue;
-
-        @NonNull
-        @Column(nullable = false)
-        /// The queued song
-        private UUID song;
-
-        @NonNull
-        @Column(name = "given_at", nullable = false)
-        /// When these likes where assigned
-        private Instant givenAt;
-    }
-
-    @EmbeddedId
-    @NonNull
-    private Link link;
-
+    /// The user of the queue
     @NonNull
     @ManyToOne
-    @MapsId("user")
-    /// The user of the queue
+    @Id
+    @ToString.Exclude
     private ApelleUser user;
 
-    @NonNull
-    @ManyToOne
-    @MapsId("queue")
-    /// The queue
-    private Queue queue;
-
-    @NonNull
-    @ManyToOne
-    @MapsId("song")
     /// The queued song
-    private Song song;
+    @NonNull
+    @Id
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "queued_song_ref", referencedColumnName = "ref")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private QueuedSong song;
+
+    /// When these likes where assigned
+    @NonNull
+    @Column(name = "given_at", nullable = false)
+    @Id
+    private Instant givenAt;
 
     /// Number of likes given
     private short count;
@@ -88,13 +70,11 @@ public class Likes extends PanacheEntityBase {
      * @param count   The count of the likes
      */
     @Builder
-    public Likes(
-            ApelleUser user, QueuedSong song, Instant givenAt, short count) {
-        this();
-        this.link = new Link(null, null, null, givenAt);
+    public Likes(final @NonNull ApelleUser user, final @NonNull QueuedSong song, final Instant givenAt,
+            final short count) {
         this.user = user;
-        this.queue = song.getQueue();
-        this.song = song.getSong();
+        this.song = song;
+        this.givenAt = givenAt != null ? givenAt : Instant.now();
         this.count = count;
     }
 
@@ -106,17 +86,28 @@ public class Likes extends PanacheEntityBase {
      * @param givenAt The moment the likes were given
      * @return The likes, or null if none were found
      */
-    public static Likes findById(UUID user, QueuedSong.Link song, Instant givenAt) {
-        return findById(new Link(user, song.getQueue(), song.getSong(), givenAt));
+    public static Likes findById(final ApelleUser user, final QueuedSong song, final Instant givenAt) {
+        final var id = new Likes();
+        id.user = user;
+        id.song = song;
+        id.givenAt = givenAt;
+        return findById(id);
     }
 
-    public static Likes findOldests(UUID user, QueuedSong.Link song) {
-        return find("user_id = ?1 AND queue_id = ?2 AND song_id = ?3 ORDER BY given_at ASC",
-                user, song.getQueue(), song.getSong())
+    public static Likes findOldests(final QueueUser user) {
+        return find("user = ?1 AND song.queue = ?2 ORDER BY givenAt ASC", user.getUser(), user.getQueue())
                 .firstResult();
     }
 
-    public static long deleteReferringTo(QueuedSong.Link link) {
-        return delete("queue_id = ?1 AND song_id = ?2", link.getQueue(), link.getSong());
+    public static short givenBy(final UUID userId, final QueuedSong song) {
+        return getSession()
+                .createNamedQuery("Likes.countUserLikes", Short.class)
+                .setParameter("queued_song_ref", song.getRef())
+                .setParameter("user_id", userId)
+                .getSingleResult();
+    }
+
+    public static long deleteReferringTo(final QueuedSong song) {
+        return delete("song = ?1", song);
     }
 }

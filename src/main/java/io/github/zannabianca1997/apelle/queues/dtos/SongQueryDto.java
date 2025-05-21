@@ -2,12 +2,15 @@ package io.github.zannabianca1997.apelle.queues.dtos;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.UUID;
+import java.util.Collection;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.zannabianca1997.apelle.common.dtos.SongKind;
+import io.github.zannabianca1997.apelle.common.dtos.ThumbnailQueryDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -19,20 +22,11 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 @Schema(description = "A song")
-public class SongQueryDto {
-    @NonNull
-    @JsonProperty(required = true)
-    @Schema(description = "Unique id of the song")
-    private UUID id;
-
-    @NonNull
-    @JsonProperty(required = true)
-    @Schema(description = "Name of the song")
-    private String name;
-
+public class SongQueryDto extends SongShortQueryDto {
     @NonNull
     @JsonProperty(required = true)
     @Schema(description = "Duration of the song")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Duration duration;
 
     @NonNull
@@ -42,4 +36,7 @@ public class SongQueryDto {
 
     @Schema(description = "Eventual public url of the song")
     private URL url;
+
+    @Schema(description = "Available thumbnails for the song")
+    private Collection<ThumbnailQueryDto> thumbnails;
 }

@@ -1,5 +1,6 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,33 +14,51 @@ import org.hibernate.annotations.Check;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueue;
+import io.github.zannabianca1997.apelle.queues.exceptions.CantPlayEmptyQueueException;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.Singular;
+import lombok.ToString;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "queue")
 @Check(name = "song_is_either_started_or_stopped", constraints = """
-        ((current_song IS NULL) AND (current_song_starts_at IS NULL) AND (current_song_position IS NULL))
-        OR ((current_song IS NOT NULL) AND ((current_song_starts_at IS NULL) <> (current_song_position IS NULL)))
+        -- Either the current song is started or it's stopped
+        (
+            -- The current song is null
+            (current_song IS NULL)
+            AND (current_song_starts_at IS NULL)
+            AND (current_song_position IS NULL)
+        ) OR (
+            -- Only one of the time reference is filled in
+            (current_song IS NOT NULL)
+            AND (
+                (current_song_starts_at IS NULL) <> (current_song_position IS NULL)
+            )
+        )
         """)
 /// A queue of songs
 public class Queue extends PanacheEntityBase {
@@ -49,46 +68,73 @@ public class Queue extends PanacheEntityBase {
     /// Unique ID of the queue
     private UUID id;
 
+    @NonNull
+    @Column(nullable = false, unique = true)
+    /// Unique remembrable queue code
+    private String code;
+
     @Embedded
     /// The current playing song, if any
     private CurrentSong current;
 
     @NonNull
+    @Column(name = "player_state_id", nullable = false)
+    @Setter(AccessLevel.PRIVATE)
+    /// Id of the current state of the player
+    ///
+    /// This is an opaque id that is regenerated at each modification of the playing
+    /// song. Requests can be conditional on the state they refer to, so they are
+    /// refused in case of a mismatch.
+    private UUID playerStateId;
+
+    private void setPlayerStateId() {
+        setPlayerStateId(UUID.randomUUID());
+    }
+
+    @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue", orphanRemoval = true)
     @OrderBy("likes DESC, queued_at ASC")
     /// The songs in the queue
     private List<QueuedSong> queuedSongs;
 
     @NonNull
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "queue", orphanRemoval = true)
     /// The users of this queue
     private Collection<QueueUser> users;
 
     @NonNull
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "link.queue")
-    /// The likes on this queue
-    private Collection<Likes> likes;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(nullable = false)
+    /// Configuration of the queue
+    private QueueConfig config;
 
     /**
      * Order of the queued songs
      */
     private static final Comparator<QueuedSong> QUEUED_SONGS_COMPARATOR = Comparator
+            // First order by likes
             .comparing(QueuedSong::getLikes).reversed()
+            // Then order by time of insertion
             .thenComparing(QueuedSong::getQueuedAt);
 
     @Builder
-    public Queue(CurrentSong current, @Singular @NonNull List<QueuedSong> queuedSongs) {
+    public Queue(final CurrentSong current, @Singular @NonNull final List<QueuedSong> queuedSongs,
+            @NonNull final String code,
+            @NonNull final QueueConfig config) {
         super();
         // Sort the songs
         queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
 
         this.id = null;
         this.current = current;
+        setPlayerStateId();
         this.queuedSongs = queuedSongs;
         this.users = new ArrayList<>();
+
+        this.config = config;
+        this.code = code;
     }
 
     /**
@@ -97,20 +143,25 @@ public class Queue extends PanacheEntityBase {
      * @param song The song to add
      * @return The added song
      */
-    public QueuedSong enqueue(@NonNull Song song) {
-        var enqueued = QueuedSong.builder()
+    public QueuedSong enqueue(@NonNull final Song song) {
+        final var enqueued = QueuedSong.builder()
                 .song(song)
                 .queue(this)
                 .queuedAt(Instant.now())
                 .build();
         // Add the song in the correct position
         int index = Collections.binarySearch(this.queuedSongs, enqueued, QUEUED_SONGS_COMPARATOR);
-        if (index < 0) {
-            index = -index - 1;
+        if (index >= 0) {
+            throw new RuntimeException(
+                    "Tried to add a song that is already in the queue. This need to be checked before");
         }
-        List<QueuedSong> queuedSongs = getQueuedSongs();
-        queuedSongs.add(index, enqueued);
-        setQueuedSongs(queuedSongs);
+        index = -index - 1;
+
+        final List<QueuedSong> editQueuedSongs = getQueuedSongs();
+        editQueuedSongs.add(index, enqueued);
+        setQueuedSongs(editQueuedSongs);
+
+        enqueued.persist();
 
         return enqueued;
     }
@@ -119,26 +170,31 @@ public class Queue extends PanacheEntityBase {
      * Start to play music
      * 
      * @return If the queue was stopped before
-     * @throws CantPlayEmptyQueue The queue is empty
+     * @throws CantPlayEmptyQueueException The queue is empty
      */
-    public boolean start() throws CantPlayEmptyQueue {
+    public boolean start() throws CantPlayEmptyQueueException {
         // If a song is running, start playing
         if (getCurrent() != null) {
-            return getCurrent().play();
+            final var started = getCurrent().start();
+            if (started) {
+                setPlayerStateId();
+            }
+            return started;
         }
 
         // Pop a song from the queue
         if (getQueuedSongs().isEmpty()) {
-            throw new CantPlayEmptyQueue(getId());
+            throw new CantPlayEmptyQueueException(getId());
         }
 
-        QueuedSong next = getQueuedSongs().remove(0);
+        final QueuedSong next = getQueuedSongs().remove(0);
+        Likes.deleteReferringTo(next);
         setCurrent(CurrentSong.builder()
                 .song(next.getSong())
                 .playing().startsAt(Instant.now())
                 .build());
-        next.delete();
 
+        setPlayerStateId();
         return true;
     }
 
@@ -152,22 +208,56 @@ public class Queue extends PanacheEntityBase {
             return false;
         }
 
-        return getCurrent().stop();
+        final var stopped = getCurrent().stop();
+        if (stopped) {
+            setPlayerStateId();
+        }
+        return stopped;
     }
 
     /**
      * Move to the next song
      * 
-     * @return If the queue was playing before
-     * @throws CantPlayEmptyQueue The queue is empty
+     * @throws CantPlayEmptyQueueException The queue is empty
      */
-    public void next() throws CantPlayEmptyQueue {
+    public void next() throws CantPlayEmptyQueueException {
         if (getCurrent() != null) {
-            var current = getCurrent().getSong();
-            setCurrent(null);
-            enqueue(current);
+            if (getQueuedSongs().isEmpty()) {
+                getCurrent().jumpTo(Duration.ZERO);
+            } else {
+                // Pop the current song and put it in the queue
+                final var removingCurrent = getCurrent().getSong();
+                setCurrent(null);
+                enqueue(removingCurrent);
+            }
+            setPlayerStateId();
         }
         start();
+    }
+
+    /**
+     * Move to a given song
+     */
+    public void next(final QueuedSong next) {
+        assert next.getQueue().getId().equals(getId());
+
+        if (getCurrent() != null) {
+            // Pop the current song and put it in the queue
+            final var removingCurrent = getCurrent().getSong();
+            setCurrent(null);
+            enqueue(removingCurrent);
+        }
+
+        getQueuedSongs().removeIf(s -> s.getSong().getId().equals(next.getSong().getId()));
+
+        Likes.deleteReferringTo(next);
+
+        setCurrent(CurrentSong.builder()
+                .song(next.getSong())
+                .playing().startsAt(Instant.now())
+                .build());
+
+        setPlayerStateId();
     }
 
     /**
@@ -181,13 +271,21 @@ public class Queue extends PanacheEntityBase {
                 getQueuedSongs().stream().map(QueuedSong::getSong));
     }
 
-    public static boolean exists(UUID queueId) {
+    public static boolean exists(final UUID queueId) {
         return findById(queueId) != null;
     }
 
     public void sortSongs() {
-        List<QueuedSong> queuedSongs = getQueuedSongs();
-        queuedSongs.sort(QUEUED_SONGS_COMPARATOR);
-        setQueuedSongs(queuedSongs);
+        final List<QueuedSong> sortingQueuedSongs = getQueuedSongs();
+        sortingQueuedSongs.sort(QUEUED_SONGS_COMPARATOR);
+        setQueuedSongs(sortingQueuedSongs);
+    }
+
+    public static Queue findByCode(final String queueCode) {
+        return Queue.<Queue>find("code", queueCode).singleResultOptional().orElse(null);
+    }
+
+    public static boolean existByCode(final String queueCode) {
+        return Queue.find("code", queueCode).count() > 0;
     }
 }

@@ -19,40 +19,38 @@ import com.google.common.collect.Streams;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import io.github.zannabianca1997.apelle.queues.dtos.QueueQueryDto;
 import io.github.zannabianca1997.apelle.queues.dtos.QueuedSongShortQueryDto;
-import io.github.zannabianca1997.apelle.queues.dtos.SongKind;
-import io.github.zannabianca1997.apelle.queues.dtos.sources.youtube.YoutubeSongAddDto;
 import io.github.zannabianca1997.apelle.queues.models.Queue;
+import io.github.zannabianca1997.apelle.queues.models.QueueConfig;
 import io.github.zannabianca1997.apelle.queues.models.QueueUser;
 import io.github.zannabianca1997.apelle.queues.models.QueuedSong;
-import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
-import io.github.zannabianca1997.apelle.queues.services.QueueUserRolesService;
+import io.github.zannabianca1997.apelle.queues.models.Song;
 import io.github.zannabianca1997.apelle.users.models.ApelleUser;
 import io.github.zannabianca1997.apelle.users.models.ApelleUserRole;
-import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiVideosClientMock;
-import io.github.zannabianca1997.apelle.youtube.dtos.VideoDataDto;
+import io.github.zannabianca1997.apelle.youtube.clients.YoutubeApiClientMock;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeSongAddDto;
+import io.github.zannabianca1997.apelle.youtube.dtos.YoutubeVideoDataDto;
+import io.github.zannabianca1997.apelle.youtube.models.YoutubeSong;
 
 @QuarkusTest
-@TestHTTPEndpoint(QueueResource.class)
 @Tag("queue")
+@TestHTTPEndpoint(QueuesResource.class)
 class QueueResourceTest {
 
-    UUID queueId;
-    Queue createdQueue;
-
-    @Inject
-    QueueUserRolesService queueUserRolesService;
+    private UUID queueId;
+    private Queue createdQueue;
 
     @BeforeEach
     @Transactional
-    void createUsers() {
+    void createUsersAndQueues() {
         ApelleUser.deleteAll();
+        Queue.deleteAll();
+        Song.deleteAll();
 
-        ApelleUser admin = ApelleUser.builder()
+        final ApelleUser admin = ApelleUser.builder()
                 .name("zanna")
                 .password("zanna")
                 .role(ApelleUserRole.USER)
@@ -65,13 +63,14 @@ class QueueResourceTest {
                 .role(ApelleUserRole.USER)
                 .build().persist();
 
-        Queue.deleteAll();
-
-        var queue = Queue.builder().build();
+        final var queue = Queue.builder()
+                .code("code")
+                .config(QueueConfig.findDefault())
+                .build();
         queue.getUsers().add(QueueUser.builder()
                 .queue(queue)
                 .user(admin)
-                .role(queueUserRolesService.getCreatorRole())
+                .role(queue.getConfig().getCreatorRole())
                 .likesFilled(false)
                 .build());
         queue.persist();
@@ -82,14 +81,14 @@ class QueueResourceTest {
 
     @BeforeEach
     void installYoutubeMock() {
-        YoutubeApiVideosClientMock.install();
+        YoutubeApiClientMock.install();
     }
 
     @Test
     void shouldGetQueue() {
-        QueueQueryDto created = given()
+        final QueueQueryDto created = given()
                 .auth().basic("zanna", "zanna")
-                .get("/", queueId).then()
+                .get("/i/{queueId}", queueId).then()
                 .statusCode(StatusCode.OK)
                 .contentType(ContentType.JSON)
                 .extract().as(QueueQueryDto.class);
@@ -100,64 +99,61 @@ class QueueResourceTest {
 
     @Test
     void shouldEnqueueYoutubeSong() throws MalformedURLException {
-        String videoId = YoutubeApiVideosClientMock.RESPONSES.keySet().iterator().next();
+        final String videoId = YoutubeApiClientMock.RESPONSES.keySet().iterator().next();
 
-        QueuedSongShortQueryDto created = given()
+        final QueuedSongShortQueryDto created = given()
                 .auth().basic("zanna", "zanna")
                 .contentType(ContentType.JSON)
                 .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                .post("/queue", queueId).then()
+                .post("/i/{queueId}/queue", queueId).then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
                 .extract().as(QueuedSongShortQueryDto.class);
 
-        VideoDataDto videoData = YoutubeApiVideosClientMock.RESPONSES.get(videoId).unwrapSingle();
+        final YoutubeVideoDataDto videoData = YoutubeApiClientMock.RESPONSES.get(videoId).unwrapSingle();
 
-        assertEquals(SongKind.Youtube, created.getKind());
-        assertEquals(0, created.getLikes());
+        final int expectedLikes = createdQueue.getConfig().isAutolike() ? 1 : 0;
+        assertEquals(expectedLikes, created.getLikes());
         assertEquals(videoData.getSnippet().getTitle(), created.getName());
-        assertEquals(videoData.getContentDetails().getDuration(), created.getDuration());
 
-        Queue queue = Queue.findById(queueId);
+        final Queue queue = Queue.findById(queueId);
 
         assertEquals(1, queue.getQueuedSongs().size());
 
-        QueuedSong enqueued = queue.getQueuedSongs().get(0);
+        final QueuedSong enqueued = queue.getQueuedSongs().get(0);
 
-        assertEquals(0, enqueued.getLikes());
+        assertEquals(expectedLikes, enqueued.getLikes());
         assertInstanceOf(YoutubeSong.class, enqueued.getSong());
 
-        YoutubeSong song = (YoutubeSong) enqueued.getSong();
+        final YoutubeSong song = (YoutubeSong) enqueued.getSong();
 
         assertEquals(videoId, song.getVideoId());
         assertEquals(created.getName(), song.getName());
-        assertEquals(created.getDuration(), song.getDuration());
-        assertEquals(created.getUrl(), song.getUri().toURL());
     }
 
     @Test
     void shouldSortEnqueuedByTime() throws InterruptedException {
-        String[] videoIds = YoutubeApiVideosClientMock.RESPONSES.keySet().toArray(String[]::new);
+        final String[] videoIds = YoutubeApiClientMock.RESPONSES.keySet().toArray(String[]::new);
 
-        for (var videoId : videoIds) {
+        for (final var videoId : videoIds) {
             given()
                     .auth().basic("zanna", "zanna")
                     .contentType(ContentType.JSON)
                     .body(YoutubeSongAddDto.builder().videoId(videoId).build())
-                    .post("/queue", queueId).then()
+                    .post("/i/{queueId}/queue", queueId).then()
                     .statusCode(StatusCode.CREATED);
             // Minimal separation between requests to ensure they are correctly sorted
             Thread.sleep(10);
         }
 
-        Queue queue = Queue.findById(queueId);
+        final Queue queue = Queue.findById(queueId);
 
         assertEquals(videoIds.length, queue.getQueuedSongs().size());
 
         assertAll(Streams.zip(
                 Arrays.stream(videoIds),
                 queue.getQueuedSongs().stream().map(queuedSong -> {
-                    YoutubeSong song = (YoutubeSong) queuedSong.getSong();
+                    final YoutubeSong song = (YoutubeSong) queuedSong.getSong();
                     return song.getVideoId();
                 }),
                 (given, inserted) -> () -> assertEquals(given, inserted)));

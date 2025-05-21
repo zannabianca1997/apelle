@@ -16,8 +16,11 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Tag("common")
 class VersionResourceTest {
 
-    @ConfigProperty(name = "quarkus.application.version")
-    String version;
+    private final String version;
+
+    public VersionResourceTest(@ConfigProperty(name = "quarkus.application.version") final String version) {
+        this.version = version;
+    }
 
     @Test
     void shouldReturnVersion() {

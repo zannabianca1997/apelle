@@ -1,30 +1,42 @@
 package io.github.zannabianca1997.apelle.queues.models;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.apache.http.client.utils.URIBuilder;
-
-import io.github.zannabianca1997.apelle.queues.models.sources.youtube.YoutubeSong;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 
+/**
+ * Data about a song currently playing
+ * 
+ * The API exposed by this class emulate an important property: the song
+ * position is always between the two extremes. Even if never stopped, this
+ * class will show as if it naturally stopped after it came to his natural end.
+ * This also means that the state of the database needs not to be updated as
+ * songs stops, as songs that are completed will naturally be considered
+ * stopped.
+ */
 @Embeddable
-@Data
+@EqualsAndHashCode
+@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CurrentSong {
     @NonNull
     @ManyToOne
     @JoinColumn(name = "current_song")
+    @Getter
+    @Setter
     /// The song that is being played
     private Song song;
 
@@ -34,39 +46,43 @@ public class CurrentSong {
     /// This might not correspond to an actual starting time. For example,
     /// if the user jumps forward or backward, this value changes.
     @Column(name = "current_song_starts_at")
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private Instant startsAt;
 
     public Instant getStartsAt() {
-        if (startsAt != null) {
-            return startsAt;
+        final Instant now = Instant.now();
+
+        if (startsAt == null) {
+            return now.minus(position);
         }
-        return Instant.now().minus(position);
+        // Check: if it passed the end, it is considered stopped
+        final Duration timePassed = Duration.between(startsAt, now);
+        final Duration duration = getSong().getDuration();
+        return timePassed.compareTo(duration) < 0 ? startsAt : now.minus(duration);
     }
 
     /// Position in the song. Valid only for stopped songs
     @Column(name = "current_song_position")
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private Duration position;
 
     public Duration getPosition() {
         if (position != null) {
             return position;
         }
-        return Duration.between(this.startsAt, Instant.now());
+        // If a song passed the end, is considered stopped by default
+        final Duration timePassed = Duration.between(startsAt, Instant.now());
+        final Duration duration = getSong().getDuration();
+        return timePassed.compareTo(duration) < 0 ? timePassed : duration;
     }
+
+    // Stopped information
 
     public boolean isStopped() {
-        return position != null;
+        return !(position == null && startsAt.plus(getSong().getDuration()).isAfter(Instant.now()));
     }
 
-    public void setStopped(boolean stopping) {
-        if (stopping) {
-            stop();
-        } else {
-            play();
-        }
-    }
+    // Action on the current song
 
     /**
      * Stop the song
@@ -78,10 +94,10 @@ public class CurrentSong {
             return false;
         }
 
-        var stopPosition = getPosition();
+        final var stopPosition = getPosition();
 
-        position = stopPosition;
-        startsAt = null;
+        setPosition(stopPosition);
+        setStartsAt(null);
 
         return true;
     }
@@ -91,22 +107,43 @@ public class CurrentSong {
      * 
      * @return if the song state changed
      */
-    public boolean play() {
+    public boolean start() {
         if (!isStopped()) {
             return false;
         }
 
-        var playStartsAt = getStartsAt();
+        final var playStartsAt = getStartsAt();
 
-        if (!playStartsAt.plus(getPosition()).isBefore(Instant.now())) {
+        if (playStartsAt.plus(getSong().getDuration()).isBefore(Instant.now())) {
             // The song reached his end, not starting it
             return false;
         }
 
-        position = null;
-        startsAt = playStartsAt;
+        setPosition(null);
+        setStartsAt(playStartsAt);
 
         return true;
+    }
+
+    /**
+     * Jump to the given position
+     * 
+     * @param position The position
+     */
+    public void jumpTo(@NonNull Duration position) {
+        // Clamp to the song duration
+        if (position.isNegative()) {
+            position = Duration.ZERO;
+        }
+        // Set the position or the starting time
+        // This also mantains the stopped by time/stopped by player state
+        if (isStopped()) {
+            setPosition(position);
+            setStartsAt(null);
+        } else {
+            setPosition(null);
+            setStartsAt(Instant.now().minus(position));
+        }
     }
 
     /**
@@ -117,18 +154,7 @@ public class CurrentSong {
      * @return The URI, or null if not available.
      */
     public URI getUri() {
-        switch (song) {
-            case YoutubeSong youtubeSong:
-                try {
-                    return new URIBuilder(youtubeSong.getUri())
-                            .addParameter("t", Long.toString(getPosition().toSeconds()))
-                            .build();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException("The built url should be valid", e);
-                }
-            default:
-                return song.getUri();
-        }
+        return song.getUri(getPosition());
     }
 
     public static CurrentSongBuilder builder() {
@@ -138,74 +164,79 @@ public class CurrentSong {
     public static class CurrentSongBuilder {
         public Song song;
 
-        public CurrentSongBuilder song(@NonNull Song song) {
+        public CurrentSongBuilder song(@NonNull final Song song) {
             this.song = song;
             return this;
         }
 
         public Stopped stopped() {
-            return new Stopped().song(song);
+            return new Stopped().song(this.song);
         }
 
         public static class Stopped extends CurrentSongBuilder {
             @Override
-            public Stopped song(Song song) {
+            public Stopped song(final Song song) {
                 this.song = song;
                 return this;
             }
 
             public Duration position;
 
-            public Stopped position(@NonNull Duration position) {
+            public Stopped position(@NonNull final Duration position) {
                 this.position = position;
                 return this;
             }
 
             public CurrentSong build() {
-                if (song == null) {
+                if (this.song == null) {
                     throw new NullPointerException("field song is marked non-null but is null");
                 }
-                if (position == null) {
-                    position = Duration.ZERO;
+                if (this.position == null) {
+                    this.position = Duration.ZERO;
+                } else if (this.position.compareTo(this.song.getDuration()) < 0) {
+                    throw new InvalidParameterException("Cannot make a song positioned after its end");
                 }
 
-                var built = new CurrentSong();
-                built.song = song;
-                built.position = position;
+                final var built = new CurrentSong();
+                built.song = this.song;
+                built.position = this.position;
                 built.startsAt = null;
                 return built;
             }
         }
 
         public Playing playing() {
-            return new Playing().song(song);
+            return new Playing().song(this.song);
         }
 
         public static class Playing extends CurrentSongBuilder {
-            public Playing song(Song song) {
+            public Playing song(final Song song) {
                 this.song = song;
                 return this;
             }
 
             public Instant startsAt;
 
-            public Playing startsAt(@NonNull Instant startsAt) {
+            public Playing startsAt(@NonNull final Instant startsAt) {
                 this.startsAt = startsAt;
                 return this;
             }
 
             public CurrentSong build() {
-                if (song == null) {
+                if (this.song == null) {
                     throw new NullPointerException("field song is marked non-null but is null");
                 }
-                if (startsAt == null) {
-                    startsAt = Instant.now();
+                final Instant now = Instant.now();
+                if (this.startsAt == null) {
+                    this.startsAt = now;
+                } else if (startsAt.isAfter(now)) {
+                    throw new InvalidParameterException("Cannot make a song starting in the future");
                 }
 
-                var built = new CurrentSong();
-                built.song = song;
+                final var built = new CurrentSong();
+                built.song = this.song;
                 built.position = null;
-                built.startsAt = startsAt;
+                built.startsAt = this.startsAt;
                 return built;
             }
         }
@@ -216,7 +247,7 @@ public class CurrentSong {
      * 
      * @return The time left
      */
-    public Duration timeLeft() {
+    public Duration getTimeLeft() {
         return getSong().getDuration().minus(getPosition());
     }
 }

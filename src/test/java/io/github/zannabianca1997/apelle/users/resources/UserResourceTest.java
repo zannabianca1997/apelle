@@ -23,7 +23,6 @@ import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
@@ -31,13 +30,19 @@ import jakarta.transaction.Transactional;
 @Tag("auth")
 class UserResourceTest {
 
+    private final UserMapper userMapper;
+
+    public UserResourceTest(final UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
     @BeforeEach
     @Transactional
     void deleteAllUsers() {
         ApelleUser.deleteAll();
     }
 
-    Response createUserRequest(String name, String password) {
+    private Response createUserRequest(final String name, final String password) {
         return given()
                 .auth().none()
                 .contentType(ContentType.JSON)
@@ -48,8 +53,8 @@ class UserResourceTest {
                 .post();
     }
 
-    ApelleUser createUser(String name, String password) {
-        var user = ApelleUser.builder()
+    private ApelleUser createUser(final String name, final String password) {
+        final var user = ApelleUser.builder()
                 .name(name).password(password)
                 .role(ApelleUserRole.USER)
                 .build();
@@ -60,7 +65,7 @@ class UserResourceTest {
 
     @Test
     void shouldCreateUser() {
-        UserQueryDto created = createUserRequest("zanna", "zanna").then()
+        final UserQueryDto created = createUserRequest("zanna", "zanna").then()
                 .statusCode(StatusCode.CREATED)
                 .contentType(ContentType.JSON)
                 .body("$", not(hasKey("password")))
@@ -77,14 +82,11 @@ class UserResourceTest {
                 .statusCode(StatusCode.CONFLICT);
     }
 
-    @Inject
-    UserMapper userMapper;
-
     @Test
     void shouldReturnCurrentUser() {
-        ApelleUser created = createUser("zanna", "zanna");
+        final ApelleUser created = createUser("zanna", "zanna");
 
-        UserQueryDto found = given()
+        final UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
                 .get("/me")
                 .then()
@@ -98,7 +100,7 @@ class UserResourceTest {
 
     @Test
     void shouldDeleteCurrentUser() {
-        UUID createdId = createUser("zanna", "zanna").getId();
+        final UUID createdId = createUser("zanna", "zanna").getId();
 
         given()
                 .auth().basic("zanna", "zanna")
@@ -111,9 +113,9 @@ class UserResourceTest {
 
     @Test
     void shouldFindUserById() {
-        ApelleUser created = createUser("zanna", "zanna");
+        final ApelleUser created = createUser("zanna", "zanna");
 
-        UserQueryDto found = given()
+        final UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
                 .get("/i/{id}", created.getId())
                 .then()
@@ -128,7 +130,7 @@ class UserResourceTest {
     @Test
     void shouldNotDeleteOtherUserById() {
         createUser("zanna", "zanna");
-        UUID createdId = createUser("other", "other_password").getId();
+        final UUID createdId = createUser("other", "other_password").getId();
 
         given()
                 .auth().basic("zanna", "zanna")
@@ -141,9 +143,9 @@ class UserResourceTest {
 
     @Test
     void shouldFindUserByName() {
-        ApelleUser created = createUser("zanna", "zanna");
+        final ApelleUser created = createUser("zanna", "zanna");
 
-        UserQueryDto found = given()
+        final UserQueryDto found = given()
                 .auth().basic("zanna", "zanna")
                 .get("/n/{name}", created.getName())
                 .then()
@@ -158,7 +160,7 @@ class UserResourceTest {
     @Test
     void shouldNotDeleteOtherUserByName() {
         createUser("zanna", "zanna");
-        UUID createdId = createUser("other", "other_password").getId();
+        final UUID createdId = createUser("other", "other_password").getId();
 
         given()
                 .auth().basic("zanna", "zanna")

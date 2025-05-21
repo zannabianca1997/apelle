@@ -1,11 +1,7 @@
 package io.github.zannabianca1997.apelle.users.exceptions;
 
-import lombok.Getter;
+import lombok.experimental.StandardException;
 
-@Getter
+@StandardException
 public abstract class UserNotFoundException extends Exception {
-    protected UserNotFoundException(String message) {
-        super(message);
-    }
-
 }

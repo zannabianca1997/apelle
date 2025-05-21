@@ -12,9 +12,9 @@ import lombok.Getter;
 
 @Getter
 public class UserAlreadyExistsException extends Exception {
-    private String name;
+    private final String name;
 
-    public UserAlreadyExistsException(String name) {
+    public UserAlreadyExistsException(final String name) {
         super(String.format("A user named `%s` already exists", name));
         this.name = name;
     }
@@ -25,7 +25,7 @@ public class UserAlreadyExistsException extends Exception {
     })
     public static class Mapper implements ExceptionMapper<UserAlreadyExistsException> {
         @Override
-        public Response toResponse(UserAlreadyExistsException exception) {
+        public Response toResponse(final UserAlreadyExistsException exception) {
             return RestResponse.status(Status.CONFLICT, exception.getMessage()).toResponse();
         }
     }

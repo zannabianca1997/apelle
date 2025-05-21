@@ -1,0 +1,11 @@
+quarkus:
+  quinoa:
+    dev-server:
+      index-page: /
+      port: 3000
+  flyway:
+    baseline-on-migrate: true
+  log:
+    category:
+      "io.github.zannabianca1997.apelle":
+        level: DEBUG
