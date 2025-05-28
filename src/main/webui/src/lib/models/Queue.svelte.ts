@@ -250,7 +250,7 @@ export class QueuedSong {
         this.likes = song.likes;
         this.user_likes = song.user_likes;
 
-        await this.hydrate(queueId);
+        this.hydrate(queueId);
     }
 
     async update(queueId: Uuid, song: QueuedSongShortQueryDto) {
@@ -261,7 +261,7 @@ export class QueuedSong {
         this.likes = song.likes;
         this.user_likes = song.user_likes;
 
-        await this.hydrate(queueId);
+        this.hydrate(queueId);
     }
 
     /**
