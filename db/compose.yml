@@ -1,7 +1,7 @@
 services:
   db:
     container_name: ${COMPOSE_PROJECT_NAME}-db
-    image: postgres
+    image: postgres:17-alpine
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER:?}
@@ -14,6 +14,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  flyway:
+    container_name: ${COMPOSE_PROJECT_NAME}-flyway
+    image: flyway/flyway:11-alpine
+    restart: no
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/${DB_NAME:-${DB_USER}}
+      FLYWAY_USER: ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+    command: migrate
+    volumes:
+      - ../users/migrations:/flyway/sql/users:ro
+      - ./flyway.toml:/flyway/conf/flyway.toml:ro
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   dbdata:
