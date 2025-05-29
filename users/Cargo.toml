@@ -1,0 +1,12 @@
+[package]
+name = "apelle-users"
+version = "0.1.0"
+edition = "2024"
+
+license.workspace = true
+
+[dependencies]
+common.workspace = true
+
+axum.workspace = true
+tokio.workspace = true

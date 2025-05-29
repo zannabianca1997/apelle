@@ -1,2 +1,5 @@
 # Enviroment variables
 .env
+
+# Rust compile objects
+target/
