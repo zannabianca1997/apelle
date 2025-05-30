@@ -10,8 +10,8 @@ license = "MIT"
 apelle_common = { path = "common" }
 
 # Networking
-axum = "0.8.4"
-tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
+axum = { version = "0.8.4", features = ["tokio", "http1"] }
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal"] }
 
 # Configuration
 clap = "4.5.39"

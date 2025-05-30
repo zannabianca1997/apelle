@@ -9,3 +9,14 @@ playing song.
 
 It also fetch the song data from the sources (for now, only Youtube is supported).
 Users provides only the minimal necessary to identify the song (e.g. the youtube video ID).
+
+## Local ports
+
+| Service  | Port |
+|----------|------|
+| postgres | 5432 |
+| users    | 8081 |
+
+## Services
+
+### `users`

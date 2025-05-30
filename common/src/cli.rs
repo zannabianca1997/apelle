@@ -75,6 +75,7 @@ impl CliArgs {
     pub fn get_configuration<Config>(
         self,
         service_name: &str,
+        service_default_port: u16,
     ) -> figment::Result<WrappedConfig<Config>>
     where
         Config: Serialize + DeserializeOwned + Default,
@@ -85,6 +86,7 @@ impl CliArgs {
         } else {
             Figment::from(Serialized::defaults(WrappedConfig::<Config>::default(
                 service_name,
+                service_default_port,
             )))
         }
         .select(self.profile.as_deref().unwrap_or(service_name));
