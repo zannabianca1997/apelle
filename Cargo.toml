@@ -7,9 +7,23 @@ license = "MIT"
 
 [workspace.dependencies]
 # Members
-common = { path = "common" }
-users = { path = "users" }
+apelle_common = { path = "common" }
 
 # Networking
 axum = "0.8.4"
 tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
+
+# Configuration
+clap = "4.5.39"
+
+# Serialization
+serde = { version = "1.0.219", features = ["derive"] }
+serde_with = "3.12.0"
+
+# Logging and error reporting
+snafu = "0.8.6"
+tracing = "0.1.41"
+
+# Misc utils
+uuid = { version = "1.17.0", features = ["serde", "v4"] }
+url = { version = "2.5.4", features = ["serde"] }

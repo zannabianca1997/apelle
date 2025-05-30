@@ -1,14 +1,7 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod cli;
+pub mod error_reporter;
+mod logging;
+pub mod main_wrapper;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use figment::value::magic::RelativePathBuf;
+pub use main_wrapper::service_main;

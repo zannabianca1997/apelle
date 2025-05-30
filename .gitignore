@@ -3,3 +3,6 @@
 
 # Rust compile objects
 target/
+
+# Logs
+logs/

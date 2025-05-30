@@ -1,7 +1,21 @@
 [package]
-name = "common"
+name = "apelle_common"
 version = "0.1.0"
 edition = "2024"
 license.workspace = true
 
 [dependencies]
+serde.workspace = true
+serde_with.workspace = true
+clap = { workspace = true, features = ["derive"] }
+figment = { version = "0.10.19", features = ["env", "parse-value", "toml"] }
+dotenv = "0.15.0"
+atty = "0.2.14"
+snafu.workspace = true
+tracing-subscriber = { version = "0.3.19", features = [
+    "tracing-log",
+    "chrono",
+] }
+tracing.workspace = true
+uuid.workspace = true
+tracing-appender = "0.2.3"

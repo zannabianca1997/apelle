@@ -1,0 +1,2 @@
+[default.logging.file]
+dir = "./logs"
