@@ -6,6 +6,7 @@ use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use snafu::{ResultExt, Snafu};
 use tokio::{net::TcpListener, signal};
+use tower_http::trace::TraceLayer;
 
 use crate::{
     cli::{CliArgs, ProvideDefaults},
@@ -61,7 +62,7 @@ where
     let log_guards = init_logging(service_name, logging).context(InitLoggingSnafu)?;
 
     tracing::info!("Building app");
-    let app = app(app_config)?;
+    let app = app(app_config)?.layer(TraceLayer::new_for_http());
 
     tracing::info!("Starting runtime");
     tokio::runtime::Builder::new_multi_thread()
