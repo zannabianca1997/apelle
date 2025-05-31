@@ -1,6 +1,6 @@
-use apelle_common::{error_reporter::Reporter, service_main};
+use apelle_common::{Reporter, service_main};
 use apelle_users::MainError;
 
-fn main() -> Result<(), Reporter<apelle_common::main_wrapper::Error<MainError>>> {
+fn main() -> Result<(), Reporter<apelle_common::Error<MainError>>> {
     service_main("users", 8081, apelle_users::app)
 }

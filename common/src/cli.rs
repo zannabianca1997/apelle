@@ -10,7 +10,7 @@ use serde::{
     de::{DeserializeOwned, Error as _},
 };
 
-use crate::main_wrapper::Config as WrappedConfig;
+use crate::main_wrapper::CommonConfig;
 
 #[derive(Debug, Clone, clap::Parser)]
 pub struct CliArgs {
@@ -72,33 +72,31 @@ impl Provider for CliArgs {
 }
 
 impl CliArgs {
-    pub fn get_configuration<Config>(
+    pub fn get_configuration<AppConfig>(
         self,
         service_name: &str,
         service_default_port: u16,
-    ) -> figment::Result<WrappedConfig<Config>>
+    ) -> figment::Result<(AppConfig, CommonConfig)>
     where
-        Config: Serialize + DeserializeOwned + Default,
+        AppConfig: ProvideDefaults + DeserializeOwned,
     {
         // First, the defaults values
         let mut figment = if self.no_defaults {
             Figment::new()
         } else {
-            Figment::from(Serialized::defaults(WrappedConfig::<Config>::default(
-                service_name,
-                service_default_port,
-            )))
+            Figment::from(CommonConfig::defaults(service_name, service_default_port))
+                .merge(AppConfig::defaults(service_name, service_default_port))
         }
         .select(self.profile.as_deref().unwrap_or(service_name));
         // Then the default config file
         if !self.no_default_config_file {
             figment = figment
                 .merge(Toml::file("Apelle.toml").nested())
-                .merge(Toml::file(format!("Apelle-{service_name}.toml")).nested());
+                .merge(Toml::file(format!("Apelle-{service_name}.toml")).profile(service_name));
         }
         // Then the one provided by the user
         if let Some(config_file) = &self.config_file {
-            figment = figment.merge(Toml::file_exact(config_file).nested());
+            figment = figment.merge(Toml::file_exact(config_file).profile(Profile::Global));
         }
         // Then, the enviroment variables and the arguments
         if !self.no_env {
@@ -107,9 +105,27 @@ impl CliArgs {
                 Err(err) if err.not_found() => (),
                 Err(err) => eprintln!("Cannot open `.env` to load enviroment variable: {err}"),
             };
-            figment = figment.merge(Env::prefixed("APELLE_").split("__").global());
+            figment = figment.merge(Env::prefixed("APELLE__").split("__").global());
         }
         // Finally the cli arguments
-        figment.merge(self).extract()
+        let figment = figment.merge(self);
+
+        let app = figment.extract()?;
+        let common = figment.extract()?;
+
+        Ok((app, common))
+    }
+}
+
+pub trait ProvideDefaults {
+    fn defaults(service_name: &str, service_default_port: u16) -> impl Provider;
+}
+
+impl<T> ProvideDefaults for T
+where
+    T: Default + Serialize,
+{
+    fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
+        Serialized::defaults(T::default())
     }
 }

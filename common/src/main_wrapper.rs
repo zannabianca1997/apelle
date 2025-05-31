@@ -2,37 +2,30 @@ use std::{fmt::Debug, io};
 
 use axum::Router;
 use clap::Parser as _;
+use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use snafu::{ResultExt, Snafu};
 use tokio::{net::TcpListener, signal};
 
 use crate::{
-    cli::CliArgs,
+    cli::{CliArgs, ProvideDefaults},
     error_reporter::Reporter,
     logging::{InitLoggingError, LoggingConfig, init_logging},
     serve::{ServeConfig, SocketConfig},
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct Config<AppConfig> {
-    #[serde(flatten, default)]
-    app: AppConfig,
-
+pub struct CommonConfig {
     logging: LoggingConfig,
-
     serve: ServeConfig,
 }
 
-impl<AppConfig> Config<AppConfig> {
-    pub fn default(service_name: &str, service_default_port: u16) -> Self
-    where
-        AppConfig: Default,
-    {
-        Self {
-            app: Default::default(),
+impl ProvideDefaults for CommonConfig {
+    fn defaults(service_name: &str, service_default_port: u16) -> impl Provider {
+        Serialized::defaults(Self {
             logging: LoggingConfig::default(service_name),
             serve: ServeConfig::default(service_default_port),
-        }
+        })
     }
 }
 
@@ -58,14 +51,10 @@ fn service_main_impl<AppConfig, AppError>(
     app: impl FnOnce(AppConfig) -> Result<Router, AppError>,
 ) -> Result<(), Error<AppError>>
 where
-    AppConfig: Default + DeserializeOwned + Serialize + Debug,
+    AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
-    let Config {
-        app: app_config,
-        logging,
-        serve,
-    } = CliArgs::parse()
+    let (app_config, CommonConfig { logging, serve }) = CliArgs::parse()
         .get_configuration(service_name, service_default_port)
         .context(ConfigSnafu)?;
 
@@ -112,7 +101,7 @@ pub fn service_main<AppConfig, AppError>(
     app: impl FnOnce(AppConfig) -> Result<Router, AppError>,
 ) -> Result<(), Reporter<Error<AppError>>>
 where
-    AppConfig: Default + DeserializeOwned + Serialize + Debug,
+    AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
     service_main_impl(service_name, service_default_port, app).map_err(Reporter)

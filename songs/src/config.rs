@@ -1,16 +1,15 @@
-use serde::{Deserialize, Serialize};
+use apelle_common::{Figment, ProvideDefaults, Provider};
+use serde::Deserialize;
 use url::Url;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     /// Database connection string
     pub db_url: Url,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            db_url: Url::parse("postgres://apelle:apelle@localhost/apelle").unwrap(),
-        }
+impl ProvideDefaults for Config {
+    fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
+        Figment::new()
     }
 }

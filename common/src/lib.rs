@@ -1,8 +1,11 @@
 mod cli;
-pub mod error_reporter;
+mod error_reporter;
 mod logging;
-pub mod main_wrapper;
+mod main_wrapper;
 mod serve;
 
-pub use figment::value::magic::RelativePathBuf;
+pub use cli::ProvideDefaults;
+pub use error_reporter::Reporter;
+pub use figment::{Figment, Provider, value::magic::RelativePathBuf};
+pub use main_wrapper::Error;
 pub use main_wrapper::service_main;
