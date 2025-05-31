@@ -1,0 +1,78 @@
+# syntax=docker/dockerfile:1
+
+# The name of the service (e.g. `users`)
+ARG SERVICE
+ARG BIN=apelle-${SERVICE?"Service name needed"}
+
+
+# The build profile 
+ARG PROFILE=dev
+
+# The version of rust to use
+ARG RUST_VERSION=1.87.0
+
+# The user that will run the binary
+ARG USER=apelle
+# The configuration file to bring in
+ARG CONFIG_FILE=./docker/Apelle.docker.toml
+# Version of alpine to use to run the binary
+ARG ALPINE_VERSION=3.22.0
+
+
+# Base build image with rust toolchain, some C libraries compiled with musl
+# and cargo-chef installed
+FROM clux/muslrust:${RUST_VERSION}-stable AS chef
+USER root
+RUN cargo install --locked cargo-chef
+WORKDIR /build
+
+# Plan the build, collecting all dependencies
+# Only this stage will be invalidated when a file in another
+# service changes
+FROM chef AS planner
+COPY . .
+ARG BIN
+RUN cargo chef prepare --recipe-path recipe.json --bin ${BIN}
+
+# Build the binary
+FROM chef AS builder
+
+# Copy the recipe and install all the dependencies,
+# filling the /target directory
+COPY --from=planner /build/recipe.json recipe.json
+ARG BIN
+ARG PROFILE
+RUN cargo chef cook --profile ${PROFILE}        \
+    --target x86_64-unknown-linux-musl --locked \
+    --recipe-path recipe.json --bin ${BIN}
+
+COPY . .
+RUN cargo build --profile ${PROFILE} --locked       \
+    --target x86_64-unknown-linux-musl --bin ${BIN}
+
+# Copy the binary to a common place
+RUN cp target/x86_64-unknown-linux-musl/$( [ "$PROFILE" = 'dev' ] && echo 'debug' || echo '$env' )/${BIN} target/bin
+
+# Actual runner
+FROM alpine:${ALPINE_VERSION} AS runner
+WORKDIR /app
+
+# Copy the binary
+COPY --from=builder /build/target/bin ./bin
+
+# Copy the runtime setup
+ARG CONFIG_FILE
+ARG SERVICE
+COPY ${CONFIG_FILE} ./Apelle-${SERVICE}.toml
+
+# Set the user
+ARG USER
+RUN addgroup -S ${USER}              \
+    && adduser -S ${USER} -G ${USER}
+USER ${USER}
+
+# Set the entrypoint
+ENTRYPOINT [ "./bin" ]
+
+# Expose the port
+EXPOSE 8080

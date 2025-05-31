@@ -1,0 +1,26 @@
+# Git folders and configs
+.git
+**/.gitignore
+
+# Docker files
+**/compose.yml
+**/.dockerignore
+docker/Dockerfile*
+
+# Compilation files
+**/target/
+
+# Dev setup and runtime generated files
+**/.env
+**/.env.local
+**/Apelle.toml
+**/Apelle-*.toml
+
+logs/
+
+# Migrations and db service
+db/
+**/migrations/
+
+# Documentation
+**/*.md
