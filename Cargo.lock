@@ -83,6 +83,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "apelle-songs"
+version = "0.1.0"
+dependencies = [
+ "apelle_common",
+ "axum",
+ "serde",
+ "snafu",
+ "url",
+]
+
+[[package]]
 name = "apelle-users"
 version = "0.1.0"
 dependencies = [
