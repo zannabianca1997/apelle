@@ -9,11 +9,6 @@ license.workspace = true
 apelle_common.workspace = true
 
 axum.workspace = true
-tokio.workspace = true
 serde.workspace = true
-
-clap.workspace = true
-
 url.workspace = true
-
 snafu.workspace = true

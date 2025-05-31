@@ -7,7 +7,7 @@ license.workspace = true
 [dependencies]
 serde.workspace = true
 serde_with.workspace = true
-clap = { workspace = true, features = ["derive"] }
+clap = { version = "4.5.39", features = ["derive"] }
 figment = { version = "0.10.19", features = ["env", "parse-value", "toml"] }
 dotenv = "0.15.0"
 atty = "0.2.14"

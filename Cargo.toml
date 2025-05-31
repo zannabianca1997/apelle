@@ -13,9 +13,6 @@ apelle_common = { path = "common" }
 axum = { version = "0.8.4", features = ["tokio", "http1"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal"] }
 
-# Configuration
-clap = "4.5.39"
-
 # Serialization
 serde = { version = "1.0.219", features = ["derive"] }
 serde_with = "3.12.0"

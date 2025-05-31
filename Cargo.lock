@@ -99,10 +99,8 @@ version = "0.1.0"
 dependencies = [
  "apelle_common",
  "axum",
- "clap",
  "serde",
  "snafu",
- "tokio",
  "url",
 ]
 
