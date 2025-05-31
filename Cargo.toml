@@ -11,7 +11,7 @@ apelle-common = { path = "common" }
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros"] }
-tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal"] }
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal", "sync"] }
 
 # Database
 sqlx = { version = "0.8.6", features = [
@@ -21,6 +21,10 @@ sqlx = { version = "0.8.6", features = [
     "uuid",
 ] }
 
+argon2 = { version = "0.5.3", features = ["std"] }
+
+
+# Authentication
 # Serialization
 serde = { version = "1.0.219", features = ["derive"] }
 serde_with = "3.12.0"

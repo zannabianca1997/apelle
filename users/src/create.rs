@@ -5,7 +5,12 @@ use argon2::{
     Argon2, PasswordHasher as _,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use axum::{Json, debug_handler, extract::State, http, response::IntoResponse};
+use axum::{
+    Json, debug_handler,
+    extract::State,
+    http::{self, HeaderValue, StatusCode},
+    response::IntoResponse,
+};
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 
@@ -15,6 +20,7 @@ use crate::dtos::{UserCreateDto, UserDto};
 pub enum CreateError {
     SQLError { source: sqlx::Error },
     Conflict { name: String },
+    InvalidName { name: String },
 }
 
 impl IntoResponse for CreateError {
@@ -25,6 +31,7 @@ impl IntoResponse for CreateError {
                 tracing::error!("SQL error: {}", Reporter(source));
                 http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
+            CreateError::InvalidName { .. } => StatusCode::BAD_REQUEST.into_response(),
         }
     }
 }
@@ -35,6 +42,11 @@ pub async fn create(
     State(password_hasher): State<Argon2<'static>>,
     Json(UserCreateDto { name, password }): Json<UserCreateDto>,
 ) -> Result<Json<UserDto>, CreateError> {
+    // Check name validity
+    if !check_name(&name) {
+        return Err(CreateError::InvalidName { name });
+    }
+
     // Hash the password
     let salt = SaltString::generate(&mut OsRng);
     let password = password_hasher
@@ -66,4 +78,15 @@ pub async fn create(
         updated,
         last_login,
     }))
+}
+
+fn check_name(name: &str) -> bool {
+    // No whitespace around
+    name.trim() == name
+        // Not empty
+        && !name.is_empty()
+        // No control characters (checks also for newlines)
+        && !name.chars().any(char::is_control)
+        // Should fit in a header
+        && HeaderValue::from_bytes(name.as_bytes()).is_ok()
 }

@@ -16,4 +16,6 @@ uuid.workspace = true
 chrono.workspace = true
 sqlx.workspace = true
 tracing.workspace = true
-argon2 = { version = "0.5.3", features = ["std"] }
+argon2.workspace = true
+axum-extra = { version = "0.10.1", features = ["typed-header"] }
+tokio.workspace = true
