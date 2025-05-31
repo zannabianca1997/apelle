@@ -63,8 +63,8 @@ impl<S: Sync> FromRequestParts<S> for AuthHeaders {
     type Rejection = AuthHeadersRejection;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let id = parts.headers.get(ID_HEADER).context(NameMissingSnafu)?;
-        let name = parts.headers.get(NAME_HEADER).context(IdMissingSnafu)?;
+        let id = parts.headers.get(ID_HEADER).context(IdMissingSnafu)?;
+        let name = parts.headers.get(NAME_HEADER).context(NameMissingSnafu)?;
 
         str::from_utf8(name.as_bytes()).context(NameNotUtf8Snafu)?;
 

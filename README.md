@@ -33,4 +33,20 @@ In order, configuration keys are searched:
 
 ## Services
 
+## `db`
+A simple postgres instance. It is used to store all permanent data
+
+## `flyway`
+A container used to handle migrations. It is configured to migrate `db` at 
+startup, with the migration collected from all the others services
+
+## `gateway`
+The entry point to the costellation. It has two main functions: handling
+authentication, and routing to the various services. On an incoming request
+it forwards the request headers with a `GET` on the `/auth` endpoint of the 
+`users` services. If the request authenticate with success, the headers
+returned by the auth services are added to the request and the final result
+is forwarded to the `/public` endpoint of the service.
+
 ### `users`
+User service. Handles authentication, and user management.

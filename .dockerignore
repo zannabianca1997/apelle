@@ -22,5 +22,8 @@ logs/
 db/
 **/migrations/
 
+# Gateway
+gateway/
+
 # Documentation
 **/*.md
