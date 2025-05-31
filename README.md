@@ -16,6 +16,20 @@ Users provides only the minimal necessary to identify the song (e.g. the youtube
 |----------|------|
 | postgres | 5432 |
 | users    | 8081 |
+| songs    | 8082 |
+
+## Configuration
+Every service can take configuration from multiple sources.
+In order, configuration keys are searched:
+- Cli arguments: `-C serve.port`
+- Enviroment variables: `APELLE__SERVE__PORT`
+- A TOML file provided with `-c`
+- The `global` table of a TOML file called `Apelle.toml` in the current directory or in an ancestor
+- A TOML file called `Apelle-<service name>.toml` in the current directory or in an ancestor
+- The `<service name>` table of `Apelle.toml`
+- The `default` table of `Apelle.toml`
+- The default values
+
 
 ## Services
 
