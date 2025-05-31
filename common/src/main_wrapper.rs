@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use snafu::{ResultExt, Snafu};
 use tokio::{net::TcpListener, signal};
 use tower_http::trace::TraceLayer;
+use tracing::info_span;
+use tracing_futures::Instrument as _;
 
 use crate::{
     cli::{CliArgs, ProvideDefaults},
@@ -46,12 +48,13 @@ pub enum Error<AppError: std::error::Error + 'static> {
     RuntimeError { source: io::Error },
 }
 
-fn service_main_impl<AppConfig, AppError>(
+fn service_main_impl<F, AppConfig, AppError>(
     service_name: &'static str,
     service_default_port: u16,
-    app: impl FnOnce(AppConfig) -> Result<Router, AppError>,
+    app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Error<AppError>>
 where
+    F: Future<Output = Result<Router, AppError>>,
     AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
@@ -61,15 +64,17 @@ where
 
     let log_guards = init_logging(service_name, logging).context(InitLoggingSnafu)?;
 
-    tracing::info!("Building app");
-    let app = app(app_config)?.layer(TraceLayer::new_for_http());
-
     tracing::info!("Starting runtime");
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .context(TokioRuntimeSnafu)?
         .block_on(async {
+            let app = app(app_config)
+                .instrument(info_span!("Building app"))
+                .await?
+                .layer(TraceLayer::new_for_http());
+
             let tcp_listener = match &serve.socket {
                 SocketConfig::Compact(socket) => TcpListener::bind(socket).await,
                 SocketConfig::Large { ip, port } => TcpListener::bind((&**ip, *port)).await,
@@ -96,12 +101,13 @@ where
     Ok(())
 }
 
-pub fn service_main<AppConfig, AppError>(
+pub fn service_main<F, AppConfig, AppError>(
     service_name: &'static str,
     service_default_port: u16,
-    app: impl FnOnce(AppConfig) -> Result<Router, AppError>,
+    app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Reporter<Error<AppError>>>
 where
+    F: Future<Output = Result<Router, AppError>>,
     AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {

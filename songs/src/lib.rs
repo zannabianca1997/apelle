@@ -8,6 +8,6 @@ pub mod config;
 #[derive(Debug, Snafu)]
 pub enum MainError {}
 
-pub fn app(config: Config) -> Result<Router, MainError> {
+pub async fn app(config: Config) -> Result<Router, MainError> {
     Ok(Router::new().route("/", get(|| async { "Hello, from songs!" })))
 }

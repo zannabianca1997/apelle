@@ -6,9 +6,14 @@ edition = "2024"
 license.workspace = true
 
 [dependencies]
-apelle_common.workspace = true
+apelle-common.workspace = true
 
 axum.workspace = true
 serde.workspace = true
 url.workspace = true
 snafu.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+sqlx.workspace = true
+tracing.workspace = true
+argon2 = { version = "0.5.3", features = ["std"] }

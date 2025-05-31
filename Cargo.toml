@@ -7,11 +7,19 @@ license = "MIT"
 
 [workspace.dependencies]
 # Members
-apelle_common = { path = "common" }
+apelle-common = { path = "common" }
 
 # Networking
-axum = { version = "0.8.4", features = ["tokio", "http1"] }
+axum = { version = "0.8.4", features = ["tokio", "http1", "macros"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal"] }
+
+# Database
+sqlx = { version = "0.8.6", features = [
+    "runtime-tokio",
+    "postgres",
+    "chrono",
+    "uuid",
+] }
 
 # Serialization
 serde = { version = "1.0.219", features = ["derive"] }
@@ -20,7 +28,10 @@ serde_with = "3.12.0"
 # Logging and error reporting
 snafu = "0.8.6"
 tracing = "0.1.41"
+tracing-futures = { version = "0.2.5", features = ["tokio"] }
+
 
 # Misc utils
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 url = { version = "2.5.4", features = ["serde"] }
+chrono = { version = "0.4.41", features = ["serde"] }

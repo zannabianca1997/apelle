@@ -1,5 +1,5 @@
 [package]
-name = "apelle_common"
+name = "apelle-common"
 version = "0.1.0"
 edition = "2024"
 license.workspace = true
@@ -22,3 +22,4 @@ tokio.workspace = true
 axum.workspace = true
 tower-http = { version = "0.6.4", features = ["trace"] }
 dotenvy = "0.15.7"
+tracing-futures.workspace = true

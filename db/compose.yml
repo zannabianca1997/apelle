@@ -23,6 +23,7 @@ services:
       FLYWAY_URL: jdbc:postgresql://db:5432/${DB_NAME:-${DB_USER}}
       FLYWAY_USER: ${DB_USER}
       FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 60
     command: migrate
     volumes:
       - ../users/migrations:/flyway/sql/users:ro

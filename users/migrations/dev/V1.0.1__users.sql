@@ -1,7 +1,7 @@
 -- Add admin role
-INSERT INTO apelle_global_role (id, name) 
+INSERT INTO apelle_global_role (name) 
 VALUES 
-    (gen_random_uuid(), 'admin');
+    ('admin');
 
 
 INSERT INTO apelle_global_role_can_grant (global_role_id, can_grant_global_role_id) 
@@ -11,9 +11,9 @@ VALUES (
 );
 
 -- Add dev users
-INSERT INTO apelle_user (id, name, password) 
+INSERT INTO apelle_user (name, password) 
 VALUES 
-    (gen_random_uuid(), 'admin', 'password');
+    ('admin', 'password');
 
 INSERT INTO apelle_user_global_role (user_id, global_role_id) 
 VALUES ( 
