@@ -1,2 +1,4 @@
 [default.logging.file]
-dir = "./logs"
+# Setted so even if you run inside a subdirectory,
+# the log file will be created in the root /logs
+root_dir = "./logs"

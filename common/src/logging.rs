@@ -77,10 +77,11 @@ impl TargetsConfig {
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FileLogging {
+    /// Root directory for all the logging
+    root_dir: RelativePathBuf,
+
     /// Directory where the rolling logs will be stored
-    ///
-    /// None disables the rolling logs
-    dir: RelativePathBuf,
+    dir: PathBuf,
 
     /// Rotation strategy of the rolling logs
     rotation: SerdeRotation,
@@ -99,7 +100,8 @@ pub struct FileLogging {
 impl FileLogging {
     pub fn default(service_name: &str) -> Self {
         Self {
-            dir: RelativePathBuf::from(PathBuf::from(DEFAULT_LOG_DIR).join(service_name)),
+            root_dir: RelativePathBuf::from(PathBuf::from(DEFAULT_LOG_DIR)),
+            dir: PathBuf::from(".").join(service_name),
             prefix: format!("{service_name}.log"),
             rotation: SerdeRotation::Daily,
             level: if cfg!(debug_assertions) {
@@ -179,6 +181,7 @@ pub fn init_logging(
 fn file_logging<S: Subscriber + for<'a> LookupSpan<'a>>(
     _service_name: &'static str,
     FileLogging {
+        root_dir,
         dir,
         prefix,
         rotation,
@@ -186,7 +189,7 @@ fn file_logging<S: Subscriber + for<'a> LookupSpan<'a>>(
         targets,
     }: FileLogging,
 ) -> Result<(impl Layer<S>, tracing_appender::non_blocking::WorkerGuard), InitLoggingError> {
-    let dir = dir.relative();
+    let dir = root_dir.relative().join(dir);
 
     std::fs::create_dir_all(&dir).context(CannotCreateLogDirSnafu { dir: &dir })?;
 
