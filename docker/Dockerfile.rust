@@ -31,8 +31,7 @@ WORKDIR /build
 # service changes
 FROM chef AS planner
 COPY . .
-ARG BIN
-RUN cargo chef prepare --recipe-path recipe.json --bin ${BIN}
+RUN cargo chef prepare --recipe-path recipe.json
 
 # Build the binary
 FROM chef AS builder
@@ -40,13 +39,13 @@ FROM chef AS builder
 # Copy the recipe and install all the dependencies,
 # filling the /target directory
 COPY --from=planner /build/recipe.json recipe.json
-ARG BIN
 ARG PROFILE
 RUN cargo chef cook --profile ${PROFILE}        \
     --target x86_64-unknown-linux-musl --locked \
-    --recipe-path recipe.json --bin ${BIN}
+    --recipe-path recipe.json --bins
 
 COPY . .
+ARG BIN
 RUN cargo build --profile ${PROFILE} --locked       \
     --target x86_64-unknown-linux-musl --bin ${BIN}
 
