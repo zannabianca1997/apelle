@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use apelle_common::{
-    Reporter,
-    common_errors::{SQLError, SQLSnafu},
-};
+use apelle_common::common_errors::{SQLError, SQLSnafu};
 use argon2::{
     Argon2, PasswordHasher as _,
     password_hash::{SaltString, rand_core::OsRng},
@@ -11,7 +8,7 @@ use argon2::{
 use axum::{
     Json, debug_handler,
     extract::State,
-    http::{self, HeaderValue, StatusCode},
+    http::{HeaderValue, StatusCode},
     response::IntoResponse,
 };
 use snafu::{ResultExt, Snafu};
@@ -36,11 +33,8 @@ pub enum CreateError {
 impl IntoResponse for CreateError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            CreateError::Conflict { .. } => http::StatusCode::CONFLICT.into_response(),
-            CreateError::SQLError { source } => {
-                tracing::error!("SQL error: {}", Reporter(source));
-                http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
+            CreateError::Conflict { .. } => StatusCode::CONFLICT.into_response(),
+            CreateError::SQLError { source } => source.into_response(),
             CreateError::InvalidName { .. } => StatusCode::BAD_REQUEST.into_response(),
         }
     }
@@ -90,7 +84,7 @@ pub async fn create(
     }))
 }
 
-fn check_name(name: &str) -> bool {
+pub fn check_name(name: &str) -> bool {
     // No whitespace around
     name.trim() == name
         // Not empty

@@ -39,3 +39,4 @@ tracing-futures = { version = "0.2.5", features = ["tokio"] }
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 url = { version = "2.5.4", features = ["serde"] }
 chrono = { version = "0.4.41", features = ["serde"] }
+futures = { version = "0.3.31", default-features = false }

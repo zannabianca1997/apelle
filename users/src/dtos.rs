@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
 /// Data to create a new user
@@ -15,7 +14,7 @@ pub struct UserCreateDto {
 }
 
 /// Data about a user
-#[derive(Debug, Clone, Serialize, FromRow)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UserDto {
     /// Identifier of the user
     pub id: Uuid,
@@ -29,4 +28,10 @@ pub struct UserDto {
     pub updated: DateTime<Utc>,
     /// When the user was last seen
     pub last_login: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserUpdateDto {
+    pub name: Option<String>,
+    pub password: Option<String>,
 }

@@ -19,3 +19,4 @@ tracing.workspace = true
 argon2.workspace = true
 axum-extra = { version = "0.10.1", features = ["typed-header"] }
 tokio.workspace = true
+futures.workspace = true
