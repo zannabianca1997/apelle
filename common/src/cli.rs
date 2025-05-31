@@ -100,7 +100,7 @@ impl CliArgs {
         }
         // Then, the enviroment variables and the arguments
         if !self.no_env {
-            match dotenv::dotenv() {
+            match dotenvy::dotenv() {
                 Ok(_) => (),
                 Err(err) if err.not_found() => (),
                 Err(err) => eprintln!("Cannot open `.env` to load enviroment variable: {err}"),
