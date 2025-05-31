@@ -7,16 +7,12 @@ use serde::{Deserialize, Serialize};
 pub struct ServeConfig {
     /// Socket address
     pub socket: SocketConfig,
-
-    /// Show the starting banner
-    pub banner: bool,
 }
 
 impl ServeConfig {
     pub fn default(service_default_port: u16) -> Self {
         Self {
             socket: SocketConfig::default(service_default_port),
-            banner: true,
         }
     }
 }
