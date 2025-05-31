@@ -31,15 +31,20 @@ pub enum MainError {
     Connection { source: sqlx::Error },
 }
 
-pub async fn app(config: Config) -> Result<Router, MainError> {
+pub async fn app(
+    Config {
+        db_url,
+        login_queue_size,
+    }: Config,
+) -> Result<Router, MainError> {
     tracing::info!("Connecting to database");
-    let db = PgPool::connect(config.db_url.as_str())
+    let db = PgPool::connect(db_url.as_str())
         .await
         .context(ConnectionSnafu)?;
 
     let password_hasher = Argon2::default();
 
-    let (login_sender, login_receiver) = tokio::sync::mpsc::channel(1);
+    let (login_sender, login_receiver) = tokio::sync::mpsc::channel(login_queue_size);
 
     tokio::spawn(auth::login_updater(login_receiver, db.clone()));
 
