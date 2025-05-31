@@ -17,7 +17,7 @@ use tracing_subscriber::{
 const DEFAULT_LOG_DIR: &str = "./logs";
 
 #[derive(Debug, Deserialize, Serialize, Default)]
-pub enum SerdeRotation {
+enum SerdeRotation {
     Minutely,
     Hourly,
     #[default]
@@ -36,18 +36,19 @@ impl From<SerdeRotation> for Rotation {
     }
 }
 
+mod or_bool;
+use or_bool::OrFalse;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoggingConfig {
-    #[serde(default)]
-    file: Option<FileLogging>,
-    #[serde(default)]
-    console: Option<ConsoleLogging>,
+    file: OrFalse<FileLogging>,
+    console: OrFalse<ConsoleLogging>,
 }
 impl LoggingConfig {
     pub fn default(service_name: &str) -> Self {
         Self {
-            file: Some(FileLogging::default(service_name)),
-            console: Some(ConsoleLogging::default(service_name)),
+            file: OrFalse::Some(FileLogging::default(service_name)),
+            console: OrFalse::Some(ConsoleLogging::default(service_name)),
         }
     }
 }
@@ -158,11 +159,13 @@ pub fn init_logging(
     LoggingConfig { file, console }: LoggingConfig,
 ) -> Result<TracingGuard, InitLoggingError> {
     let (file_writer, file_worker_guard) = file
+        .into_option()
         .map(|f| file_logging(service_name, f))
         .transpose()?
         .unzip();
 
     let console_writer = console
+        .into_option()
         .map(|c| console_logging(service_name, c))
         .transpose()?;
 
