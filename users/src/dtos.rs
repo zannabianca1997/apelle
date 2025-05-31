@@ -28,5 +28,5 @@ pub struct UserDto {
     /// When the user was last updated
     pub updated: DateTime<Utc>,
     /// When the user was last seen
-    pub last_login: Option<DateTime<Utc>>,
+    pub last_login: DateTime<Utc>,
 }

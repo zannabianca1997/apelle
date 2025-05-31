@@ -1,4 +1,7 @@
-use apelle_common::{AuthHeaders, Reporter};
+use apelle_common::{
+    AuthHeaders, Reporter,
+    common_errors::{SQLError, SQLSnafu},
+};
 use argon2::{Argon2, PasswordVerifier as _, password_hash};
 use axum::{
     extract::State,
@@ -17,8 +20,9 @@ use uuid::Uuid;
 
 #[derive(Debug, Snafu)]
 pub enum AuthError {
+    #[snafu(transparent)]
     SQLError {
-        source: sqlx::Error,
+        source: SQLError,
     },
     UsernameNotFound,
     BadDatabasePasswordHash {
@@ -38,10 +42,7 @@ pub enum AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            Self::SQLError { source } => {
-                tracing::error!("SQL error: {}", Reporter(source));
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
+            Self::SQLError { source } => source.into_response(),
             Self::BadDatabasePasswordHash { source } => {
                 tracing::error!("Bad password hash: {}", Reporter(source));
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -90,9 +91,8 @@ pub async fn get(
     .context(SQLSnafu)?
     .context(UsernameNotFoundSnafu)?;
 
-    let stored_password: &str = row.get(1);
     let password_hash =
-        password_hash::PasswordHash::new(stored_password).context(BadDatabasePasswordHashSnafu)?;
+        password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
 
     password_hasher
         .verify_password(auth.password().as_bytes(), &password_hash)

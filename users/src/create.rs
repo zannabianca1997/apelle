@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
-use apelle_common::Reporter;
+use apelle_common::{
+    Reporter,
+    common_errors::{SQLError, SQLSnafu},
+};
 use argon2::{
     Argon2, PasswordHasher as _,
     password_hash::{SaltString, rand_core::OsRng},
@@ -18,9 +21,16 @@ use crate::dtos::{UserCreateDto, UserDto};
 
 #[derive(Debug, Snafu)]
 pub enum CreateError {
-    SQLError { source: sqlx::Error },
-    Conflict { name: String },
-    InvalidName { name: String },
+    #[snafu(transparent)]
+    SQLError {
+        source: SQLError,
+    },
+    Conflict {
+        name: String,
+    },
+    InvalidName {
+        name: String,
+    },
 }
 
 impl IntoResponse for CreateError {

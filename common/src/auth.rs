@@ -33,6 +33,14 @@ impl AuthHeaders {
             name: HeaderValue::from_bytes(name.as_bytes()).context(InvalidNameSnafu)?,
         })
     }
+
+    pub fn id(&self) -> Uuid {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        str::from_utf8(self.name.as_bytes()).expect("All constructors checks this is valid")
+    }
 }
 
 #[derive(Debug, Snafu)]
@@ -54,7 +62,7 @@ impl IntoResponse for AuthHeadersRejection {
 impl<S: Sync> FromRequestParts<S> for AuthHeaders {
     type Rejection = AuthHeadersRejection;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let id = parts.headers.get(ID_HEADER).context(NameMissingSnafu)?;
         let name = parts.headers.get(NAME_HEADER).context(IdMissingSnafu)?;
 

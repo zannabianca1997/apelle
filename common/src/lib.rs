@@ -1,5 +1,6 @@
 pub mod auth;
 mod cli;
+pub mod common_errors;
 mod error_reporter;
 mod logging;
 mod main_wrapper;
