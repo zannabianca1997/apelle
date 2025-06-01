@@ -1,3 +1,5 @@
+include:
+  - providers/youtube/compose.yml
 services:
   songs:
     container_name: ${COMPOSE_PROJECT_NAME}-songs

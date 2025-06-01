@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["common", "users", "songs", "songs/dtos"]
+members = ["common", "users", "songs", "songs/dtos", "songs/providers/*"]
 
 [workspace.package]
 license = "MIT"
@@ -8,6 +8,7 @@ license = "MIT"
 [workspace.dependencies]
 # Members
 apelle-common = { path = "common" }
+apelle-songs-dtos = { path = "songs/dtos" }
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros"] }
@@ -40,3 +41,11 @@ uuid = { version = "1.17.0", features = ["serde", "v4"] }
 url = { version = "2.5.4", features = ["serde"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 futures = { version = "0.3.31", default-features = false }
+
+
+[workspace.dependencies.reqwest]
+version = "0.12.18"
+features = ["json"]
+# Reqwest uses tls by default, that we do not have 
+# inside the containers
+default-features = false

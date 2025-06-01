@@ -1,3 +1,21 @@
+-- Known sources
+CREATE TABLE source (
+    id UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+    -- Identifier of the source (e.g. urn:apelle:sources:youtube)
+    urn TEXT NOT NULL UNIQUE,
+    -- Human readable name
+    name TEXT NOT NULL,
+    -- Date the source was added
+    created TIMESTAMP WITH TIME ZONE 
+        NOT NULL
+        DEFAULT NOW(),
+    -- Last time a provider for this source was heard
+    last_heard TIMESTAMP WITH TIME ZONE
+        NOT NULL
+        DEFAULT NOW()
+);
+
 -- Main table for the songs
 CREATE TABLE song (
     -- Unique id of the song
@@ -26,21 +44,4 @@ CREATE TABLE song (
         REFERENCES source
         ON UPDATE CASCADE
         ON DELETE RESTRICT
-);
-
--- Known sources
-CREATE TABLE source (
-    id UUID PRIMARY KEY
-        DEFAULT gen_random_uuid(),
-    -- Identifier of the source (e.g. urn:apelle:sources:youtube)
-    urn TEXT NOT NULL UNIQUE,
-    -- Human readable name
-    name TEXT NOT NULL,
-    -- Date the source was added
-    created TIMESTAMP WITH TIME ZONE 
-        NOT NULL
-        DEFAULT NOW(),
-    -- Last time this source was used
-    last_used TIMESTAMP WITH TIME ZONE
-        DEFAULT NULL
 );

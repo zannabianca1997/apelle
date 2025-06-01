@@ -4,4 +4,4 @@ pub mod source;
 
 pub mod public;
 
-pub mod queue;
+pub mod provider;

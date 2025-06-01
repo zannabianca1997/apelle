@@ -101,7 +101,7 @@ pub async fn get(
     // Passed!
 
     let id = row.get(0);
-    tracing::info!("User {id} logged in");
+    tracing::info!(%id, "User logged in");
     login_sender.try_send(id).unwrap_or_else(|_| {
         tracing::warn!("Login queue is full, last login may become inaccurate");
     });

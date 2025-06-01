@@ -9,7 +9,7 @@ use uuid::Uuid;
 /// This is sent from source providers to the songs service
 /// to signal that a new source is available
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct SourceCreate {
+pub struct SourceRegister {
     pub urn: String,
     pub name: String,
 }
@@ -21,5 +21,5 @@ pub struct Source {
     pub urn: String,
     pub name: String,
     pub created_at: DateTime<FixedOffset>,
-    pub last_used: Option<DateTime<FixedOffset>>,
+    pub last_heard: DateTime<FixedOffset>,
 }

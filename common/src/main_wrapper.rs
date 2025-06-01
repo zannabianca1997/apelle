@@ -1,6 +1,6 @@
 use std::{fmt::Debug, io};
 
-use axum::Router;
+use axum::{Router, routing::get};
 use clap::Parser as _;
 use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -73,6 +73,7 @@ where
             let app = app(app_config)
                 .instrument(info_span!("Building app"))
                 .await?
+                .nest("/service", service_endpoint(service_name))
                 .layer(TraceLayer::new_for_http());
 
             let tcp_listener = match &serve.socket {
@@ -99,6 +100,10 @@ where
 
     drop(log_guards);
     Ok(())
+}
+
+fn service_endpoint(service_name: &'static str) -> Router {
+    Router::new().route("/name", get(async move || service_name))
 }
 
 pub fn service_main<F, AppConfig, AppError>(

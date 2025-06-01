@@ -1,5 +1,5 @@
 [package]
-name = "apelle-songs"
+name = "apelle-songs-youtube"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,12 +7,11 @@ license.workspace = true
 
 [dependencies]
 apelle-common.workspace = true
-apelle-songs-dtos.workspace = true
 
 axum.workspace = true
 serde.workspace = true
 url.workspace = true
 snafu.workspace = true
-sqlx.workspace = true
-
+reqwest.workspace = true
 tracing.workspace = true
+futures.workspace = true

@@ -31,7 +31,10 @@ WORKDIR /build
 # service changes
 FROM chef AS planner
 COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
+RUN --mount=type=cache,target=/build/target/             \
+    --mount=type=cache,target=/usr/local/cargo/git/db    \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo chef prepare --recipe-path recipe.json
 
 # Build the binary
 FROM chef AS builder
@@ -40,24 +43,32 @@ FROM chef AS builder
 # filling the /target directory
 COPY --from=planner /build/recipe.json recipe.json
 ARG PROFILE
-RUN cargo chef cook --profile ${PROFILE}        \
+RUN --mount=type=cache,target=/build/target/             \
+    --mount=type=cache,target=/usr/local/cargo/git/db    \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo chef cook --profile ${PROFILE}        \
     --target x86_64-unknown-linux-musl --locked \
     --recipe-path recipe.json --bins
 
 COPY . .
 ARG BIN
-RUN cargo build --profile ${PROFILE} --locked       \
+RUN --mount=type=cache,target=/build/target/             \
+    --mount=type=cache,target=/usr/local/cargo/git/db    \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --profile ${PROFILE} --locked       \
     --target x86_64-unknown-linux-musl --bin ${BIN}
 
 # Copy the binary to a common place
-RUN cp target/x86_64-unknown-linux-musl/$( [ "$PROFILE" = 'dev' ] && echo 'debug' || echo '$env' )/${BIN} target/bin
+RUN --mount=type=cache,target=/build/target/             \
+    mkdir -p /app                                        \
+    && cp target/x86_64-unknown-linux-musl/$( [ "$PROFILE" = 'dev' ] && echo 'debug' || echo '$env' )/${BIN} /app/bin
 
 # Actual runner
 FROM alpine:${ALPINE_VERSION} AS runner
 WORKDIR /app
 
 # Copy the binary
-COPY --from=builder /build/target/bin ./bin
+COPY --from=builder /app/bin ./bin
 
 # Copy the runtime setup
 ARG CONFIG_FILE
