@@ -1,0 +1,8 @@
+services:
+  cache-pubsub:
+    image: valkey/valkey:8.1-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-cache-pubsub
+    ports:
+      - "6379:6379"
+    command: [ "valkey-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru" ]
+    restart: always

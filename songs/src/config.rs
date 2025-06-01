@@ -6,6 +6,8 @@ use url::Url;
 pub struct Config {
     /// Database connection string
     pub db_url: Url,
+    /// Cache connection string
+    pub cache_url: Url,
 }
 
 impl ProvideDefaults for Config {

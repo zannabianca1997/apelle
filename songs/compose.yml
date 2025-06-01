@@ -8,8 +8,10 @@ services:
       - "8082:8080"
     environment:
       APELLE__DB_URL: ${DB_URL?"The database url must be set"}
+      APELLE__CACHE_URL: ${CACHE_URL?"The cache url must be set"}
     depends_on:
       - db
+      - cache-pubsub
     build:
       context: ..
       dockerfile: ./docker/Dockerfile.rust

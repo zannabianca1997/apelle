@@ -1,5 +1,6 @@
 include:
   - db/compose.yml
+  - cache-pubsub/compose.yml
   - users/compose.yml
   - songs/compose.yml
   - gateway/compose.yml

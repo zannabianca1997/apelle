@@ -10,8 +10,8 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
 
-  flyway:
-    container_name: ${COMPOSE_PROJECT_NAME}-flyway
+  migrator:
+    container_name: ${COMPOSE_PROJECT_NAME}-migrator
     image: flyway/flyway:11-alpine
     restart: no
     environment:

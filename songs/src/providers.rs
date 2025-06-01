@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use apelle_common::common_errors::{SQLError, SQLSnafu};
+use apelle_common::common_errors::{CacheError, SQLError, SQLSnafu};
 use apelle_songs_dtos::provider::{
     ProviderRegistration, ProviderRegistrationError as ProviderRegistrationErrorDto,
 };
@@ -10,16 +10,26 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, NoContent},
 };
+use const_format::concatcp;
+use futures::TryFutureExt as _;
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use url::Url;
+
+use crate::CACHE_NAMESPACE;
+
+const PROVIDERS_NAMESPACE: &str = concatcp!(CACHE_NAMESPACE, "providers:");
 
 #[derive(Debug, Snafu)]
 pub enum ProviderRegistrationError {
     #[snafu(transparent)]
     SQLError {
         source: SQLError,
+    },
+    #[snafu(transparent)]
+    CacheError {
+        source: CacheError,
     },
     NoSources,
     UnknownSources {
@@ -35,6 +45,7 @@ impl IntoResponse for ProviderRegistrationError {
             StatusCode::BAD_REQUEST,
             Json(match self {
                 ProviderRegistrationError::SQLError { source } => return source.into_response(),
+                ProviderRegistrationError::CacheError { source } => return source.into_response(),
                 ProviderRegistrationError::UnknownSources { urns } => {
                     ProviderRegistrationErrorDto::UnknownSources { urns }
                 }
@@ -55,6 +66,7 @@ impl IntoResponse for ProviderRegistrationError {
 pub async fn register(
     State(db): State<PgPool>,
     State(client): State<reqwest::Client>,
+    State(mut cache): State<redis::aio::ConnectionManager>,
     Json(ProviderRegistration { source_urns, url }): Json<ProviderRegistration>,
 ) -> Result<NoContent, ProviderRegistrationError> {
     // Check that all the sources are registered
@@ -65,14 +77,32 @@ pub async fn register(
     )?;
 
     // Marking that we seen a provider for the sources
-    set_sources_as_seen(&db, &source_urns)
-        .await
-        .context(SQLSnafu)?;
+    let set_sources_as_seen = set_sources_as_seen(&db, &source_urns).map_err(|source| {
+        ProviderRegistrationError::SQLError {
+            source: SQLError { source },
+        }
+    });
+
+    // Register the webhook as a provider for all the sources
+    let mut pipe = redis::pipe();
+    for urn in &source_urns {
+        let mut key = String::with_capacity(PROVIDERS_NAMESPACE.len() + urn.len());
+        key += PROVIDERS_NAMESPACE;
+        key += urn;
+        pipe.sadd(key, url.to_string());
+    }
+    let register_provider =
+        pipe.exec_async(&mut cache)
+            .map_err(|source| ProviderRegistrationError::CacheError {
+                source: CacheError { source },
+            });
+
+    tokio::try_join!(set_sources_as_seen, register_provider)?;
 
     Ok(NoContent)
 }
 
-// Check that all sources are registered
+/// Check that all sources are registered
 async fn check_urn_presence(
     db: &PgPool,
     urns: &HashSet<String>,
@@ -123,7 +153,7 @@ async fn check_urn_presence(
     Ok(())
 }
 
-// Check that all sources are registered
+/// Marking that we seen a provider for the sources
 async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), sqlx::Error> {
     if urns.len() == 1 {
         let urn = urns.iter().next().unwrap();
@@ -155,6 +185,10 @@ async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), 
     Ok(())
 }
 
+/// Check that the webhook is reachable
+///
+/// We leverage the fact that the provider API requires the
+/// root to return a 2xx on a GET request
 async fn check_webhook(
     client: &reqwest::Client,
     url: &Url,

@@ -22,6 +22,16 @@ sqlx = { version = "0.8.6", features = [
     "uuid",
 ] }
 
+# Caching and pubsub
+redis = { version = "0.31.0", default-features = false, features = [
+    "aio",
+    "json",
+    "keep-alive",
+    "tokio-comp",
+    "uuid",
+    "connection-manager",
+] }
+
 # Authentication
 argon2 = { version = "0.5.3", features = ["std"] }
 
