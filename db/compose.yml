@@ -9,11 +9,6 @@ services:
       POSTGRES_DB: ${DB_NAME:-${DB_USER}}
     volumes:
       - dbdata:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   flyway:
     container_name: ${COMPOSE_PROJECT_NAME}-flyway
@@ -29,8 +24,7 @@ services:
       - ../users/migrations:/flyway/sql/users:ro
       - ./flyway.toml:/flyway/conf/flyway.toml:ro
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
 volumes:
   dbdata:
