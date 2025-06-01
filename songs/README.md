@@ -4,6 +4,14 @@ This is the service responsible for handling song data, and recovering them from
 sources, identified by an urn. Multiple _providers_ can register themselves and will be 
 queried when a song request arrive with that urn (see the _provider protocol_).
 
+## Private endpoints
+
+## `/sources`
+This endpoint can be used to register new sources using `POST`.
+
+## `/providers`
+This endpoint can be user to register itself as a provider for some sources
+
 
 ## The provider protocol
 

@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 apelle-common.workspace = true
+apelle-songs-dtos.workspace = true
 
 axum.workspace = true
 serde.workspace = true

@@ -1,15 +1,11 @@
-use axum::{
-    Router,
-    extract::FromRef,
-    response::NoContent,
-    routing::{get, post},
-};
+use axum::{Router, extract::FromRef, routing::post};
 use config::Config;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 
 pub mod config;
 
+mod providers;
 mod sources;
 
 /// Main fatal error
@@ -21,6 +17,7 @@ pub enum MainError {
 #[derive(Debug, Clone, FromRef)]
 pub struct App {
     db: PgPool,
+    client: reqwest::Client,
 }
 
 pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
@@ -29,7 +26,10 @@ pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
         .await
         .context(ConnectionSnafu)?;
 
+    let client = reqwest::Client::new();
+
     Ok(Router::new()
         .route("/sources", post(sources::register))
-        .with_state(App { db }))
+        .route("/providers", post(providers::register))
+        .with_state(App { db, client }))
 }

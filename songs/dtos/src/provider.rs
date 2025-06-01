@@ -8,26 +8,37 @@ use serde_json::value::RawValue;
 use url::Url;
 
 /// Register himself as a provider
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ProviderRegistration {
     /// URNs of the sources this provider can answer for
-    pub source_urn: HashSet<String>,
+    pub source_urns: HashSet<String>,
     /// Url where this provider is serving the provider API
     pub url: Url,
 }
 
-/// Registration failed as `songs` does not know some
-/// of the urns provided
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnknownSources {
-    pub urns: HashSet<String>,
+/// Register himself as a provider
+#[derive(Debug, Clone, Serialize)]
+pub struct ProviderRegistrationRef<'a> {
+    /// URNs of the sources this provider can answer for
+    pub source_urns: &'a [&'a str],
+    /// Url where this provider is serving the provider API
+    pub url: &'a Url,
 }
 
-/// Registration failed as the webhook endpoint answered with a
-/// non 2xx status code to a GET request
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebhookFailed {
-    pub status: u16,
+#[serde(tag = "error")]
+pub enum ProviderRegistrationError {
+    /// Registration failed as no sources were provided
+    NoSources,
+    /// Registration failed as `songs` does not know some
+    /// of the urns provided
+    UnknownSources { urns: HashSet<String> },
+    /// Registration failed as the webhook endpoint answered with a
+    /// non 2xx status code to a GET request
+    WebhookFailed {
+        status: Option<u16>,
+        message: String,
+    },
 }
 
 /// Signal that a song has been resolved,

@@ -8,10 +8,19 @@ use uuid::Uuid;
 ///
 /// This is sent from source providers to the songs service
 /// to signal that a new source is available
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct SourceRegister {
     pub urn: String,
     pub name: String,
+}
+
+/// Like [`SourceRegister`] but as a reference
+///
+/// Used to serialize constants ('a = 'static)
+#[derive(Debug, Clone, Serialize)]
+pub struct SourceRegisterRef<'a> {
+    pub urn: &'a str,
+    pub name: &'a str,
 }
 
 /// Information about a source registered in the database

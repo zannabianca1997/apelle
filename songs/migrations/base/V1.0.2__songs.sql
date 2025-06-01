@@ -12,8 +12,7 @@ CREATE TABLE source (
         DEFAULT NOW(),
     -- Last time a provider for this source was heard
     last_heard TIMESTAMP WITH TIME ZONE
-        NOT NULL
-        DEFAULT NOW()
+        DEFAULT NULL
 );
 
 -- Main table for the songs

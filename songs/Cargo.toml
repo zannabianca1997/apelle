@@ -14,5 +14,6 @@ serde.workspace = true
 url.workspace = true
 snafu.workspace = true
 sqlx.workspace = true
-
+reqwest.workspace = true
 tracing.workspace = true
+tokio.workspace = true

@@ -5,7 +5,7 @@ use clap::Parser as _;
 use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use snafu::{ResultExt, Snafu};
-use tokio::{net::TcpListener, signal};
+use tokio::{net::TcpListener, signal, task::JoinError};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
 use tracing_futures::Instrument as _;
@@ -46,15 +46,18 @@ pub enum Error<AppError: std::error::Error + 'static> {
     BindToSocket { socket: String, source: io::Error },
     #[snafu(display("Fatal error in serving app"))]
     RuntimeError { source: io::Error },
+    #[snafu(display("Fatal error in joining server thread"))]
+    JoinError { source: JoinError },
 }
 
-fn service_main_impl<F, AppConfig, AppError>(
+fn service_main_impl<F, AppConfig, AppError, App>(
     service_name: &'static str,
     service_default_port: u16,
     app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Error<AppError>>
 where
-    F: Future<Output = Result<Router, AppError>>,
+    F: Future<Output = Result<App, AppError>>,
+    App: WrappedService<AppError>,
     AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
@@ -70,9 +73,11 @@ where
         .build()
         .context(TokioRuntimeSnafu)?
         .block_on(async {
-            let app = app(app_config)
+            let (app, then) = app(app_config)
                 .instrument(info_span!("Building app"))
                 .await?
+                .unpack();
+            let app = app
                 .nest("/service", service_endpoint(service_name))
                 .layer(TraceLayer::new_for_http());
 
@@ -86,13 +91,20 @@ where
 
             tracing::info!("Serving app on {socket}", socket = serve.socket);
 
-            axum::serve(tcp_listener, app)
-                .with_graceful_shutdown(shutdown_signal())
-                .await
-                .context(RuntimeSnafu)?;
+            // Starting server thread
+            let serving = tokio::spawn(
+                axum::serve(tcp_listener, app)
+                    .with_graceful_shutdown(shutdown_signal())
+                    .into_future(),
+            );
+
+            // Running post-serving actions
+            then().await?;
+
+            // Joining server thread
+            serving.await.context(JoinSnafu)?.context(RuntimeSnafu)?;
 
             tracing::debug!("Shutting down runtime");
-
             Ok::<_, Error<AppError>>(())
         })?;
 
@@ -106,13 +118,14 @@ fn service_endpoint(service_name: &'static str) -> Router {
     Router::new().route("/name", get(async move || service_name))
 }
 
-pub fn service_main<F, AppConfig, AppError>(
+pub fn service_main<F, AppConfig, AppError, App>(
     service_name: &'static str,
     service_default_port: u16,
     app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Reporter<Error<AppError>>>
 where
-    F: Future<Output = Result<Router, AppError>>,
+    F: Future<Output = Result<App, AppError>>,
+    App: WrappedService<AppError>,
     AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
@@ -142,4 +155,23 @@ async fn shutdown_signal() {
         () = terminate => {},
     };
     tracing::info!("Received shutdown signal");
+}
+
+pub trait WrappedService<ThenError> {
+    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), ThenError>);
+}
+
+impl<AppError> WrappedService<AppError> for Router {
+    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), AppError>) {
+        (self, async || Ok(()))
+    }
+}
+
+impl<Then, AppError> WrappedService<AppError> for (Router, Then)
+where
+    Then: AsyncFnOnce() -> Result<(), AppError>,
+{
+    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), AppError>) {
+        self
+    }
 }

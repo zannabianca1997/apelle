@@ -98,6 +98,7 @@ dependencies = [
  "clap",
  "dotenvy",
  "figment",
+ "futures 0.3.31",
  "serde",
  "serde_with",
  "snafu",
@@ -118,9 +119,11 @@ dependencies = [
  "apelle-common",
  "apelle-songs-dtos",
  "axum",
+ "reqwest",
  "serde",
  "snafu",
  "sqlx",
+ "tokio 1.45.1",
  "tracing",
  "url",
 ]
@@ -141,6 +144,7 @@ name = "apelle-songs-youtube"
 version = "0.1.0"
 dependencies = [
  "apelle-common",
+ "apelle-songs-dtos",
  "axum",
  "futures 0.3.31",
  "reqwest",
