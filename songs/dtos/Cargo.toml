@@ -1,0 +1,10 @@
+[package]
+name = "apelle-songs-dtos"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }

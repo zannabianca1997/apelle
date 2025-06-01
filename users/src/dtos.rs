@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -23,11 +23,11 @@ pub struct UserDto {
     /// Roles of the user
     pub roles: HashSet<String>,
     /// When the user was created
-    pub created: DateTime<Utc>,
+    pub created: DateTime<FixedOffset>,
     /// When the user was last updated
-    pub updated: DateTime<Utc>,
+    pub updated: DateTime<FixedOffset>,
     /// When the user was last seen
-    pub last_login: DateTime<Utc>,
+    pub last_login: DateTime<FixedOffset>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -123,6 +123,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "apelle-songs-dtos"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "apelle-users"
 version = "0.1.0"
 dependencies = [

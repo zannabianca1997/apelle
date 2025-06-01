@@ -22,6 +22,7 @@ services:
     command: migrate
     volumes:
       - ../users/migrations:/flyway/sql/users:ro
+      - ../songs/migrations:/flyway/sql/songs:ro
       - ./flyway.toml:/flyway/conf/flyway.toml:ro
     depends_on:
       - db
