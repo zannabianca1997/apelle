@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::Hash};
+use std::collections::HashSet;
 
 use apelle_common::common_errors::{SQLError, SQLSnafu};
 use apelle_songs_dtos::provider::{
@@ -64,7 +64,10 @@ pub async fn register(
         check_webhook(&client, &url)
     )?;
 
-    // TODO: push the new provider to REDIS
+    // Marking that we seen a provider for the sources
+    set_sources_as_seen(&db, &source_urns)
+        .await
+        .context(SQLSnafu)?;
 
     Ok(NoContent)
 }
@@ -81,13 +84,11 @@ async fn check_urn_presence(
     if urns.len() == 1 {
         let urn = urns.iter().next().unwrap();
 
-        let count: i64 = sqlx::query_scalar(
-            "
-                SELECT COUNT(*)
-                FROM source
-                WHERE urn = $1
-            ",
-        )
+        let count: i64 = sqlx::query_scalar(concat!(
+            "SELECT COUNT(*) ",
+            "FROM source ",
+            "WHERE urn = $1"
+        ))
         .bind(urn)
         .fetch_one(db)
         .await
@@ -118,6 +119,38 @@ async fn check_urn_presence(
             urns: urns.difference(&present).cloned().collect(),
         });
     }
+
+    Ok(())
+}
+
+// Check that all sources are registered
+async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), sqlx::Error> {
+    if urns.len() == 1 {
+        let urn = urns.iter().next().unwrap();
+
+        sqlx::query(concat!(
+            "UPDATE source ",
+            "SET last_heard = NOW() ",
+            "WHERE urn = $1"
+        ))
+        .bind(urn)
+        .execute(db)
+        .await?;
+
+        return Ok(());
+    }
+
+    let mut qb = sqlx::QueryBuilder::new(concat!(
+        "UPDATE source ",
+        "SET last_heard = NOW() ",
+        "WHERE urn = ANY("
+    ));
+    let mut sep = qb.separated(", ");
+    for urn in urns {
+        sep.push_bind(urn);
+    }
+    qb.push(")");
+    qb.build().execute(db).await?;
 
     Ok(())
 }

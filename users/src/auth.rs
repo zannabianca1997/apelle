@@ -78,13 +78,11 @@ pub async fn get(
 ) -> Result<(AuthHeaders, NoContent), AuthError> {
     let TypedHeader(auth) = auth.context(MissingHeaderSnafu)?;
 
-    let row = sqlx::query(
-        "
-                SELECT id, password
-                FROM apelle_user
-                WHERE name = $1
-            ",
-    )
+    let row = sqlx::query(concat!(
+        "SELECT id, password ",
+        "FROM apelle_user ",
+        "WHERE name = $1"
+    ))
     .bind(auth.username())
     .fetch_optional(&db)
     .await

@@ -11,13 +11,11 @@ pub async fn register(
 ) -> Result<NoContent, SQLError> {
     tracing::info!(urn, name, "Registering source");
 
-    let rows = sqlx::query(
-        "
-            INSERT INTO source (urn, name)
-            VALUES ($1, $2)
-            ON CONFLICT DO NOTHING
-        ",
-    )
+    let rows = sqlx::query(concat!(
+        "INSERT INTO source (urn, name) ",
+        "VALUES ($1, $2) ",
+        "ON CONFLICT DO NOTHING"
+    ))
     .bind(&urn)
     .bind(&name)
     .execute(&db)

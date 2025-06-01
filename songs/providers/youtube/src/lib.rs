@@ -1,6 +1,6 @@
 use apelle_songs_dtos::{
-    provider::{ProviderRegistration, ProviderRegistrationError, ProviderRegistrationRef},
-    source::{self, SourceRegister, SourceRegisterRef},
+    provider::{ProviderRegistrationError, ProviderRegistrationRef},
+    source::SourceRegisterRef,
 };
 use axum::{Router, extract::FromRef, response::NoContent, routing::get};
 use config::Config;

@@ -57,14 +57,12 @@ pub async fn create(
         .hash_password(password.as_bytes(), &salt)
         .unwrap();
 
-    let Some((id, created, updated, last_login)) = sqlx::query_as(
-        "
-            INSERT INTO apelle_user (name, password)
-            VALUES ($1, $2)
-            ON CONFLICT (name) DO NOTHING
-            RETURNING id, created, updated, last_login
-        ",
-    )
+    let Some((id, created, updated, last_login)) = sqlx::query_as(concat!(
+        "INSERT INTO apelle_user (name, password) ",
+        "VALUES ($1, $2) ",
+        "ON CONFLICT (name) DO NOTHING ",
+        "RETURNING id, created, updated, last_login",
+    ))
     .bind(&name)
     .bind(password.to_string())
     .fetch_optional(&db)
