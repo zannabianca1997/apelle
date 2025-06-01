@@ -53,7 +53,7 @@ pub async fn app(
             "/public",
             Router::new()
                 .route("/", post(create::create))
-                .route("/me", get(me::get).patch(me::patch)),
+                .route("/me", get(me::get).patch(me::patch).delete(me::delete)),
         )
         .route("/auth", get(auth::get))
         .with_state(App {

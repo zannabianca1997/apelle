@@ -8,7 +8,12 @@ use argon2::{
     Argon2, PasswordHasher as _,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, NoContent},
+};
 use futures::FutureExt;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row as _};
@@ -155,4 +160,18 @@ pub async fn patch(
         updated,
         last_login,
     }))
+}
+
+pub async fn delete(State(db): State<PgPool>, auth: AuthHeaders) -> Result<NoContent, SQLError> {
+    sqlx::query(
+        "
+            DELETE FROM apelle_user
+            WHERE id = $1
+        ",
+    )
+    .bind(auth.id())
+    .execute(&db)
+    .await
+    .context(SQLSnafu)?;
+    Ok(NoContent)
 }
