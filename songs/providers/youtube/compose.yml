@@ -7,8 +7,11 @@ services:
     environment:
       APELLE__SELF_URL: ${SELF_URL?"The self url must be set"}
       APELLE__SONGS_URL: ${SONGS_URL?"The songs service url must be set"}
+      APELLE__YOUTUBE__API_URL: ${YOUTUBE_API_URL?"The youtube api url must be set"}
+      APELLE__YOUTUBE__API_KEY: ${YOUTUBE_API_KEY?"The youtube api key must be set"}
     depends_on:
       - songs
+      - gateway
     build:
       context: ../../..
       dockerfile: ./docker/Dockerfile.rust

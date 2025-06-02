@@ -27,3 +27,5 @@ sqlx.workspace = true
 argon2.workspace = true
 futures.workspace = true
 redis.workspace = true
+chrono.workspace = true
+iso8601 = { version = "0.6.3", features = ["chrono", "serde"] }

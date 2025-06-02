@@ -18,6 +18,7 @@ pub struct ProviderRegistration {
     ///
     /// This suggest to the `songs` service that the webhook is known to work
     /// and that checks can be skipped
+    #[serde(default)]
     pub fast_handshake: bool,
 }
 
@@ -32,6 +33,7 @@ pub struct ProviderRegistrationRef<'a> {
     ///
     /// This suggest to the `songs` service that the webhook is known to work
     /// and that checks can be skipped
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub fast_handshake: bool,
 }
 
@@ -50,16 +52,23 @@ pub enum ProviderRegistrationError {
     },
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct RetrieveQueryParams {
+    #[serde(default)]
+    pub public: bool,
+}
+
 /// Signal that a song has been resolved,
 /// and provide the corresponding data
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchResponse<P = Box<RawValue>, T = Box<RawValue>> {
+pub struct RetrieveResponse<P = Box<RawValue>, C = Box<RawValue>> {
     /// Title of the song
     pub title: String,
     /// Duration of the song
+    #[serde(with = "apelle_common::iso8601::duration")]
     pub duration: Duration,
     /// Additional data from the song source to provide the frontend
     pub public: Option<P>,
     /// Data for the PUT callback when the song entity is generated
-    pub callback: Option<T>,
+    pub callback: Option<C>,
 }

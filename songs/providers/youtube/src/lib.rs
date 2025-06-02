@@ -1,14 +1,18 @@
+use std::sync::Arc;
+
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
 };
-use axum::{Router, extract::FromRef, response::NoContent, routing::get};
+use axum::{Router, extract::FromRef};
 use config::Config;
 use futures::{FutureExt, TryFutureExt};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
+use url::Url;
 
 pub mod config;
+mod provider;
 
 /// Main fatal error
 #[derive(Debug, Snafu)]
@@ -27,6 +31,16 @@ pub enum MainError {
 #[derive(Debug, Clone, FromRef)]
 struct App {
     songs_client: reqwest::Client,
+    youtube: Arc<YoutubeApi>,
+}
+
+#[derive(Debug, Clone)]
+struct YoutubeApi {
+    pub api_key: String,
+    pub api_search_url: Url,
+    pub api_list_url: Url,
+
+    pub public_url: Url,
 }
 
 const YOUTUBE_SOURCE_URN: &str = "urn:apelle:sources:youtube";
@@ -42,6 +56,7 @@ pub async fn app(
         self_url,
         fast_handshake,
         skip_source_registration,
+        youtube,
     }: Config,
 ) -> Result<(Router, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
     tracing::info!("Connecting to songs service");
@@ -80,27 +95,40 @@ pub async fn app(
             .context(SongsConnectionSnafu)?;
     }
 
+    let youtube = YoutubeApi {
+        api_key: youtube.api_key,
+        api_search_url: youtube
+            .api_search_url
+            .unwrap_or_else(|| youtube.api_url.join("search").unwrap()),
+        api_list_url: youtube
+            .api_list_url
+            .unwrap_or_else(|| youtube.api_url.join("videos").unwrap()),
+        public_url: youtube.public_url,
+    };
+
     Ok((
         Router::new()
-            .route("/", get(async || NoContent))
+            .nest("/provider", provider::provider())
             .with_state(App {
                 songs_client: songs_client.clone(),
+                youtube: Arc::new(youtube),
             }),
         async move || {
             // Doing this after the server started up so the web hook
             // answers to the song service
 
             // Registering us as a provider
+            let url = self_url.join("/provider").unwrap();
             tracing::info!(
                 source_urn = YOUTUBE_SOURCE_URN,
-                url =% self_url,
+                %url,
                 "Registering as a provider"
             );
             let r = songs_client
                 .post(songs_url.join("/providers").unwrap())
                 .json(&ProviderRegistrationRef {
                     source_urns: &[YOUTUBE_SOURCE_URN],
-                    url: &self_url,
+                    url: &url,
                     fast_handshake,
                 })
                 .send()

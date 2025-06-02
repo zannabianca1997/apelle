@@ -16,3 +16,5 @@ snafu.workspace = true
 reqwest.workspace = true
 tracing.workspace = true
 futures.workspace = true
+uuid.workspace = true
+chrono.workspace = true

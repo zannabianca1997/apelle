@@ -32,7 +32,7 @@ serve the API described in the following paragraph
 Simple healthchek. Should return `204 No Content` or `200 Ok` the body of which
 is ignored
 
-### `POST /search?public={true|false}`
+### `POST /retrieve?public={true|false}`
 Request for searching a song. Arbitrary data are included as provided from the
 frontend. Should return a dto of the `SearchResponse` type (see
 `apelle-songs-dtos`). If `public` is set, the `public` field should be populated
