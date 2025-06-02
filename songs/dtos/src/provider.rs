@@ -14,6 +14,11 @@ pub struct ProviderRegistration {
     pub source_urns: HashSet<String>,
     /// Url where this provider is serving the provider API
     pub url: Url,
+    /// Use fast handshake
+    ///
+    /// This suggest to the `songs` service that the webhook is known to work
+    /// and that checks can be skipped
+    pub fast_handshake: bool,
 }
 
 /// Register himself as a provider
@@ -23,6 +28,11 @@ pub struct ProviderRegistrationRef<'a> {
     pub source_urns: &'a [&'a str],
     /// Url where this provider is serving the provider API
     pub url: &'a Url,
+    /// Use fast handshake
+    ///
+    /// This suggest to the `songs` service that the webhook is known to work
+    /// and that checks can be skipped
+    pub fast_handshake: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,11 +40,10 @@ pub struct ProviderRegistrationRef<'a> {
 pub enum ProviderRegistrationError {
     /// Registration failed as no sources were provided
     NoSources,
-    /// Registration failed as `songs` does not know some
-    /// of the urns provided
+    /// Registration failed as `songs` does not know some of the urns provided
     UnknownSources { urns: HashSet<String> },
-    /// Registration failed as the webhook endpoint answered with a
-    /// non 2xx status code to a GET request
+    /// Registration failed as the webhook endpoint answered with a non 2xx
+    /// status code to a GET request
     WebhookFailed {
         status: Option<u16>,
         message: String,
@@ -49,10 +58,8 @@ pub struct SearchResponse<P = Box<RawValue>, T = Box<RawValue>> {
     pub title: String,
     /// Duration of the song
     pub duration: Duration,
-    /// Additional data from the song source
-    /// to provide the frontend
+    /// Additional data from the song source to provide the frontend
     pub public: Option<P>,
-    /// Data for the PUT callback when the song
-    /// entity is generated
+    /// Data for the PUT callback when the song entity is generated
     pub callback: Option<T>,
 }

@@ -67,14 +67,22 @@ pub async fn register(
     State(db): State<PgPool>,
     State(client): State<reqwest::Client>,
     State(mut cache): State<redis::aio::ConnectionManager>,
-    Json(ProviderRegistration { source_urns, url }): Json<ProviderRegistration>,
+    Json(ProviderRegistration {
+        source_urns,
+        url,
+        fast_handshake,
+    }): Json<ProviderRegistration>,
 ) -> Result<NoContent, ProviderRegistrationError> {
     // Check that all the sources are registered
     // and that the webhook is reachable
-    tokio::try_join!(
-        check_urn_presence(&db, &source_urns),
-        check_webhook(&client, &url)
-    )?;
+    if !fast_handshake {
+        tokio::try_join!(
+            check_urn_presence(&db, &source_urns),
+            check_webhook(&client, &url)
+        )?;
+    } else {
+        check_urn_presence(&db, &source_urns).await?;
+    }
 
     // Marking that we seen a provider for the sources
     let set_sources_as_seen = set_sources_as_seen(&db, &source_urns).map_err(|source| {
