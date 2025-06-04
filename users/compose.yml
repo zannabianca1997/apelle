@@ -5,7 +5,10 @@ services:
     environment:
       APELLE__DB_URL: ${DB_URL?"The database url must be set"}
     depends_on:
-      - db
+      db:
+        condition: service_started
+      migrator:
+        condition: service_completed_successfully
     build:
       context: ..
       dockerfile: ./docker/Dockerfile.rust

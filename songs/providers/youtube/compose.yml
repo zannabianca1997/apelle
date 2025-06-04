@@ -9,8 +9,14 @@ services:
       APELLE__YOUTUBE__API_KEY: ${YOUTUBE_API_KEY?"The youtube api key must be set"}
       APELLE__DB_URL: ${DB_URL?"The database url must be set"}
     depends_on:
-      - songs
-      - gateway
+      db:
+        condition: service_started
+      migrator:
+        condition: service_completed_successfully
+      songs:
+        condition: service_started
+      gateway:
+        condition: service_started
     build:
       context: ../../..
       dockerfile: ./docker/Dockerfile.rust
