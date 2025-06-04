@@ -32,9 +32,15 @@ serve the API described in the following paragraph
 Simple healthchek. Should return `204 No Content` or `200 Ok` the body of which
 is ignored
 
-### `POST /retrieve?public={true|false}`
-Request for searching a song. Arbitrary data are included as provided from the
-frontend. Should return a dto of the `SearchResponse` type (see
+### `GET /search?q={string}&[page_size={int}]&[page={string}]`
+Search for a song in the source. Should return a paginated list of songs. 
+
+If `page` is specified, then it should come from a previous query `next` or
+`prev` fields.
+
+### `POST /resolve?[public={true|false}]`
+Request for resolving a song. Arbitrary data are included as provided from
+`/search`. Should return a dto of the `SearchResponse` type (see
 `apelle-songs-dtos`). If `public` is set, the `public` field should be populated
 with the data that would be returned from the `GET /songs/{id}` request.
 
@@ -49,4 +55,7 @@ was populated, this call will contain that data as a body.
 ### `GET  /songs/{id}`
 Request the data bound to a specific songs. Should have the same format to the
 `public` field returned from the first search. 
+
+### `DELETE  /songs/{id}`
+Remove the data about a song
 

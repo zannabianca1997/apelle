@@ -4,7 +4,7 @@ use url::Url;
 pub mod youtube;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct RetrieveRequest {
+pub struct ResolveRequest {
     pub video_id: String,
 }
 

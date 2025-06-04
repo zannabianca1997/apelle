@@ -18,3 +18,5 @@ tracing.workspace = true
 futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+tokio.workspace = true
+sqlx.workspace = true

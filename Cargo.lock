@@ -158,6 +158,8 @@ dependencies = [
  "reqwest",
  "serde",
  "snafu",
+ "sqlx",
+ "tokio 1.45.1",
  "tracing",
  "url",
  "uuid",

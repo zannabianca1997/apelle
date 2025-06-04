@@ -23,11 +23,15 @@ pub struct Config {
 
     /// Youtube api config
     pub youtube: YoutubeConfig,
+
+    /// Database connection string
+    pub db_url: Url,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct YoutubeConfig {
     pub api_key: String,
+
     pub api_url: Url,
     pub api_search_url: Option<Url>,
     pub api_list_url: Option<Url>,

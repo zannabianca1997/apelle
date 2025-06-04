@@ -6,7 +6,8 @@ CREATE TABLE youtube_song (
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     -- Id of the video
-    video_id TEXT NOT NULL UNIQUE,
+    video_id TEXT NOT NULL 
+        CONSTRAINT youtube_song_video_id UNIQUE,
     -- Etag at the time of the fetching
     etag TEXT,
     -- Date the video data were fetched

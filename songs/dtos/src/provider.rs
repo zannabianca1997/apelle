@@ -6,6 +6,7 @@ use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use url::Url;
+use uuid::Uuid;
 
 /// Register himself as a provider
 #[derive(Debug, Clone, Deserialize)]
@@ -53,7 +54,7 @@ pub enum ProviderRegistrationError {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct RetrieveQueryParams {
+pub struct ResolveQueryParams {
     #[serde(default)]
     pub public: bool,
 }
@@ -61,14 +62,31 @@ pub struct RetrieveQueryParams {
 /// Signal that a song has been resolved,
 /// and provide the corresponding data
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetrieveResponse<P = Box<RawValue>, C = Box<RawValue>> {
-    /// Title of the song
-    pub title: String,
-    /// Duration of the song
-    #[serde(with = "apelle_common::iso8601::duration")]
-    pub duration: Duration,
-    /// Additional data from the song source to provide the frontend
-    pub public: Option<P>,
-    /// Data for the PUT callback when the song entity is generated
-    pub callback: Option<C>,
+#[serde(tag = "state")]
+pub enum ResolveResponse<P = Box<RawValue>, C = Box<RawValue>> {
+    /// This is a new song, still unregistered
+    New {
+        /// Title of the song
+        title: String,
+        /// Duration of the song
+        #[serde(with = "apelle_common::iso8601::duration")]
+        duration: Duration,
+        /// Additional data from the song source to provide the frontend
+        public: Option<P>,
+        /// Data for the PUT callback when the song entity is generated
+        callback: Option<C>,
+    },
+    /// This is an existing song
+    Existing {
+        /// Title of the song
+        id: Uuid,
+        /// Additional data from the song source to provide the frontend
+        public: Option<P>,
+    },
+}
+
+/// Path parameters for the songs endpoint
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SongsPathParams {
+    pub id: Uuid,
 }
