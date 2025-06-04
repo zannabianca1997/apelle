@@ -177,6 +177,7 @@ dependencies = [
  "axum-extra",
  "chrono",
  "futures 0.3.31",
+ "route-recognizer",
  "serde",
  "snafu",
  "sqlx",
@@ -2072,6 +2073,12 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
 ]
+
+[[package]]
+name = "route-recognizer"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afab94fb28594581f62d981211a9a4d53cc8130bbcbbb89a0440d9b8e81a7746"
 
 [[package]]
 name = "rsa"
