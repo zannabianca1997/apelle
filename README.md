@@ -11,7 +11,16 @@ It also fetch the song data from the sources (for now, only Youtube is
 supported). Users provides only the minimal necessary to identify the song (e.g.
 the youtube video ID).
 
-## Ports for local developement
+## Local developement
+
+The services can be built and run with `docker compose up --build -d`. Each
+service has a corresponding compose file that specifies dependencies.
+
+The `gateway` service will be available at `http://localhost:8080`, and
+corresponds to how a user would use the service. Additionally, each service
+exposes the port it uses, enabling testing of the single service.
+
+### Ports for local developement
 
 | Service       | Port |
 |---------------|------|
@@ -22,29 +31,17 @@ the youtube video ID).
 | songs         | 8082 |
 | songs-youtube | 8091 |
 
-## Configuration
-Every service can take configuration from multiple sources. In order,
-configuration keys are searched:
-- Cli arguments: `-C serve.port`
-- Enviroment variables: `APELLE__SERVE__PORT`
-- A TOML file provided with `-c`
-- The `global` table of a TOML file called `Apelle.toml` in the current
-  directory or in an ancestor
-- A TOML file called `Apelle-<service name>.toml` in the current directory or in
-  an ancestor
-- The `<service name>` table of `Apelle.toml`
-- The `default` table of `Apelle.toml`
-- The default values
-
-
 ## Services
 
+Here is a short description of each service. See the dedicated `README.md` in
+each service directory for more details.
+
 ## `db`
-A simple postgres instance. It is used to store all permanent data
+A simple postgres instance. It is used to store all permanent data.
 
 ## `migrator`
 A container used to handle migrations. It is configured to migrate `db` at
-startup, with the migration collected from all the others services
+startup, with the migration collected from all the others services.
 
 ## `gateway`
 An nginx instance, working as the entry point to the costellation. It has two

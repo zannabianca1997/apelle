@@ -7,11 +7,13 @@ _provider protocol_).
 
 ## Private endpoints
 
-## `/sources`
-This endpoint can be used to register new sources using `POST`.
+### `POST /sources`
+This endpoint can be used to register new sources.
 
-## `/providers`
-This endpoint can be user to register itself as a provider for some sources
+### `POST /providers`
+This endpoint can be user to register itself as a provider for a group of sources.
+
+## Public endpoints
 
 
 ## The provider protocol

@@ -53,7 +53,7 @@ struct YoutubeApi {
     pub public_url: Url,
 }
 
-const YOUTUBE_SOURCE_URN: &str = "urn:apelle:sources:youtube";
+const YOUTUBE_SOURCE_URN: &str = "urn:apelle:sources/youtube";
 
 const YOUTUBE_SOURCE: SourceRegisterRef<'static> = SourceRegisterRef {
     urn: YOUTUBE_SOURCE_URN,
