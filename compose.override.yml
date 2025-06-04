@@ -1,0 +1,34 @@
+services:
+  db:
+    ports:
+      - "5432:5432"
+  cache-pubsub:
+    ports:
+      - "6379:6379"
+  users:
+    ports:
+      - "8081:8080"
+    build:
+      args:
+        PROFILE: dev
+    volumes:
+      - ./logs/:/app/logs
+  songs:
+    ports:
+      - "8082:8080"
+    build:
+      args:
+        PROFILE: dev
+    volumes:
+      - ./logs/:/app/logs
+  songs-youtube:
+    ports:
+      - "8091:8080"
+    build:
+      args:
+        PROFILE: dev
+    volumes:
+      - ./logs/:/app/logs
+  gateway:
+    ports:
+      - "8080:8080"

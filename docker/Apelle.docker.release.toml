@@ -1,0 +1,7 @@
+# Configuration for a dockerized Apelle service, in production mode
+
+[serve]
+socket = "0.0.0.0:8080"
+
+[logging]
+file = false

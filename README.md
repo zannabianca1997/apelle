@@ -66,3 +66,15 @@ Route every request of a song to the registered providers.
 ### `songs-<source>`
 Song providers. Handle communication with the given source. Register themselves
 at runtime on the `songs` service.
+
+## Prod-like mode
+
+The docker compose is already configured to deploy the services in prod-like
+mode, by using a different compose override file:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+```
+
+This will compile the services in release mode, and setup them with no file
+logging. It will also expose the main gateway port on the port 80 instead of
+8080.
