@@ -21,6 +21,16 @@ use crate::CACHE_NAMESPACE;
 
 const PROVIDERS_NAMESPACE: &str = concatcp!(CACHE_NAMESPACE, "providers:");
 
+pub fn providers_set_cache_key(mut urn: &str) -> String {
+    urn = urn.trim_start_matches("urn:");
+
+    let mut key = String::with_capacity(PROVIDERS_NAMESPACE.len() + urn.len());
+    key += PROVIDERS_NAMESPACE;
+    key += urn;
+
+    key
+}
+
 #[derive(Debug, Snafu)]
 pub enum ProviderRegistrationError {
     #[snafu(transparent)]
@@ -94,10 +104,7 @@ pub async fn register(
     // Register the webhook as a provider for all the sources
     let mut pipe = redis::pipe();
     for urn in &source_urns {
-        let mut key = String::with_capacity(PROVIDERS_NAMESPACE.len() + urn.len());
-        key += PROVIDERS_NAMESPACE;
-        key += urn;
-        pipe.sadd(key, url.to_string());
+        pipe.sadd(providers_set_cache_key(&urn), url.to_string());
     }
     let register_provider =
         pipe.exec_async(&mut cache)
@@ -122,15 +129,11 @@ async fn check_urn_presence(
     if urns.len() == 1 {
         let urn = urns.iter().next().unwrap();
 
-        let count: i64 = sqlx::query_scalar(concat!(
-            "SELECT COUNT(*) ",
-            "FROM source ",
-            "WHERE urn = $1"
-        ))
-        .bind(urn)
-        .fetch_one(db)
-        .await
-        .context(SQLSnafu)?;
+        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM source WHERE urn = $1")
+            .bind(urn)
+            .fetch_one(db)
+            .await
+            .context(SQLSnafu)?;
 
         if count == 0 {
             return Err(ProviderRegistrationError::UnknownSources { urns: urns.clone() });
@@ -166,23 +169,15 @@ async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), 
     if urns.len() == 1 {
         let urn = urns.iter().next().unwrap();
 
-        sqlx::query(concat!(
-            "UPDATE source ",
-            "SET last_heard = NOW() ",
-            "WHERE urn = $1"
-        ))
-        .bind(urn)
-        .execute(db)
-        .await?;
+        sqlx::query("UPDATE source SET last_heard = NOW() WHERE urn = $1")
+            .bind(urn)
+            .execute(db)
+            .await?;
 
         return Ok(());
     }
 
-    let mut qb = sqlx::QueryBuilder::new(concat!(
-        "UPDATE source ",
-        "SET last_heard = NOW() ",
-        "WHERE urn = ANY("
-    ));
+    let mut qb = sqlx::QueryBuilder::new("UPDATE source SET last_heard = NOW() WHERE urn = ANY(");
     let mut sep = qb.separated(", ");
     for urn in urns {
         sep.push_bind(urn);

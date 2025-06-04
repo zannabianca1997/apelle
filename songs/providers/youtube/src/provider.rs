@@ -20,7 +20,8 @@ use futures::{FutureExt, TryFutureExt, future::OptionFuture};
 use reqwest::{Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use snafu::{ResultExt as _, Snafu};
-use sqlx::{Executor as _, PgPool, QueryBuilder, query_scalar};
+use sqlx::{Executor as _, PgPool, QueryBuilder, Row as _, query_scalar};
+use textwrap_macros::unfill;
 use url::Url;
 
 use crate::{App, YoutubeApi};
@@ -117,22 +118,21 @@ async fn resolve(
         tracing::info!(%id, video_id, "Song already registered");
 
         let public = OptionFuture::from(public.then(|| async {
-            let thumbs = sqlx::query_as(concat!(
-                "SELECT height, width, url FROM youtube_thumbs WHERE song_id = $1",
-            ))
-            .bind(id)
-            .fetch_all(&db)
-            .await
-            .context(SQLSnafu)?
-            .into_iter()
-            .map(|(height, width, url): (i32, i32, String)| {
-                Ok::<_, ResolveError>(dtos::Thumbnail {
-                    height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
-                })
-            })
-            .collect::<Result<_, _>>()?;
+            let thumbs =
+                sqlx::query_as("SELECT height, width, url FROM youtube_thumbs WHERE song_id = $1")
+                    .bind(id)
+                    .fetch_all(&db)
+                    .await
+                    .context(SQLSnafu)?
+                    .into_iter()
+                    .map(|(height, width, url): (i32, i32, String)| {
+                        Ok::<_, ResolveError>(dtos::Thumbnail {
+                            height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
+                            width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
+                            url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
+                        })
+                    })
+                    .collect::<Result<_, _>>()?;
 
             Ok::<_, ResolveError>(PublicSongData {
                 url: video_url(&youtube_api.public_url, &video_id),
@@ -233,7 +233,7 @@ async fn put_songs(
         fetched,
         thumbs,
     }): Json<YoutubeSongData>,
-) -> Result<NoContent, InsertError> {
+) -> Result<(StatusCode, NoContent), InsertError> {
     tracing::info!(%id, video_id, "Inserting song data");
 
     let mut qb =
@@ -245,14 +245,15 @@ async fn put_songs(
         .push_bind(etag)
         .push_bind(fetched);
 
-    qb.push(concat!(
-        ") ",
-        // On conflict for id: update, being this a PUT
-        "ON CONFLICT (id) ",
-        "DO UPDATE SET ",
-        "video_id = excluded.video_id, ",
-        "etag = excluded.etag, ",
-        "fetched = excluded.fetched" // On conflict for video_id: ignore, will rollback and get an error
+    // On conflict for id: update, being this a PUT
+    // On conflict for video_id: ignore, will rollback and get an error
+    // Return if it was an update or not
+    qb.push(unfill!(
+        "
+        )
+        ON CONFLICT (id) DO UPDATE SET (video_id, etag, fetched) = (EXCLUDED.video_id, EXCLUDED.etag, EXCLUDED.fetched)
+        RETURNING (NOT xmax = 0)
+        "
     ));
 
     let song_insert_sql = qb.build();
@@ -271,20 +272,16 @@ async fn put_songs(
         },
     );
 
-    qb.push(concat!(
-        " ON CONFLICT (song_id, size) ",
-        "DO UPDATE SET ",
-        "url = excluded.url, ",
-        "width = excluded.width, ",
-        "height = excluded.height"
-    ));
+    qb.push(
+        " ON CONFLICT (song_id, size)  DO UPDATE SET (url, width, height) = (EXCLUDED.url, EXCLUDED.width, EXCLUDED.height)"
+    );
 
     let thumbs_insert_sql = qb.build();
 
     let mut tr = db.begin().await.context(SQLSnafu)?;
 
-    match tr.execute(song_insert_sql).await {
-        Ok(_) => (),
+    let created = match tr.fetch_one(song_insert_sql).await {
+        Ok(r) => r.get::<bool, _>(0),
         Err(sqlx::Error::Database(e)) if e.constraint() == Some("youtube_song_video_id") => {
             // This will also rollback the transaction :)
             return Err(InsertError::Conflict);
@@ -298,7 +295,14 @@ async fn put_songs(
 
     tr.commit().await.context(SQLSnafu)?;
 
-    Ok(NoContent)
+    Ok((
+        if created {
+            StatusCode::CREATED
+        } else {
+            StatusCode::NO_CONTENT
+        },
+        NoContent,
+    ))
 }
 
 #[derive(Debug, Snafu)]
@@ -347,22 +351,20 @@ async fn get_songs(
         .map(|r| r.context(SQLSnafu)?.ok_or(GetError::GetNotFound));
 
     let thumbs = async {
-        sqlx::query_as(concat!(
-            "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
-        ))
-        .bind(id)
-        .fetch_all(&db)
-        .await
-        .context(SQLSnafu)?
-        .into_iter()
-        .map(|(height, width, url): (i32, i32, String)| {
-            Ok::<_, GetError>(dtos::Thumbnail {
-                height: height.try_into().context(GetDBInvalidThumbSizeSnafu)?,
-                width: width.try_into().context(GetDBInvalidThumbSizeSnafu)?,
-                url: Url::parse(&url).context(GetDBInvalidThumbUrlSnafu)?,
+        sqlx::query_as("SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1")
+            .bind(id)
+            .fetch_all(&db)
+            .await
+            .context(SQLSnafu)?
+            .into_iter()
+            .map(|(height, width, url): (i32, i32, String)| {
+                Ok::<_, GetError>(dtos::Thumbnail {
+                    height: height.try_into().context(GetDBInvalidThumbSizeSnafu)?,
+                    width: width.try_into().context(GetDBInvalidThumbSizeSnafu)?,
+                    url: Url::parse(&url).context(GetDBInvalidThumbUrlSnafu)?,
+                })
             })
-        })
-        .collect::<Result<_, _>>()
+            .collect::<Result<_, _>>()
     };
 
     let (video_id, thumbs): (String, _) = tokio::try_join!(video_id, thumbs)?;

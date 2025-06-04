@@ -20,3 +20,4 @@ tokio.workspace = true
 redis.workspace = true
 futures.workspace = true
 const_format = "0.2.34"
+textwrap-macros.workspace = true

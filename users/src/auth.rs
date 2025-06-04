@@ -78,16 +78,12 @@ pub async fn get(
 ) -> Result<(AuthHeaders, NoContent), AuthError> {
     let TypedHeader(auth) = auth.context(MissingHeaderSnafu)?;
 
-    let row = sqlx::query(concat!(
-        "SELECT id, password ",
-        "FROM apelle_user ",
-        "WHERE name = $1"
-    ))
-    .bind(auth.username())
-    .fetch_optional(&db)
-    .await
-    .context(SQLSnafu)?
-    .context(UsernameNotFoundSnafu)?;
+    let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
+        .bind(auth.username())
+        .fetch_optional(&db)
+        .await
+        .context(SQLSnafu)?
+        .context(UsernameNotFoundSnafu)?;
 
     let password_hash =
         password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
@@ -116,16 +112,10 @@ pub async fn get(
 /// to the user
 pub(crate) async fn login_updater(mut login_receiver: Receiver<Uuid>, db: PgPool) {
     while let Some(id) = login_receiver.recv().await {
-        sqlx::query(
-            "
-                UPDATE apelle_user
-                SET last_login = NOW()
-                WHERE id = $1
-            ",
-        )
-        .bind(id)
-        .execute(&db)
-        .await
-        .unwrap();
+        sqlx::query("UPDATE apelle_user SET last_login = NOW() WHERE id = $1")
+            .bind(id)
+            .execute(&db)
+            .await
+            .unwrap();
     }
 }

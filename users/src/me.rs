@@ -17,6 +17,7 @@ use axum::{
 use futures::FutureExt;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row as _};
+use textwrap_macros::unfill;
 use uuid::Uuid;
 
 use crate::{
@@ -25,13 +26,10 @@ use crate::{
 };
 
 pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<UserDto>, SQLError> {
-    let rest_of_entity = sqlx::query_as(concat!(
-        "SELECT created, updated, last_login ",
-        "FROM apelle_user ",
-        "WHERE id = $1"
-    ))
-    .bind(auth.id())
-    .fetch_one(&db);
+    let rest_of_entity =
+        sqlx::query_as("SELECT created, updated, last_login FROM apelle_user WHERE id = $1")
+            .bind(auth.id())
+            .fetch_one(&db);
 
     let ((created, updated, last_login), roles) =
         tokio::try_join!(rest_of_entity, fetch_roles(&db, auth.id())).context(SQLSnafu)?;
@@ -47,12 +45,14 @@ pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<Use
 }
 
 async fn fetch_roles(db: &PgPool, id: Uuid) -> Result<HashSet<String>, sqlx::Error> {
-    sqlx::query(concat!(
-        "SELECT gr.name ",
-        "FROM apelle_user_global_role ugr ",
-        "INNER JOIN apelle_global_role gr ",
-        "ON ugr.global_role_id = gr.id ",
-        "WHERE ugr.user_id = $1",
+    sqlx::query(unfill!(
+        "
+        SELECT gr.name 
+        FROM apelle_user_global_role ugr
+        INNER JOIN apelle_global_role gr
+        ON ugr.global_role_id = gr.id
+        WHERE ugr.user_id = $1
+        "
     ))
     .bind(id)
     .map(|row| row.get(0))
@@ -116,16 +116,11 @@ pub async fn patch(
     qb.push(" WHERE id = ").push_bind(auth.id());
 
     if let Some(name) = &name {
-        qb.push(concat!(
-            "AND NOT EXISTS (",
-            "SELECT 1 ",
-            "FROM apelle_user ",
-            "WHERE name = "
-        ))
-        .push_bind(name)
-        .push(" AND id != ")
-        .push_bind(auth.id())
-        .push(")");
+        qb.push("AND NOT EXISTS (SELECT 1 FROM apelle_user WHERE name = ")
+            .push_bind(name)
+            .push(" AND id != ")
+            .push_bind(auth.id())
+            .push(")");
     }
 
     let query = qb

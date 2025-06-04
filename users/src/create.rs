@@ -13,6 +13,7 @@ use axum::{
 };
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
+use textwrap_macros::unfill;
 
 use crate::dtos::{UserCreateDto, UserDto};
 
@@ -57,11 +58,12 @@ pub async fn create(
         .hash_password(password.as_bytes(), &salt)
         .unwrap();
 
-    let Some((id, created, updated, last_login)) = sqlx::query_as(concat!(
-        "INSERT INTO apelle_user (name, password) ",
-        "VALUES ($1, $2) ",
-        "ON CONFLICT (name) DO NOTHING ",
-        "RETURNING id, created, updated, last_login",
+    let Some((id, created, updated, last_login)) = sqlx::query_as(unfill!(
+        "
+        INSERT INTO apelle_user (name, password) VALUES ($1, $2)
+        ON CONFLICT (name) DO NOTHING
+        RETURNING id, created, updated, last_login
+        "
     ))
     .bind(&name)
     .bind(password.to_string())
