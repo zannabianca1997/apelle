@@ -13,14 +13,14 @@ the youtube video ID).
 
 ## Ports for local developement
 
-| Service      | Port |
-|--------------|------|
-| db           | 5432 |
-| cache-pubsub | 6379 |
-| gateway      | 8080 |
-| users        | 8081 |
-| songs        | 8082 |
-| youtube      | 8091 |
+| Service       | Port |
+|---------------|------|
+| db            | 5432 |
+| cache-pubsub  | 6379 |
+| gateway       | 8080 |
+| users         | 8081 |
+| songs         | 8082 |
+| songs-youtube | 8091 |
 
 ## Configuration
 Every service can take configuration from multiple sources. In order,
