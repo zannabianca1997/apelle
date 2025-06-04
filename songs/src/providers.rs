@@ -17,7 +17,7 @@ use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use url::Url;
 
-use crate::CACHE_NAMESPACE;
+use crate::{CACHE_NAMESPACE, FastHandshakeConfig};
 
 const PROVIDERS_NAMESPACE: &str = concatcp!(CACHE_NAMESPACE, "providers:");
 
@@ -77,6 +77,9 @@ pub async fn register(
     State(db): State<PgPool>,
     State(client): State<reqwest::Client>,
     State(mut cache): State<redis::aio::ConnectionManager>,
+    State(FastHandshakeConfig {
+        honor_fast_handshake,
+    }): State<FastHandshakeConfig>,
     Json(ProviderRegistration {
         source_urns,
         url,
@@ -85,13 +88,15 @@ pub async fn register(
 ) -> Result<NoContent, ProviderRegistrationError> {
     // Check that all the sources are registered
     // and that the webhook is reachable
-    if !fast_handshake {
+    if honor_fast_handshake && fast_handshake {
+        // Only check that the urn is known
+        check_urn_presence(&db, &source_urns).await?;
+    } else {
+        // Full handshake
         tokio::try_join!(
             check_urn_presence(&db, &source_urns),
             check_webhook(&client, &url)
         )?;
-    } else {
-        check_urn_presence(&db, &source_urns).await?;
     }
 
     // Marking that we seen a provider for the sources

@@ -1,4 +1,8 @@
-use axum::{Router, extract::FromRef, routing::post};
+use axum::{
+    Router,
+    extract::FromRef,
+    routing::{get, post},
+};
 use config::Config;
 use futures::FutureExt;
 use redis::IntoConnectionInfo;
@@ -25,9 +29,21 @@ pub struct App {
     db: PgPool,
     cache: redis::aio::ConnectionManager,
     client: reqwest::Client,
+    fast_handshake_config: FastHandshakeConfig,
 }
 
-pub async fn app(Config { db_url, cache_url }: Config) -> Result<Router, MainError> {
+#[derive(Debug, Clone, Copy)]
+pub struct FastHandshakeConfig {
+    pub honor_fast_handshake: bool,
+}
+
+pub async fn app(
+    Config {
+        db_url,
+        cache_url,
+        honor_fast_handshake,
+    }: Config,
+) -> Result<Router, MainError> {
     tracing::info!("Connecting to database and cache");
 
     let db = PgPool::connect(db_url.as_str())
@@ -55,7 +71,15 @@ pub async fn app(Config { db_url, cache_url }: Config) -> Result<Router, MainErr
     let client = reqwest::Client::new();
 
     Ok(Router::new()
-        .route("/sources", post(sources::register))
+        .route("/sources", get(sources::list).post(sources::register))
         .route("/providers", post(providers::register))
-        .with_state(App { db, client, cache }))
+        .route("/public/sources", get(sources::list))
+        .with_state(App {
+            db,
+            client,
+            cache,
+            fast_handshake_config: FastHandshakeConfig {
+                honor_fast_handshake,
+            },
+        }))
 }

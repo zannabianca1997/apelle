@@ -2,3 +2,6 @@ services:
   gateway:
     ports:
       - "80:8080"
+  migrator:
+    volumes:
+      - ./db/flyway.prod.toml:/flyway/conf/flyway.toml:ro

@@ -2,7 +2,6 @@
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Create a new source
 ///
@@ -26,9 +25,8 @@ pub struct SourceRegisterRef<'a> {
 /// Information about a source registered in the database
 #[derive(Debug, Clone, Serialize)]
 pub struct Source {
-    pub id: Uuid,
     pub urn: String,
     pub name: String,
-    pub created_at: DateTime<FixedOffset>,
+    pub created: DateTime<FixedOffset>,
     pub last_heard: DateTime<FixedOffset>,
 }

@@ -8,10 +8,13 @@ pub struct Config {
     pub db_url: Url,
     /// Cache connection string
     pub cache_url: Url,
+
+    /// If requests to skip webhook checking should be honored
+    pub honor_fast_handshake: bool,
 }
 
 impl ProvideDefaults for Config {
     fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
-        Figment::new()
+        Figment::new().join(("honor_fast_handshake", true))
     }
 }

@@ -2,6 +2,9 @@ services:
   db:
     ports:
       - "5432:5432"
+  migrator:
+    volumes:
+      - ./db/flyway.dev.toml:/flyway/conf/flyway.toml:ro
   cache-pubsub:
     ports:
       - "6379:6379"

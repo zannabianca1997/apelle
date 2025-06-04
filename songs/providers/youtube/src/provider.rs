@@ -420,7 +420,7 @@ pub fn provider() -> Router<App> {
         .route("/", get(ping))
         .route("/resolve", post(resolve))
         .route(
-            "/songs/{id}",
+            "/solved/{id}",
             put(put_songs).get(get_songs).delete(delete_songs),
         )
 }

@@ -5,6 +5,7 @@ mod error_reporter;
 pub mod iso8601;
 mod logging;
 mod main_wrapper;
+pub mod paginated;
 mod serve;
 
 pub use auth::AuthHeaders;
