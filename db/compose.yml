@@ -29,4 +29,5 @@ services:
         condition: service_started
 
 volumes:
-  dbdata:
+  db-data:
+    name: ${COMPOSE_PROJECT_NAME}-db-data
