@@ -1,6 +1,6 @@
 use chrono::{DateTime, Duration, offset::FixedOffset};
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue;
+use serde_json::value::Value;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize)]
@@ -21,15 +21,15 @@ pub struct Song {
     /// the artist, an url or any source specific
     /// data. They are provided on-demand
     /// as they require querying the source service
-    pub source_data: Option<Box<RawValue>>,
+    pub source_data: Option<Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct SongCreate {
+pub struct ResolveSongRequest {
     /// URN of the song source
     pub source_urn: String,
     /// Data that the user used to define the song
     ///
     /// e.g. the video id for youtube
-    pub data: Box<RawValue>,
+    pub data: Value,
 }

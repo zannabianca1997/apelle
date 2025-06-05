@@ -5,4 +5,5 @@
 target/
 
 # Logs
-logs/
+logs/*
+!logs/.gitkeep

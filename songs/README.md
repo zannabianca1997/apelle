@@ -29,7 +29,7 @@ several times to search in multiple sources.
 
 ### `POST /resolve`
 Request for resolving a song. Arbitrary data are included as provided from
-`/search`. Should redirect to the `/solved` endpoint for the song with a 301
+`/search`. Should redirect to the `/solved` endpoint for the song with a 303
 status code.
 
 ### `GET /solved/{id}`

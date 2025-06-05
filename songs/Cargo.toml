@@ -14,10 +14,11 @@ serde.workspace = true
 url.workspace = true
 snafu.workspace = true
 sqlx.workspace = true
-reqwest.workspace = true
+reqwest = { workspace = true, features = ["stream"] }
 tracing.workspace = true
 tokio.workspace = true
 redis.workspace = true
 futures.workspace = true
 const_format = "0.2.34"
 textwrap-macros.workspace = true
+uuid.workspace = true

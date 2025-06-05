@@ -45,7 +45,8 @@ pub async fn list(
     let page_size = page_size.unwrap_or(10);
     let offset = page.saturating_mul(page_size);
 
-    // Using LIMIT OFFSET, as there are few sources ( probably less than a single page)
+    // Using LIMIT OFFSET, as there are few sources (probably less than a single
+    // page) and they have a easy order
     let items = sqlx::query(
         "SELECT urn, name, created, last_heard FROM source ORDER BY urn DESC LIMIT $1 OFFSET $2",
     )

@@ -35,6 +35,8 @@ Request for resolving a song. Arbitrary data are included as provided from
 `apelle-songs-dtos`). If `public` is set, the `public` field should be populated
 with the data that would be returned from the `GET /songs/{id}` request.
 
+If the song is not found, the service should return a `404 Not Found` response.
+
 If the service need to store additional data, they can be provided in the
 `callback` field. A subsequent call to the `PUT` endpoint will contain those as
 a body.

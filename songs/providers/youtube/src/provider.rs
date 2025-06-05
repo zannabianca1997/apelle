@@ -8,6 +8,7 @@ use apelle_songs_dtos::provider::{ResolveQueryParams, ResolveResponse, SongsPath
 use axum::{
     Json, Router, debug_handler,
     extract::{Path, Query, State},
+    http::HeaderName,
     response::{IntoResponse, NoContent},
     routing::{get, post, put},
 };
@@ -35,10 +36,11 @@ async fn ping() -> NoContent {
 
 #[derive(Debug, Serialize)]
 struct YoutubeQueryParams<'a> {
-    key: &'a str,
     id: &'a str,
     part: &'a str,
 }
+
+const GOOGLE_API_KEY_HEADER: HeaderName = HeaderName::from_static("x-goog-api-key");
 
 #[derive(Debug, Snafu)]
 enum ResolveError {
@@ -158,10 +160,10 @@ async fn resolve(
     let Paginated { items, .. } = client
         .get(api_url.clone())
         .query(&YoutubeQueryParams {
-            key: api_key,
             id: &video_id,
             part: "snippet,contentDetails",
         })
+        .header(GOOGLE_API_KEY_HEADER, api_key)
         .send()
         .map(|r| r.and_then(Response::error_for_status))
         .and_then(Response::json)
@@ -280,7 +282,7 @@ async fn put_songs(
 
     let mut tr = db.begin().await.context(SQLSnafu)?;
 
-    let created = match tr.fetch_one(song_insert_sql).await {
+    let found = match tr.fetch_one(song_insert_sql).await {
         Ok(r) => r.get::<bool, _>(0),
         Err(sqlx::Error::Database(e)) if e.constraint() == Some("youtube_song_video_id") => {
             // This will also rollback the transaction :)
@@ -296,10 +298,10 @@ async fn put_songs(
     tr.commit().await.context(SQLSnafu)?;
 
     Ok((
-        if created {
-            StatusCode::CREATED
-        } else {
+        if found {
             StatusCode::NO_CONTENT
+        } else {
+            StatusCode::CREATED
         },
         NoContent,
     ))

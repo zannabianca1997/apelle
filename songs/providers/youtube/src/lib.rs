@@ -142,7 +142,7 @@ pub async fn app(
             // to the song service
 
             // Registering us as a provider
-            let url = self_url.join("/provider").unwrap();
+            let url = self_url.join("provider").unwrap();
             tracing::info!(
                 source_urn = YOUTUBE_SOURCE_URN,
                 %url,

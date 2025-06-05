@@ -20,7 +20,7 @@ use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use url::Url;
 
-use crate::{CACHE_NAMESPACE, FastHandshakeConfig};
+use crate::{CACHE_NAMESPACE, ProvidersConfig};
 
 const PROVIDERS_NAMESPACE: &str = concatcp!(CACHE_NAMESPACE, "providers:");
 
@@ -80,9 +80,10 @@ pub async fn register(
     State(db): State<PgPool>,
     client: TracingClient,
     State(mut cache): State<redis::aio::ConnectionManager>,
-    State(FastHandshakeConfig {
+    State(ProvidersConfig {
         honor_fast_handshake,
-    }): State<FastHandshakeConfig>,
+        ..
+    }): State<ProvidersConfig>,
     Json(ProviderRegistration {
         source_urns,
         url,

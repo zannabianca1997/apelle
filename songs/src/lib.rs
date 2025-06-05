@@ -15,6 +15,7 @@ const CACHE_NAMESPACE: &str = "apelle:songs:";
 pub mod config;
 
 mod providers;
+mod resolve;
 mod sources;
 
 /// Main fatal error
@@ -29,11 +30,11 @@ pub struct App {
     db: PgPool,
     cache: redis::aio::ConnectionManager,
     client: reqwest::Client,
-    fast_handshake_config: FastHandshakeConfig,
+    providers_config: ProvidersConfig,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct FastHandshakeConfig {
+pub struct ProvidersConfig {
     pub honor_fast_handshake: bool,
 }
 
@@ -74,11 +75,12 @@ pub async fn app(
         .route("/sources", get(sources::list).post(sources::register))
         .route("/providers", post(providers::register))
         .route("/public/sources", get(sources::list))
+        .route("/public/resolve", post(resolve::resolve))
         .with_state(App {
             db,
             client,
             cache,
-            fast_handshake_config: FastHandshakeConfig {
+            providers_config: ProvidersConfig {
                 honor_fast_handshake,
             },
         }))

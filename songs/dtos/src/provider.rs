@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue;
+use serde_json::value::Value;
 use url::Url;
 use uuid::Uuid;
 
@@ -48,6 +48,7 @@ pub enum ProviderRegistrationError {
     /// Registration failed as the webhook endpoint answered with a non 2xx
     /// status code to a GET request
     WebhookFailed {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         status: Option<u16>,
         message: String,
     },
@@ -63,7 +64,7 @@ pub struct ResolveQueryParams {
 /// and provide the corresponding data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "state")]
-pub enum ResolveResponse<P = Box<RawValue>, C = Box<RawValue>> {
+pub enum ResolveResponse<P = Value, C = Value> {
     /// This is a new song, still unregistered
     New {
         /// Title of the song
@@ -72,8 +73,10 @@ pub enum ResolveResponse<P = Box<RawValue>, C = Box<RawValue>> {
         #[serde(with = "apelle_common::iso8601::duration")]
         duration: Duration,
         /// Additional data from the song source to provide the frontend
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         public: Option<P>,
         /// Data for the PUT callback when the song entity is generated
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         callback: Option<C>,
     },
     /// This is an existing song
@@ -81,6 +84,7 @@ pub enum ResolveResponse<P = Box<RawValue>, C = Box<RawValue>> {
         /// Title of the song
         id: Uuid,
         /// Additional data from the song source to provide the frontend
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         public: Option<P>,
     },
 }
