@@ -7,6 +7,7 @@ mod logging;
 mod main_wrapper;
 pub mod paginated;
 mod serve;
+mod tracing_client;
 
 pub use auth::AuthHeaders;
 pub use cli::ProvideDefaults;
@@ -16,3 +17,4 @@ pub use figment::{
 };
 pub use main_wrapper::Error;
 pub use main_wrapper::service_main;
+pub use tracing_client::TracingClient;

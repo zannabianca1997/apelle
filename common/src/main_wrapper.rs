@@ -1,12 +1,18 @@
 use std::{fmt::Debug, io};
 
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    body::Body,
+    http::{HeaderName, Request},
+    routing::get,
+};
 use clap::Parser as _;
 use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use snafu::{ResultExt, Snafu};
 use tokio::{net::TcpListener, signal, task::JoinError};
-use tower_http::trace::TraceLayer;
+use tower::ServiceBuilder;
+use tower_http::{ServiceBuilderExt as _, request_id::MakeRequestUuid, trace::TraceLayer};
 use tracing::info_span;
 use tracing_futures::Instrument as _;
 
@@ -50,6 +56,8 @@ pub enum Error<AppError: std::error::Error + 'static> {
     JoinError { source: JoinError },
 }
 
+pub const TRACE_ID_HEADER: HeaderName = HeaderName::from_static("x-apelle-trace-id");
+
 fn service_main_impl<F, AppConfig, AppError, App>(
     service_name: &'static str,
     service_default_port: u16,
@@ -67,6 +75,25 @@ where
 
     let log_guards = init_logging(service_name, logging).context(InitLoggingSnafu)?;
 
+    let middleware = ServiceBuilder::new()
+        .set_request_id(TRACE_ID_HEADER, MakeRequestUuid::default())
+        .layer(
+            TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
+                let trace_id = request
+                    .headers()
+                    .get(TRACE_ID_HEADER)
+                    .expect("The set_request_id middleware should have set the trace id");
+                tracing::debug_span!(
+                    "request",
+                    method = %request.method(),
+                    uri = %request.uri(),
+                    version = ?request.version(),
+                    ?trace_id
+                )
+            }),
+        )
+        .propagate_request_id(TRACE_ID_HEADER);
+
     tracing::info!("Starting runtime");
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -79,7 +106,7 @@ where
                 .unpack();
             let app = app
                 .nest("/service", service_endpoint(service_name))
-                .layer(TraceLayer::new_for_http());
+                .layer(middleware);
 
             let tcp_listener = match &serve.socket {
                 SocketConfig::Compact(socket) => TcpListener::bind(socket).await,

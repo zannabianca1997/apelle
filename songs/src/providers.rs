@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
-use apelle_common::common_errors::{CacheError, SQLError, SQLSnafu};
+use apelle_common::{
+    TracingClient,
+    common_errors::{CacheError, SQLError, SQLSnafu},
+};
 use apelle_songs_dtos::provider::{
     ProviderRegistration, ProviderRegistrationError as ProviderRegistrationErrorDto,
 };
@@ -75,7 +78,7 @@ impl IntoResponse for ProviderRegistrationError {
 #[debug_handler(state=crate::App)]
 pub async fn register(
     State(db): State<PgPool>,
-    State(client): State<reqwest::Client>,
+    client: TracingClient,
     State(mut cache): State<redis::aio::ConnectionManager>,
     State(FastHandshakeConfig {
         honor_fast_handshake,
@@ -197,10 +200,7 @@ async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), 
 ///
 /// We leverage the fact that the provider API requires the
 /// root to return a 2xx on a GET request
-async fn check_webhook(
-    client: &reqwest::Client,
-    url: &Url,
-) -> Result<(), ProviderRegistrationError> {
+async fn check_webhook(client: &TracingClient, url: &Url) -> Result<(), ProviderRegistrationError> {
     client
         .get(url.clone())
         .send()

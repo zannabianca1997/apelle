@@ -11,7 +11,7 @@ apelle-common = { path = "common" }
 apelle-songs-dtos = { path = "songs/dtos" }
 
 # Networking
-axum = { version = "0.8.4", features = ["tokio", "http1", "macros"] }
+axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal", "sync"] }
 
 # Database

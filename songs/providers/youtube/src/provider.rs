@@ -1,7 +1,7 @@
 use std::{collections::HashMap, num::TryFromIntError, sync::Arc};
 
 use apelle_common::{
-    Reporter,
+    Reporter, TracingClient,
     common_errors::{SQLError, SQLSnafu},
 };
 use apelle_songs_dtos::provider::{ResolveQueryParams, ResolveResponse, SongsPathParams};
@@ -103,7 +103,7 @@ struct YoutubeSongData {
 async fn resolve(
     State(db): State<PgPool>,
     State(youtube_api): State<Arc<YoutubeApi>>,
-    State(client): State<reqwest::Client>,
+    client: TracingClient,
     Query(ResolveQueryParams { public }): Query<ResolveQueryParams>,
     Json(ResolveRequest { video_id }): Json<ResolveRequest>,
 ) -> Result<Json<ResolveResponse<PublicSongData, YoutubeSongData>>, ResolveError> {

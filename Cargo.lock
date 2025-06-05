@@ -102,11 +102,13 @@ dependencies = [
  "futures 0.3.31",
  "iso8601",
  "redis",
+ "reqwest",
  "serde",
  "serde_with",
  "snafu",
  "sqlx",
  "tokio 1.45.1",
+ "tower",
  "tower-http",
  "tracing",
  "tracing-appender",
@@ -3094,6 +3096,7 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

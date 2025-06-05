@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use apelle_common::TracingClient;
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
@@ -76,12 +77,12 @@ pub async fn app(
         .instrument(info_span!("Connecting to database"));
 
     tracing::info!("Connecting to songs service");
-    let songs_client = reqwest::Client::new();
+    let client = TracingClient::new();
 
     let handshake = async {
         if !fast_handshake {
             // Check that the url is correct and point to the songs service
-            let connected_service_name = songs_client
+            let connected_service_name = client
                 .get(songs_url.join("/service/name").unwrap())
                 .send()
                 .map(|r| r.and_then(Response::error_for_status))
@@ -103,7 +104,7 @@ pub async fn app(
                 name = YOUTUBE_SOURCE.name,
                 "Registering youtube source"
             );
-            songs_client
+            client
                 .post(songs_url.join("/sources").unwrap())
                 .json(&YOUTUBE_SOURCE)
                 .send()
@@ -133,7 +134,7 @@ pub async fn app(
             .nest("/provider", provider::provider())
             .with_state(App {
                 db,
-                songs_client: songs_client.clone(),
+                songs_client: client.client().clone(),
                 youtube: Arc::new(youtube),
             }),
         async move || {
@@ -147,7 +148,7 @@ pub async fn app(
                 %url,
                 "Registering as a provider"
             );
-            let r = songs_client
+            let r = client
                 .post(songs_url.join("/providers").unwrap())
                 .json(&ProviderRegistrationRef {
                     source_urns: &[YOUTUBE_SOURCE_URN],
