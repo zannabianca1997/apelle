@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
 use axum::{
-    extract::FromRequestParts,
+    extract::{FromRequestParts, OptionalFromRequestParts},
     http::{HeaderName, HeaderValue, StatusCode, header::InvalidHeaderValue, request::Parts},
     response::{IntoResponse, IntoResponseParts},
 };
@@ -72,6 +72,30 @@ impl<S: Sync> FromRequestParts<S> for AuthHeaders {
             id: Uuid::try_parse_ascii(id.as_bytes()).context(InvalidUuidSnafu)?,
             name: name.clone(),
         })
+    }
+}
+
+impl<S: Sync> OptionalFromRequestParts<S> for AuthHeaders {
+    type Rejection = AuthHeadersRejection;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        let id = parts.headers.get(ID_HEADER);
+        let name = parts.headers.get(NAME_HEADER);
+
+        let (Some(id), Some(name)) = (id, name) else {
+            // No auth headers
+            return Ok(None);
+        };
+
+        str::from_utf8(name.as_bytes()).context(NameNotUtf8Snafu)?;
+
+        Ok(Some(Self {
+            id: Uuid::try_parse_ascii(id.as_bytes()).context(InvalidUuidSnafu)?,
+            name: name.clone(),
+        }))
     }
 }
 

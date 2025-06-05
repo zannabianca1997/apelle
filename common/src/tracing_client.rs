@@ -1,26 +1,26 @@
-use std::convert::Infallible;
-
 use axum::{
-    extract::{FromRef, FromRequestParts},
+    extract::{FromRef, FromRequestParts, OptionalFromRequestParts},
     http::HeaderValue,
 };
 use reqwest::{IntoUrl, Method, Request, RequestBuilder, Response};
 
-use crate::main_wrapper::TRACE_ID_HEADER;
+use crate::{AuthHeaders, main_wrapper::TRACE_ID_HEADER};
 
-/// A wrapper around reqwest::Client that adds tracing headers
+/// A wrapper around reqwest::Client that propagates the trace id and
+/// authentication headers
 #[derive(Debug, Clone)]
 pub struct TracingClient {
     client: reqwest::Client,
     trace_id: HeaderValue,
+    auth: Option<AuthHeaders>,
 }
 
 impl<S> FromRequestParts<S> for TracingClient
 where
     reqwest::Client: FromRef<S>,
-    S: Sync,
+    S: Sync + Send,
 {
-    type Rejection = Infallible;
+    type Rejection = <AuthHeaders as OptionalFromRequestParts<S>>::Rejection;
 
     async fn from_request_parts(
         parts: &mut axum::http::request::Parts,
@@ -33,6 +33,7 @@ where
                 .get(TRACE_ID_HEADER)
                 .cloned()
                 .unwrap_or_else(generate_trace_id),
+            auth: Option::<AuthHeaders>::from_request_parts(parts, state).await?,
         })
     }
 }
@@ -56,6 +57,7 @@ impl TracingClient {
         TracingClient {
             client: reqwest::Client::new(),
             trace_id: generate_trace_id(),
+            auth: None,
         }
     }
 
