@@ -32,7 +32,7 @@ Request for resolving a song. Arbitrary data are included as provided from
 `/search`. Should redirect to the `/solved` endpoint for the song with a 303
 status code.
 
-### `GET /solved/{id}`
+### `GET /solved/{id}?[source_data={true|false}]`
 Obtain a song that has been resolved by the service.
 
 ### `DELETE /solved/{id}`

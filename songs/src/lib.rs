@@ -16,6 +16,7 @@ pub mod config;
 
 mod providers;
 mod resolve;
+mod solved;
 mod sources;
 
 /// Main fatal error
@@ -74,8 +75,13 @@ pub async fn app(
     Ok(Router::new()
         .route("/sources", get(sources::list).post(sources::register))
         .route("/providers", post(providers::register))
-        .route("/public/sources", get(sources::list))
-        .route("/public/resolve", post(resolve::resolve))
+        .nest(
+            "/public",
+            Router::new()
+                .route("/sources", get(sources::list))
+                .route("/resolve", post(resolve::resolve))
+                .route("/solved/{id}", get(solved::get).delete(solved::delete)),
+        )
         .with_state(App {
             db,
             client,

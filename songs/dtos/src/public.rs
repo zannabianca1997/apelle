@@ -10,9 +10,11 @@ pub struct Song {
     /// Title of the song
     pub title: String,
     /// Duration of the song
+    #[serde(with = "apelle_common::iso8601::duration")]
     pub duration: Duration,
     /// User that first added the song
-    pub uploader: Option<Uuid>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub added_by: Option<Uuid>,
     /// When the song was added
     pub created: DateTime<FixedOffset>,
     /// Additional data from the song source
@@ -21,6 +23,7 @@ pub struct Song {
     /// the artist, an url or any source specific
     /// data. They are provided on-demand
     /// as they require querying the source service
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_data: Option<Value>,
 }
 

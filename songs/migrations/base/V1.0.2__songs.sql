@@ -20,12 +20,12 @@ CREATE TABLE song (
     -- Unique id of the song
     id UUID PRIMARY KEY
         DEFAULT gen_random_uuid(),
-    -- Duration in seconds
-    duration INTEGER NOT NULL,
     -- Human readable name
     title TEXT NOT NULL,
+    -- Duration in seconds
+    duration INTEGER NOT NULL,
     -- Who added the song
-    creator_id UUID 
+    added_by UUID 
         REFERENCES apelle_user
         ON UPDATE CASCADE
         ON DELETE SET NULL

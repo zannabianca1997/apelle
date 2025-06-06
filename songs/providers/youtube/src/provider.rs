@@ -397,24 +397,12 @@ impl IntoResponse for DeleteError {
 }
 
 #[debug_handler(state=crate::App)]
-async fn delete_songs(
-    State(db): State<PgPool>,
-    Path(SongsPathParams { id }): Path<SongsPathParams>,
-) -> Result<NoContent, DeleteError> {
+async fn delete_songs(Path(SongsPathParams { id }): Path<SongsPathParams>) -> NoContent {
     tracing::info!(%id, "Deleting song");
 
-    let rows = sqlx::query("DELETE FROM youtube_song WHERE id = $1")
-        .bind(id)
-        .execute(&db)
-        .await
-        .context(SQLSnafu)?
-        .rows_affected();
+    // Song was already deleted thanks to the ON DELETE CASCADE constraints
 
-    if rows == 0 {
-        return Err(DeleteError::DeletedNotFound);
-    }
-
-    Ok(NoContent)
+    NoContent
 }
 
 pub fn provider() -> Router<App> {

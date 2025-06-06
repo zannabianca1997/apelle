@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use apelle_common::{
     TracingClient,
-    common_errors::{CacheError, SQLError, SQLSnafu},
+    common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
 };
 use apelle_songs_dtos::provider::{
     ProviderRegistration, ProviderRegistrationError as ProviderRegistrationErrorDto,
@@ -15,10 +15,12 @@ use axum::{
 };
 use const_format::concatcp;
 use futures::TryFutureExt as _;
+use redis::{AsyncCommands as _, aio::ConnectionManager};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use url::Url;
+use uuid::Uuid;
 
 use crate::{CACHE_NAMESPACE, ProvidersConfig};
 
@@ -209,4 +211,44 @@ async fn check_webhook(client: &TracingClient, url: &Url) -> Result<(), Provider
         .and_then(Response::error_for_status)
         .context(WebhookFailedSnafu)
         .map(|_| ())
+}
+
+/// Get a random provider for the given urn
+///
+/// Will also remove erroneous providers
+pub async fn provider_for_urn(cache: &mut ConnectionManager, urn: &str) -> Result<Url, CacheError> {
+    let cache_key = providers_set_cache_key(&urn);
+    Ok(loop {
+        // Take a random provider from the registered ones
+        let provider = cache
+            .srandmember::<_, String>(&cache_key)
+            .await
+            .context(CacheSnafu)?;
+        let Ok(provider) = Url::parse(&provider) else {
+            tracing::error!(provider, "Invalid provider url");
+            // Removing the bad url
+            cache
+                .srem::<_, _, i64>(&cache_key, provider)
+                .await
+                .context(CacheSnafu)?;
+            continue;
+        };
+        break provider;
+    })
+}
+
+pub fn resolve_endpoint(provider: &Url) -> Url {
+    let mut provider = provider.clone();
+    provider.path_segments_mut().unwrap().push("resolve");
+    provider
+}
+
+pub fn solved_endpoint(provider: &Url, id: Uuid) -> Url {
+    let mut provider = provider.clone();
+    provider
+        .path_segments_mut()
+        .unwrap()
+        .push("solved")
+        .push(&id.to_string());
+    provider
 }
