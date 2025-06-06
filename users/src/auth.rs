@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::LazyLock};
+use std::{
+    collections::HashMap,
+    sync::{LazyLock, mpsc::TrySendError},
+};
 
 use apelle_common::{
     AuthHeaders, Reporter,
@@ -16,10 +19,12 @@ use axum_extra::{
     headers::{Authorization, authorization::Basic},
     typed_header::TypedHeaderRejection,
 };
+use futures::FutureExt;
 use route_recognizer::Router;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
-use tokio::sync::mpsc::Receiver;
+use textwrap_macros::unfill;
+use tokio::sync::mpsc::{Receiver, error::SendError};
 use uuid::Uuid;
 
 use crate::{App, auth::origins_headers::OriginHeaders};
@@ -70,8 +75,8 @@ pub enum AuthError {
     BadDatabasePasswordHash {
         source: password_hash::Error,
     },
-    BadDatabaseName {
-        source: apelle_common::auth::InvalidName,
+    BadDatabaseNameOrRoles {
+        source: apelle_common::auth::InvalidHeaders,
     },
     BadPassword {
         source: argon2::password_hash::Error,
@@ -96,9 +101,9 @@ impl IntoResponse for AuthError {
                 StatusCode::UNAUTHORIZED.into_response(),
             )
                 .into_response(),
-            AuthError::BadDatabaseName { source } => {
+            AuthError::BadDatabaseNameOrRoles { source } => {
                 tracing::error!(
-                    "Bad database name (all names should be sanitized): {}",
+                    "Bad database name or roles (all names or roles should be sanitized at the insertion): {}",
                     Reporter(source)
                 );
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -157,29 +162,63 @@ async fn authenticate(
 ) -> Result<AuthHeaders, AuthError> {
     let TypedHeader(auth) = auth;
 
-    let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
+    // Auth workflow
+    let id = async {
+        let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
+            .bind(auth.username())
+            .fetch_optional(&db)
+            .await
+            .context(SQLSnafu)?
+            .context(UsernameNotFoundSnafu)?;
+
+        let password_hash =
+            password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
+
+        password_hasher
+            .verify_password(auth.password().as_bytes(), &password_hash)
+            .context(BadPasswordSnafu)?;
+
+        // Passed!
+
+        let id = row.get(0);
+        tracing::info!(%id, "User logged in");
+        login_sender.try_send(id).unwrap_or_else(|err| match err {
+            tokio::sync::mpsc::error::TrySendError::Full(id) => {
+                tracing::warn!(%id ,"Login queue is full, last login may become inaccurate");
+            }
+            tokio::sync::mpsc::error::TrySendError::Closed(id) => {
+                // This is more severe, as the worker should never stop
+                tracing::error!(%id, "Login queue is closed, id discarded");
+            }
+        });
+
+        Ok(id)
+    };
+
+    // Fetching the roles
+    let roles = async {
+        sqlx::query_scalar::<_, String>(unfill!(
+            "
+            SELECT gr.name 
+            FROM apelle_global_role gr
+            JOIN apelle_user_global_role ugr ON ugr.global_role_id = gr.id
+            JOIN apelle_user u ON u.id = ugr.user_id
+            WHERE u.name = $1
+            "
+        ))
         .bind(auth.username())
-        .fetch_optional(&db)
+        .fetch_all(&db)
         .await
-        .context(SQLSnafu)?
-        .context(UsernameNotFoundSnafu)?;
+        .context(SQLSnafu)
+    }
+    .map(Ok::<_, AuthError>);
 
-    let password_hash =
-        password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
+    let (id, roles) = tokio::try_join!(id, roles)?;
+    // Unwrapping this after, so a failing role fetch do not stop early the auth
+    // process (we want to report the 401, not the 500)
+    let roles = roles?;
 
-    password_hasher
-        .verify_password(auth.password().as_bytes(), &password_hash)
-        .context(BadPasswordSnafu)?;
-
-    // Passed!
-
-    let id = row.get(0);
-    tracing::info!(%id, "User logged in");
-    login_sender.try_send(id).unwrap_or_else(|_| {
-        tracing::warn!("Login queue is full, last login may become inaccurate");
-    });
-
-    AuthHeaders::new(id, auth.username()).context(BadDatabaseNameSnafu)
+    AuthHeaders::new(id, auth.username(), &roles).context(BadDatabaseNameOrRolesSnafu)
 }
 
 /// Async worker that updated the last login of the users as they log in
