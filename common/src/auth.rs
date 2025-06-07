@@ -63,6 +63,22 @@ impl AuthHeaders {
             .unwrap_or("")
             .split(',')
     }
+
+    pub(crate) fn headers(&self) -> impl IntoIterator<Item = (HeaderName, HeaderValue)> {
+        [
+            (
+                ID_HEADER,
+                HeaderValue::from_str(&self.id.to_string()).unwrap(),
+            ),
+            (NAME_HEADER, self.name.clone()),
+        ]
+        .into_iter()
+        .chain(
+            self.roles
+                .as_ref()
+                .map(|r| (GLOBAL_ROLES_HEADER, r.clone())),
+        )
+    }
 }
 
 #[derive(Debug, Snafu)]

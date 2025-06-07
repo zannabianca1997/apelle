@@ -46,7 +46,7 @@ macro_rules! convenience {
     ($($method:ident)*) => {
       $(
         pub fn $method<U: IntoUrl>(&self, url: U) -> RequestBuilder {
-            self.with_trace_id(self.client.$method(url))
+            self.wrap(self.client.$method(url))
         }
         )*
     };
@@ -71,7 +71,7 @@ impl TracingClient {
     }
 
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> RequestBuilder {
-        self.with_trace_id(self.client.request(method, url))
+        self.wrap(self.client.request(method, url))
     }
 
     pub fn execute(
@@ -82,11 +82,21 @@ impl TracingClient {
             .headers_mut()
             .append(TRACE_ID_HEADER, self.trace_id.clone());
 
+        if let Some(auth) = &self.auth {
+            request.headers_mut().extend(auth.headers());
+        }
+
         self.client.execute(request)
     }
 
-    fn with_trace_id(&self, builder: RequestBuilder) -> RequestBuilder {
-        builder.header(TRACE_ID_HEADER, self.trace_id.clone())
+    fn wrap(&self, builder: RequestBuilder) -> RequestBuilder {
+        let mut builder = builder.header(TRACE_ID_HEADER, self.trace_id.clone());
+        if let Some(auth) = &self.auth {
+            for (header, value) in auth.headers() {
+                builder = builder.header(header, value);
+            }
+        }
+        builder
     }
 
     pub fn client(&self) -> &reqwest::Client {
