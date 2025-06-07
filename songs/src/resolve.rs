@@ -21,7 +21,10 @@ use textwrap_macros::unfill;
 use url::Url;
 use uuid::Uuid;
 
-use crate::providers::{provider_for_urn, resolve_endpoint, solved_endpoint};
+use crate::{
+    providers::{provider_for_urn, resolve_endpoint, solved_endpoint},
+    seen_sources::SeenSourcesWorker,
+};
 
 #[derive(Debug, Snafu)]
 pub enum ResolveSongError {
@@ -74,6 +77,7 @@ impl IntoResponse for ResolveSongError {
 pub async fn resolve(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
+    State(seen_sources): State<SeenSourcesWorker>,
     client: TracingClient,
     user: AuthHeaders,
     Json(ResolveSongRequest { source_urn, data }): Json<ResolveSongRequest>,
@@ -114,6 +118,8 @@ pub async fn resolve(
             callback,
         } => (title, duration, callback),
         ResolveResponse::Existing { id, public: _ } => {
+            seen_sources.seen_urn(source_urn).await;
+
             return Ok(redirect(id));
         }
     };
@@ -122,10 +128,8 @@ pub async fn resolve(
     let id: Uuid = sqlx::query_scalar(unfill!(
         "
         WITH used_source AS (
-            UPDATE source
-            SET last_heard = NOW()
+            SELECT id FROM source
             WHERE urn = $1
-            RETURNING id
         )
         INSERT INTO song (duration, title, added_by, source_id)
         SELECT $2, $3, $4, used_source.id
@@ -190,6 +194,7 @@ pub async fn resolve(
         }
     }
 
+    seen_sources.seen_urn(source_urn).await;
     Ok(redirect(id))
 }
 

@@ -14,15 +14,15 @@ use axum::{
     response::{IntoResponse, NoContent},
 };
 use const_format::concatcp;
-use futures::TryFutureExt as _;
 use redis::{AsyncCommands as _, aio::ConnectionManager};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
+use textwrap_macros::unfill;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{CACHE_NAMESPACE, ProvidersConfig};
+use crate::{CACHE_NAMESPACE, ProvidersConfig, seen_sources::SeenSourcesWorker};
 
 const PROVIDERS_NAMESPACE: &str = concatcp!(CACHE_NAMESPACE, "providers:");
 
@@ -86,6 +86,7 @@ pub async fn register(
         honor_fast_handshake,
         ..
     }): State<ProvidersConfig>,
+    State(seen_sources): State<SeenSourcesWorker>,
     Json(ProviderRegistration {
         source_urns,
         url,
@@ -106,24 +107,16 @@ pub async fn register(
     }
 
     // Marking that we seen a provider for the sources
-    let set_sources_as_seen = set_sources_as_seen(&db, &source_urns).map_err(|source| {
-        ProviderRegistrationError::SQLError {
-            source: SQLError { source },
-        }
-    });
+    seen_sources
+        .seen_many_urns(source_urns.iter().cloned())
+        .await;
 
     // Register the webhook as a provider for all the sources
     let mut pipe = redis::pipe();
     for urn in &source_urns {
         pipe.sadd(providers_set_cache_key(&urn), url.to_string());
     }
-    let register_provider =
-        pipe.exec_async(&mut cache)
-            .map_err(|source| ProviderRegistrationError::CacheError {
-                source: CacheError { source },
-            });
-
-    tokio::try_join!(set_sources_as_seen, register_provider)?;
+    pipe.exec_async(&mut cache).await.context(CacheSnafu)?;
 
     Ok(NoContent)
 }
@@ -137,64 +130,29 @@ async fn check_urn_presence(
         return Err(ProviderRegistrationError::NoSources);
     }
 
-    if urns.len() == 1 {
-        let urn = urns.iter().next().unwrap();
+    let urns_slice: Vec<_> = urns.iter().collect();
 
-        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM source WHERE urn = $1")
-            .bind(urn)
-            .fetch_one(db)
-            .await
-            .context(SQLSnafu)?;
-
-        if count == 0 {
-            return Err(ProviderRegistrationError::UnknownSources { urns: urns.clone() });
-        }
-
-        return Ok(());
-    }
-
-    let mut qb = sqlx::QueryBuilder::new("SELECT urn FROM source WHERE urn = ANY(");
-    let mut sep = qb.separated(", ");
-    for urn in urns {
-        sep.push_bind(urn);
-    }
-    qb.push(")");
-    let present: HashSet<String> = qb
-        .build_query_scalar()
-        .fetch_all(db)
-        .await
-        .context(SQLSnafu)?
-        .into_iter()
-        .collect();
+    let present: HashSet<String> = sqlx::query_scalar(
+        unfill!(
+            "
+            SELECT source.urn
+            FROM source
+            WHERE source.urn = ANY($1::text[])
+            "
+        )
+        .trim_ascii(),
+    )
+    .bind(&urns_slice)
+    .fetch_all(db)
+    .await
+    .context(SQLSnafu)?
+    .into_iter()
+    .collect();
     if urns != &present {
         return Err(ProviderRegistrationError::UnknownSources {
             urns: urns.difference(&present).cloned().collect(),
         });
     }
-
-    Ok(())
-}
-
-/// Marking that we seen a provider for the sources
-async fn set_sources_as_seen(db: &PgPool, urns: &HashSet<String>) -> Result<(), sqlx::Error> {
-    if urns.len() == 1 {
-        let urn = urns.iter().next().unwrap();
-
-        sqlx::query("UPDATE source SET last_heard = NOW() WHERE urn = $1")
-            .bind(urn)
-            .execute(db)
-            .await?;
-
-        return Ok(());
-    }
-
-    let mut qb = sqlx::QueryBuilder::new("UPDATE source SET last_heard = NOW() WHERE urn = ANY(");
-    let mut sep = qb.separated(", ");
-    for urn in urns {
-        sep.push_bind(urn);
-    }
-    qb.push(")");
-    qb.build().execute(db).await?;
 
     Ok(())
 }

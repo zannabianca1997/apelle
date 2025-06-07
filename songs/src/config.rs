@@ -11,10 +11,14 @@ pub struct Config {
 
     /// If requests to skip webhook checking should be honored
     pub honor_fast_handshake: bool,
+
+    pub seen_sources_queue_size: usize,
 }
 
 impl ProvideDefaults for Config {
     fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
-        Figment::new().join(("honor_fast_handshake", true))
+        Figment::new()
+            .join(("honor_fast_handshake", true))
+            .join(("seen_sources_queue_size", 50))
     }
 }

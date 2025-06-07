@@ -18,7 +18,10 @@ use sqlx::PgPool;
 use textwrap_macros::unfill;
 use uuid::Uuid;
 
-use crate::providers::{provider_for_urn, solved_endpoint};
+use crate::{
+    providers::{provider_for_urn, solved_endpoint},
+    seen_sources::SeenSourcesWorker,
+};
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -65,6 +68,7 @@ pub struct GetQueryParams {
 pub async fn get(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
+    State(seen_sources): State<SeenSourcesWorker>,
     client: TracingClient,
     Path(id): Path<Uuid>,
     Query(GetQueryParams { source_data }): Query<GetQueryParams>,
@@ -86,19 +90,22 @@ pub async fn get(
         .context(SQLSnafu)?
         .ok_or(Error::NotFound)?;
 
-    let provider = provider_for_urn(&mut cache, &source_urn).await?;
-
     let source_data = if source_data {
-        Some(
-            client
-                .get(solved_endpoint(&provider, id))
-                .send()
-                .and_then(async |r| r.error_for_status()?.json().await)
-                .await
-                .with_context(|_| BadGatewaySnafu {
-                    provider: provider.to_string(),
-                })?,
-        )
+        let provider = provider_for_urn(&mut cache, &source_urn).await?;
+
+        let response = client
+            .get(solved_endpoint(&provider, id))
+            .send()
+            .and_then(async |r| r.error_for_status()?.json().await)
+            .await
+            .with_context(|_| BadGatewaySnafu {
+                provider: provider.to_string(),
+            })?;
+
+        // Marking that we seen the source
+        seen_sources.seen_urn(source_urn).await;
+
+        Some(response)
     } else {
         None
     };
@@ -117,6 +124,7 @@ pub async fn get(
 pub async fn delete(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
+    State(seen_sources): State<SeenSourcesWorker>,
     client: TracingClient,
     Path(id): Path<Uuid>,
 ) -> Result<NoContent, Error> {
@@ -151,6 +159,9 @@ pub async fn delete(
         .with_context(|_| BadGatewaySnafu {
             provider: provider.to_string(),
         })?;
+
+    // Marking that we seen the source
+    seen_sources.seen_urn(source_urn).await;
 
     Ok(NoContent)
 }

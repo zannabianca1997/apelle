@@ -16,6 +16,7 @@ pub mod config;
 
 mod providers;
 mod resolve;
+mod seen_sources;
 mod solved;
 mod sources;
 
@@ -32,6 +33,7 @@ pub struct App {
     cache: redis::aio::ConnectionManager,
     client: reqwest::Client,
     providers_config: ProvidersConfig,
+    seen_sources: seen_sources::SeenSourcesWorker,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -44,6 +46,7 @@ pub async fn app(
         db_url,
         cache_url,
         honor_fast_handshake,
+        seen_sources_queue_size,
     }: Config,
 ) -> Result<Router, MainError> {
     tracing::info!("Connecting to database and cache");
@@ -72,6 +75,9 @@ pub async fn app(
 
     let client = reqwest::Client::new();
 
+    let seen_sources =
+        seen_sources::SeenSourcesWorker::new(db.clone(), seen_sources_queue_size).await;
+
     Ok(Router::new()
         .route("/sources", get(sources::list).post(sources::register))
         .route("/providers", post(providers::register))
@@ -89,5 +95,6 @@ pub async fn app(
             providers_config: ProvidersConfig {
                 honor_fast_handshake,
             },
+            seen_sources,
         }))
 }
