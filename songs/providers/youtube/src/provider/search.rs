@@ -1,14 +1,17 @@
-use std::sync::{
-    Arc,
-    atomic::{AtomicU32, Ordering},
+use std::{
+    collections::HashMap,
+    sync::{
+        Arc,
+        atomic::{AtomicU32, Ordering},
+    },
 };
 
 use apelle_common::{
     Reporter, TracingClient,
-    common_errors::{CacheError, CacheSnafu, SQLError},
+    common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
     paginated::{PageInfo, Paginated, PaginationParams},
 };
-use apelle_songs_dtos::provider::SearchQueryParams;
+use apelle_songs_dtos::provider::{SearchQueryParams, SearchResponseItemState};
 use axum::{
     Json, debug_handler,
     extract::{Query, State},
@@ -21,6 +24,8 @@ use redis::{AsyncCommands, aio::ConnectionManager};
 use reqwest::{Response, StatusCode};
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
+use sqlx::{PgPool, Row as _};
+use uuid::Uuid;
 
 use crate::{
     YoutubeApi,
@@ -308,7 +313,9 @@ impl ItemFetcher<'_> {
                             url: video_url(&self.api.public_url, &video_id),
                             thumbnails: thumbnails.into_iter().map(|(_, t)| t.into()).collect(),
                         },
-                        resolve: ResolveRequest { video_id },
+                        state: SearchResponseItemState::New {
+                            resolve: ResolveRequest { video_id },
+                        },
                     })
                 },
             )
@@ -402,6 +409,7 @@ fn break_buffer(
 #[debug_handler(state=crate::App)]
 pub async fn search(
     State(cache): State<ConnectionManager>,
+    State(db): State<PgPool>,
     client: TracingClient,
     State(youtube_api): State<Arc<YoutubeApi>>,
     Query(SearchQueryParams { query }): Query<SearchQueryParams>,
@@ -443,6 +451,43 @@ pub async fn search(
         .map(|i| i.expect("All the items should be filled by the fetcher"))
         .collect();
     let total = total.into_inner();
+
+    // Detecting known songs
+    let video_ids: Vec<_> = items
+        .iter()
+        .map(|i| {
+            let SearchResponseItemState::New {
+                resolve: ResolveRequest { video_id, .. },
+            } = &i.state
+            else {
+                unreachable!("Detection still did not run");
+            };
+            video_id.as_str()
+        })
+        .collect();
+
+    let known_ids: HashMap<String, Uuid> =
+        sqlx::query("SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)")
+            .bind(&video_ids)
+            .map(|row| (row.get(0), row.get(1)))
+            .fetch_all(&db)
+            .await
+            .context(SQLSnafu)?
+            .into_iter()
+            .collect();
+
+    let mut items = items;
+    for i in items.iter_mut() {
+        let SearchResponseItemState::New {
+            resolve: ResolveRequest { video_id, .. },
+        } = &i.state
+        else {
+            unreachable!("Detection still did not run");
+        };
+        if let Some(id) = known_ids.get(video_id).copied() {
+            i.state = SearchResponseItemState::Known { id };
+        }
+    }
 
     Ok(Json(Paginated {
         page_info: PageInfo::regular(
