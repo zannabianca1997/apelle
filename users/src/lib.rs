@@ -46,7 +46,11 @@ pub async fn app(
 
     let (login_sender, login_receiver) = tokio::sync::mpsc::channel(login_queue_size);
 
-    tokio::spawn(auth::login_updater(login_receiver, db.clone()));
+    tokio::spawn(auth::login_updater(
+        login_receiver,
+        db.clone(),
+        login_queue_size,
+    ));
 
     Ok(Router::new()
         .nest(

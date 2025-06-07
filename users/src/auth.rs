@@ -1,13 +1,13 @@
-use std::{
-    collections::HashMap,
-    sync::{LazyLock, mpsc::TrySendError},
-};
+use std::{collections::HashMap, sync::LazyLock};
 
 use apelle_common::{
     AuthHeaders, Reporter,
     common_errors::{SQLError, SQLSnafu},
 };
-use argon2::{Argon2, PasswordVerifier as _, password_hash};
+use argon2::{
+    Argon2, PasswordVerifier as _,
+    password_hash::{self},
+};
 use axum::{
     debug_handler,
     extract::{FromRequestParts, State},
@@ -24,7 +24,7 @@ use route_recognizer::Router;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
 use textwrap_macros::unfill;
-use tokio::sync::mpsc::{Receiver, error::SendError};
+use tokio::sync::mpsc::Receiver;
 use uuid::Uuid;
 
 use crate::{App, auth::origins_headers::OriginHeaders};
@@ -197,15 +197,18 @@ async fn authenticate(
 
     // Fetching the roles
     let roles = async {
-        sqlx::query_scalar::<_, String>(unfill!(
-            "
-            SELECT gr.name 
-            FROM apelle_global_role gr
-            JOIN apelle_user_global_role ugr ON ugr.global_role_id = gr.id
-            JOIN apelle_user u ON u.id = ugr.user_id
-            WHERE u.name = $1
-            "
-        ))
+        sqlx::query_scalar::<_, String>(
+            unfill!(
+                "
+                SELECT gr.name 
+                FROM apelle_global_role gr
+                JOIN apelle_user_global_role ugr ON ugr.global_role_id = gr.id
+                JOIN apelle_user u ON u.id = ugr.user_id
+                WHERE u.name = $1
+                "
+            )
+            .trim_ascii(),
+        )
         .bind(auth.username())
         .fetch_all(&db)
         .await
@@ -225,12 +228,19 @@ async fn authenticate(
 ///
 /// This is made in a separate task to answer as quickly as possible
 /// to the user
-pub(crate) async fn login_updater(mut login_receiver: Receiver<Uuid>, db: PgPool) {
-    while let Some(id) = login_receiver.recv().await {
-        sqlx::query("UPDATE apelle_user SET last_login = NOW() WHERE id = $1")
-            .bind(id)
-            .execute(&db)
-            .await
-            .unwrap();
+pub(crate) async fn login_updater(mut login_receiver: Receiver<Uuid>, db: PgPool, bufsize: usize) {
+    let mut buffer = Vec::with_capacity(bufsize);
+
+    while login_receiver.recv_many(&mut buffer, bufsize).await > 0 {
+        if let Err(e) =
+            sqlx::query("UPDATE apelle_user SET last_login = NOW() WHERE id = ANY($1::uuid[])")
+                .bind(&buffer)
+                .execute(&db)
+                .await
+        {
+            tracing::error!("Failed to update last login: {}", Reporter(e));
+        }
+
+        buffer.clear();
     }
 }
