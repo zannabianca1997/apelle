@@ -1,4 +1,5 @@
 use apelle_common::{Figment, ProvideDefaults, Provider};
+use chrono::Duration;
 use serde::Deserialize;
 use url::Url;
 
@@ -26,17 +27,31 @@ pub struct Config {
 
     /// Database connection string
     pub db_url: Url,
+    /// Cache connection string
+    pub cache_url: Url,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct YoutubeConfig {
     pub api_key: String,
 
-    pub api_url: Url,
+    pub api_url: Option<Url>,
     pub api_search_url: Option<Url>,
     pub api_list_url: Option<Url>,
 
     pub public_url: Url,
+
+    /// Max number of requests to youtube a single search request can cause
+    pub max_upstream_requests: u32,
+
+    /// Size of the page to request from youtube
+    pub page_size: u32,
+
+    /// Expiration of the cached searches
+    ///
+    /// If the search is older than this, it will be refetched from youtube
+    #[serde(with = "apelle_common::iso8601::duration")]
+    pub expiration: Duration,
 }
 
 impl ProvideDefaults for Config {
@@ -47,5 +62,9 @@ impl ProvideDefaults for Config {
                 "youtube.public_url",
                 Url::parse("https://www.youtube.com/watch/").unwrap(),
             ))
+            .join(("youtube.max_upstream_requests", 1))
+            // Max size of a youtbe page
+            .join(("youtube.page_size", 50))
+            .join(("youtube.expiration", "P1D"))
     }
 }

@@ -42,7 +42,6 @@ pub async fn list(
     Query(PaginationParams { page, page_size }): Query<PaginationParams>,
 ) -> Result<Json<Paginated<Source>>, SQLError> {
     let page = page.unwrap_or(0);
-    let page_size = page_size.unwrap_or(10);
     let offset = page.saturating_mul(page_size);
 
     // Using LIMIT OFFSET, as there are few sources (probably less than a single
@@ -69,7 +68,13 @@ pub async fn list(
     let total = total as u32;
 
     Ok(Json(Paginated {
-        page_info: PageInfo::regular(page, Some(total), items.len() as u32, page_size),
+        page_info: PageInfo::regular(
+            page,
+            Some(total),
+            items.len() as u32,
+            page_size,
+            page.saturating_add(offset) < total,
+        ),
         items,
     }))
 }

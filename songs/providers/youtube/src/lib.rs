@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use apelle_common::TracingClient;
+use apelle_common::{TracingClient, cache_pubsub};
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
@@ -14,14 +14,21 @@ use sqlx::PgPool;
 use tracing::{Instrument, info_span};
 use url::Url;
 
+use crate::config::YoutubeConfig;
+
 pub mod config;
 mod provider;
+
+const CACHE_NAMESPACE: &str = "apelle:songs-youtube:";
 
 /// Main fatal error
 #[derive(Debug, Snafu)]
 pub enum MainError {
     DbConnectionError {
         source: sqlx::Error,
+    },
+    CacheConnectionError {
+        source: redis::RedisError,
     },
     #[snafu(display("Error while connecting to the songs service"))]
     SongsConnectionError {
@@ -36,12 +43,17 @@ pub enum MainError {
         #[snafu(source(false))]
         source: ProviderRegistrationError,
     },
+    #[snafu(display("{message}"))]
+    ConfigurationError {
+        message: &'static str,
+    },
 }
 
-#[derive(Debug, Clone, FromRef)]
+#[derive(Clone, FromRef)]
 struct App {
     db: PgPool,
     songs_client: reqwest::Client,
+    cache: redis::aio::ConnectionManager,
     youtube: Arc<YoutubeApi>,
 }
 
@@ -52,6 +64,11 @@ struct YoutubeApi {
     pub api_list_url: Url,
 
     pub public_url: Url,
+
+    pub max_upstream_requests: u32,
+    pub page_size: u32,
+
+    pub expiration: chrono::Duration,
 }
 
 const YOUTUBE_SOURCE_URN: &str = "urn:apelle:sources/youtube";
@@ -69,6 +86,7 @@ pub async fn app(
         skip_source_registration,
         youtube,
         db_url,
+        cache_url,
     }: Config,
 ) -> Result<(Router, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
     tracing::info!("Connecting to database");
@@ -76,10 +94,15 @@ pub async fn app(
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
-    tracing::info!("Connecting to songs service");
+    let cache = cache_pubsub::connect(cache_url)
+        .map(|r| r.context(CacheConnectionSnafu))
+        .instrument(info_span!("Connecting to cache"));
+
     let client = TracingClient::new();
 
     let handshake = async {
+        tracing::info!("Connecting to songs service");
+
         if !fast_handshake {
             // Check that the url is correct and point to the songs service
             let connected_service_name = client
@@ -116,17 +139,54 @@ pub async fn app(
         Ok(())
     };
 
-    let (db, _) = tokio::try_join!(db, handshake)?;
+    let (db, cache, _) = tokio::try_join!(db, cache, handshake)?;
 
-    let youtube = YoutubeApi {
-        api_key: youtube.api_key,
-        api_search_url: youtube
-            .api_search_url
-            .unwrap_or_else(|| youtube.api_url.join("search").unwrap()),
-        api_list_url: youtube
-            .api_list_url
-            .unwrap_or_else(|| youtube.api_url.join("videos").unwrap()),
-        public_url: youtube.public_url,
+    let youtube = {
+        let YoutubeConfig {
+            api_key,
+            api_url,
+            api_search_url,
+            api_list_url,
+            public_url,
+            max_upstream_requests,
+            page_size,
+            expiration,
+        } = youtube;
+
+        let api_search_url = api_search_url
+            .or_else(|| {
+                api_url
+                    .as_ref()
+                    .map(|api_url| api_url.join("search").unwrap())
+            })
+            .ok_or(MainError::ConfigurationError {
+                message: "Missing api_search_url or api_url",
+            })?;
+        let api_list_url = api_list_url
+            .or_else(|| {
+                api_url
+                    .as_ref()
+                    .map(|api_url| api_url.join("videos").unwrap())
+            })
+            .ok_or(MainError::ConfigurationError {
+                message: "Missing api_list_url or api_url",
+            })?;
+
+        if expiration <= chrono::Duration::zero() {
+            return Err(MainError::ConfigurationError {
+                message: "Invalid negative expiration",
+            });
+        }
+
+        YoutubeApi {
+            api_key,
+            api_search_url,
+            api_list_url,
+            public_url,
+            max_upstream_requests,
+            page_size,
+            expiration,
+        }
     };
 
     Ok((
@@ -135,6 +195,7 @@ pub async fn app(
             .with_state(App {
                 db,
                 songs_client: client.client().clone(),
+                cache,
                 youtube: Arc::new(youtube),
             }),
         async move || {

@@ -21,3 +21,10 @@ chrono.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 textwrap-macros.workspace = true
+itertools.workspace = true
+redis.workspace = true
+const_format.workspace = true
+rslock = { version = "~0.7.2", default-features = false, features = [
+    "tokio-comp",
+] }
+serde_json.workspace = true

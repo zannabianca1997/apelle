@@ -1,3 +1,4 @@
+use apelle_common::cache_pubsub;
 use axum::{
     Router,
     extract::FromRef,
@@ -5,7 +6,6 @@ use axum::{
 };
 use config::Config;
 use futures::FutureExt;
-use redis::IntoConnectionInfo;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument, info_span};
@@ -55,19 +55,7 @@ pub async fn app(
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
-    let mut conn_info = cache_url
-        .into_connection_info()
-        .context(CacheConnectionSnafu)?;
-    if conn_info.redis.protocol != redis::ProtocolVersion::RESP3 {
-        tracing::warn!(
-            proposed_protocol =? conn_info.redis.protocol,
-            "Apelle only supports RESP3 protol, switching to it"
-        );
-        conn_info.redis.protocol = redis::ProtocolVersion::RESP3;
-    }
-    let client = redis::Client::open(conn_info).context(CacheConnectionSnafu)?;
-    let cache = client
-        .get_connection_manager()
+    let cache = cache_pubsub::connect(cache_url)
         .map(|r| r.context(CacheConnectionSnafu))
         .instrument(info_span!("Connecting to cache"));
 
