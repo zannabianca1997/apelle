@@ -54,6 +54,20 @@ pub enum ProviderRegistrationError {
     },
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchQueryParams {
+    #[serde(rename = "q")]
+    pub query: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SearchResponseItem<D = Value, R = Value> {
+    /// Data to pass the frontend describing the song
+    pub details: D,
+    /// Data to pass the service to resolve the song
+    pub resolve: R,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ResolveQueryParams {
     #[serde(default)]

@@ -12,7 +12,7 @@ use axum::{
     extract::State,
     response::{IntoResponse, Redirect},
 };
-use futures::TryFutureExt as _;
+use futures::TryFutureExt;
 use redis::aio::ConnectionManager;
 use reqwest::StatusCode;
 use snafu::{ResultExt, Snafu};
@@ -89,9 +89,13 @@ pub async fn resolve(
         .query(&[("public", "false")])
         .json(&data)
         .send()
+        .map_err(|error| {
+            if error.is_connect() {
+                // TODO: If the error indicate that the provider is down, remove it from the cache
+            }
+            error
+        })
         .and_then(async |response| {
-            // TODO: If the response indicate that the provider is down, remove it from the cache
-
             // Propagate the client errors
             if response.status().is_client_error() {
                 return Ok(Err(ResolveSongError::ClientError { response }));

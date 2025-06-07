@@ -8,6 +8,7 @@ services:
       APELLE__YOUTUBE__API_URL: ${YOUTUBE_API_URL?"The youtube api url must be set"}
       APELLE__YOUTUBE__API_KEY: ${YOUTUBE_API_KEY?"The youtube api key must be set"}
       APELLE__DB_URL: ${DB_URL?"The database url must be set"}
+      APELLE__CACHE_URL: ${CACHE_URL?"The cache url must be set"}
     depends_on:
       db:
         condition: service_started

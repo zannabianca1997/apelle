@@ -49,12 +49,15 @@ pub struct PageInfo<Cursor = u32> {
 
 impl PageInfo<u32> {
     /// Create a page info for a pagination with all pages of the same size
-    pub fn regular(page: u32, total: Option<u32>, size: u32, page_size: u32) -> Self {
+    pub fn regular(
+        page: u32,
+        total: Option<u32>,
+        size: u32,
+        page_size: u32,
+        next_present: bool,
+    ) -> Self {
         let last = total.map(|total| total.saturating_sub(1) / page_size);
-        let next = last
-            .map(|last| page < last)
-            .unwrap_or(size < page_size)
-            .then_some(page + 1);
+        let next = next_present.then_some(page + 1);
         let prev = page.checked_sub(1);
         Self {
             size,
@@ -71,6 +74,11 @@ impl PageInfo<u32> {
 /// Pagination parameters
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct PaginationParams<Cursor = u32> {
-    pub page_size: Option<u32>,
+    #[serde(default = "default_page_size")]
+    pub page_size: u32,
     pub page: Option<Cursor>,
+}
+
+fn default_page_size() -> u32 {
+    10
 }

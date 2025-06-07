@@ -43,10 +43,12 @@ mod delete;
 mod get;
 mod insert;
 mod resolve;
+mod search;
 
 pub fn provider() -> Router<App> {
     Router::new()
         .route("/", get(ping))
+        .route("/search", get(search::search))
         .route("/resolve", post(resolve::resolve))
         .route(
             "/solved/{id}",

@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod cache_pubsub;
 mod cli;
 pub mod common_errors;
 mod error_reporter;

@@ -6,6 +6,8 @@ use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+// == Pagination ==
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Paginated<T> {
     pub items: Vec<T>,
@@ -21,9 +23,11 @@ pub struct PageInfo {
     pub total_results: u32,
 }
 
+// == Video ==
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Video {
-    pub id: String,
+    // pub id: String,
     pub etag: Option<String>,
     pub snippet: Snippet,
     #[serde(rename = "contentDetails")]
@@ -48,4 +52,32 @@ pub struct Thumbnail {
 pub struct ContentDetails {
     #[serde(with = "apelle_common::iso8601::duration")]
     pub duration: Duration,
+}
+
+// == Search ==
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SearchResult {
+    pub id: SearchResultId,
+    pub snippet: Snippet,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "kind")]
+pub enum SearchResultId {
+    #[serde(rename = "youtube#video")]
+    Video {
+        #[serde(rename = "videoId")]
+        video_id: String,
+    },
+    #[serde(rename = "youtube#playlist")]
+    Playlist {
+        // #[serde(rename = "playlistId")]
+        // playlist_id: String,
+    },
+    #[serde(rename = "youtube#channel")]
+    Channel {
+        // #[serde(rename = "channelId")]
+        // channel_id: String,
+    },
 }

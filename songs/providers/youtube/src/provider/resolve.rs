@@ -101,21 +101,22 @@ pub async fn resolve(
         tracing::info!(%id, video_id, "Song already registered");
 
         let public = OptionFuture::from(public.then(|| async {
-            let thumbs =
-                sqlx::query_as("SELECT height, width, url FROM youtube_thumbs WHERE song_id = $1")
-                    .bind(id)
-                    .fetch_all(&db)
-                    .await
-                    .context(SQLSnafu)?
-                    .into_iter()
-                    .map(|(height, width, url): (i32, i32, String)| {
-                        Ok::<_, ResolveError>(dtos::Thumbnail {
-                            height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
-                            width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
-                            url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
-                        })
-                    })
-                    .collect::<Result<_, _>>()?;
+            let thumbs = sqlx::query_as(
+                "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
+            )
+            .bind(id)
+            .fetch_all(&db)
+            .await
+            .context(SQLSnafu)?
+            .into_iter()
+            .map(|(height, width, url): (i32, i32, String)| {
+                Ok::<_, ResolveError>(dtos::Thumbnail {
+                    height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
+                    width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
+                    url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
+                })
+            })
+            .collect::<Result<_, _>>()?;
 
             Ok::<_, ResolveError>(PublicSongData {
                 url: video_url(&youtube_api.public_url, &video_id),
