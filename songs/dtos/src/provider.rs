@@ -54,10 +54,15 @@ pub enum ProviderRegistrationError {
     },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct SearchQueryParams {
     #[serde(rename = "q")]
     pub query: String,
+}
+#[derive(Debug, Serialize)]
+pub struct SearchQueryParamsRef<'a> {
+    #[serde(rename = "q")]
+    pub query: &'a str,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -68,15 +73,7 @@ pub struct SearchResponseItem<D = Value, R = Value> {
     pub state: SearchResponseItemState<R>,
 }
 
-/// How to resolve this search item
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "state")]
-pub enum SearchResponseItemState<R = Value> {
-    /// Need to be resolved
-    New { resolve: R },
-    /// Is a known song
-    Known { id: Uuid },
-}
+pub use super::public::SearchResponseItemState;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ResolveQueryParams {

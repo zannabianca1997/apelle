@@ -1,4 +1,5 @@
 use apelle_common::{Figment, ProvideDefaults, Provider};
+use chrono::Duration;
 use serde::Deserialize;
 use url::Url;
 
@@ -13,6 +14,12 @@ pub struct Config {
     pub honor_fast_handshake: bool,
 
     pub seen_sources_queue_size: usize,
+
+    #[serde(with = "apelle_common::iso8601::duration")]
+    pub cache_expiration: Duration,
+
+    /// Number of result to ask each provider at once
+    pub page_size: u32,
 }
 
 impl ProvideDefaults for Config {
@@ -20,5 +27,7 @@ impl ProvideDefaults for Config {
         Figment::new()
             .join(("honor_fast_handshake", true))
             .join(("seen_sources_queue_size", 50))
+            .join(("cache_expiration", "P1D"))
+            .join(("page_size", 10))
     }
 }

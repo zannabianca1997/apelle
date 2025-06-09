@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    collections::HashSet,
+};
 
 use apelle_common::{
     TracingClient,
@@ -174,8 +177,12 @@ async fn check_webhook(client: &TracingClient, url: &Url) -> Result<(), Provider
 /// Get a random provider for the given urn
 ///
 /// Will also remove erroneous providers
-pub async fn provider_for_urn(cache: &mut ConnectionManager, urn: &str) -> Result<Url, CacheError> {
-    let cache_key = providers_set_cache_key(&urn);
+pub async fn provider_for_urn(
+    mut cache: impl BorrowMut<ConnectionManager>,
+    urn: impl Borrow<str>,
+) -> Result<Url, CacheError> {
+    let cache_key = providers_set_cache_key(urn.borrow());
+    let cache = cache.borrow_mut();
     Ok(loop {
         // Take a random provider from the registered ones
         let provider = cache
@@ -208,5 +215,11 @@ pub fn solved_endpoint(provider: &Url, id: Uuid) -> Url {
         .unwrap()
         .push("solved")
         .push(&id.to_string());
+    provider
+}
+
+pub fn search_endpoint(provider: &Url) -> Url {
+    let mut provider = provider.clone();
+    provider.path_segments_mut().unwrap().push("search");
     provider
 }

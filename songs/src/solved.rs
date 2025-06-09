@@ -91,7 +91,7 @@ pub async fn get(
         .ok_or(Error::NotFound)?;
 
     let source_data = if source_data {
-        let provider = provider_for_urn(&mut cache, &source_urn).await?;
+        let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
 
         let response = client
             .get(solved_endpoint(&provider, id))
@@ -148,7 +148,7 @@ pub async fn delete(
     .context(SQLSnafu)?
     .ok_or(Error::NotFound)?;
 
-    let provider = provider_for_urn(&mut cache, &source_urn).await?;
+    let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
 
     // Tell the provider to delete the song
     client

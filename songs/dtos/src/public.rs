@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::{DateTime, Duration, offset::FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
@@ -36,3 +38,38 @@ pub struct ResolveSongRequest {
     /// e.g. the video id for youtube
     pub data: Value,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchQueryParams {
+    /// Search query
+    #[serde(rename = "q")]
+    pub query: String,
+    /// List of sources to search
+    ///
+    /// Empty to use all sources
+    #[serde(default, rename = "source")]
+    pub sources: HashSet<String>,
+}
+
+/// How to resolve this search item
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "state")]
+pub enum SearchResponseItemState<R = Value> {
+    /// Need to be resolved
+    New { resolve: R },
+    /// Is a known song
+    Known { id: Uuid },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SearchResponseItem<D = Value, R = Value> {
+    /// Source that provided this search result
+    pub source: String,
+    /// Data to pass the frontend describing the song
+    pub details: D,
+    /// Data to pass the service to resolve the song
+    pub state: SearchResponseItemState<R>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UnknownSources(pub Vec<String>);

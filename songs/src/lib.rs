@@ -4,6 +4,7 @@ use axum::{
     extract::FromRef,
     routing::{get, post},
 };
+use chrono::Duration;
 use config::Config;
 use futures::FutureExt;
 use snafu::{ResultExt as _, Snafu};
@@ -16,6 +17,7 @@ pub mod config;
 
 mod providers;
 mod resolve;
+mod search;
 mod seen_sources;
 mod solved;
 mod sources;
@@ -39,6 +41,8 @@ pub struct App {
 #[derive(Debug, Clone, Copy)]
 pub struct ProvidersConfig {
     pub honor_fast_handshake: bool,
+    pub cache_expiration: Duration,
+    pub page_size: u32,
 }
 
 pub async fn app(
@@ -47,6 +51,8 @@ pub async fn app(
         cache_url,
         honor_fast_handshake,
         seen_sources_queue_size,
+        cache_expiration,
+        page_size,
     }: Config,
 ) -> Result<Router, MainError> {
     tracing::info!("Connecting to database and cache");
@@ -73,6 +79,7 @@ pub async fn app(
             "/public",
             Router::new()
                 .route("/sources", get(sources::list))
+                .route("/search", get(search::search))
                 .route("/resolve", post(resolve::resolve))
                 .route("/solved/{id}", get(solved::get).delete(solved::delete)),
         )
@@ -82,6 +89,8 @@ pub async fn app(
             cache,
             providers_config: ProvidersConfig {
                 honor_fast_handshake,
+                cache_expiration,
+                page_size,
             },
             seen_sources,
         }))

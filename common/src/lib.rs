@@ -7,6 +7,7 @@ pub mod iso8601;
 mod logging;
 mod main_wrapper;
 pub mod paginated;
+mod search;
 mod serve;
 mod tracing_client;
 
@@ -18,4 +19,5 @@ pub use figment::{
 };
 pub use main_wrapper::Error;
 pub use main_wrapper::service_main;
+pub use search::normalize_query;
 pub use tracing_client::TracingClient;

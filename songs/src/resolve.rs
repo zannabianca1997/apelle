@@ -82,7 +82,7 @@ pub async fn resolve(
     user: AuthHeaders,
     Json(ResolveSongRequest { source_urn, data }): Json<ResolveSongRequest>,
 ) -> Result<Redirect, ResolveSongError> {
-    let provider = provider_for_urn(&mut cache, &source_urn).await?;
+    let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
 
     let resp = client
         .post(resolve_endpoint(&provider))

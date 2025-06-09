@@ -12,6 +12,7 @@ apelle-songs-dtos = { path = "songs/dtos" }
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
+axum-extra = { version = "0.10.1", features = ["query"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal", "sync"] }
 
 # Database
