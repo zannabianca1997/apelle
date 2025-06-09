@@ -7,6 +7,7 @@ members = [
     "songs/dtos",
     "songs/providers/*",
     "queues",
+    "configs",
 ]
 
 [workspace.package]

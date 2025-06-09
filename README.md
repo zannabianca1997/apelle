@@ -30,6 +30,7 @@ exposes the port it uses, enabling testing of the single service.
 | users         | 8081 |
 | songs         | 8082 |
 | queues        | 8083 |
+| configs       | 8084 |
 | songs-youtube | 8091 |
 
 ## Services
@@ -71,6 +72,9 @@ at runtime on the `songs` service.
 ### `queues`
 Queue service. Keep track of the position of each song in the queue, and the
 currently playing song.
+
+### `configs`
+Queue configurations service. Keep track of the configuration of each queue.
 
 ## Prod-like mode
 

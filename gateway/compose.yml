@@ -12,3 +12,5 @@ services:
         condition: service_started
       queues:
         condition: service_started
+      configs:
+        condition: service_started

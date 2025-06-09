@@ -4,4 +4,5 @@ include:
   - users/compose.yml
   - songs/compose.yml
   - queues/compose.yml
+  - configs/compose.yml
   - gateway/compose.yml

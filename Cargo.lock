@@ -119,6 +119,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "apelle-configs"
+version = "0.1.0"
+dependencies = [
+ "apelle-common",
+ "axum",
+ "serde",
+ "snafu",
+ "url",
+]
+
+[[package]]
 name = "apelle-queues"
 version = "0.1.0"
 dependencies = [

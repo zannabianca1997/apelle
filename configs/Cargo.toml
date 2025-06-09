@@ -1,0 +1,14 @@
+[package]
+name = "apelle-configs"
+version = "0.1.0"
+edition = "2024"
+
+license.workspace = true
+
+[dependencies]
+apelle-common.workspace = true
+
+axum.workspace = true
+serde.workspace = true
+url.workspace = true
+snafu.workspace = true

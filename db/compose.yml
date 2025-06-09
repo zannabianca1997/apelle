@@ -25,6 +25,7 @@ services:
       - ../songs/migrations:/flyway/sql/songs:ro
       - ../songs/providers/youtube/migrations:/flyway/sql/songs-youtube:ro
       - ../queues/migrations:/flyway/sql/queues:ro
+      - ../configs/migrations:/flyway/sql/configs:ro
     depends_on:
       db:
         condition: service_started
