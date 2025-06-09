@@ -32,6 +32,14 @@ services:
         PROFILE: dev
     volumes:
       - ./logs/:/app/logs
+  queues:
+    ports:
+      - "8083:8080"
+    build:
+      args:
+        PROFILE: dev
+    volumes:
+      - ./logs/:/app/logs
   gateway:
     ports:
       - "8080:8080"

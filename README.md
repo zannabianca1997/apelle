@@ -29,6 +29,7 @@ exposes the port it uses, enabling testing of the single service.
 | gateway       | 8080 |
 | users         | 8081 |
 | songs         | 8082 |
+| queues        | 8083 |
 | songs-youtube | 8091 |
 
 ## Services
@@ -66,6 +67,10 @@ Route every request of a song to the registered providers.
 ### `songs-<source>`
 Song providers. Handle communication with the given source. Register themselves
 at runtime on the `songs` service.
+
+### `queues`
+Queue service. Keep track of the position of each song in the queue, and the
+currently playing song.
 
 ## Prod-like mode
 

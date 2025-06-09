@@ -1,6 +1,13 @@
 [workspace]
 resolver = "3"
-members = ["common", "users", "songs", "songs/dtos", "songs/providers/*"]
+members = [
+    "common",
+    "users",
+    "songs",
+    "songs/dtos",
+    "songs/providers/*",
+    "queues",
+]
 
 [workspace.package]
 license = "MIT"

@@ -3,4 +3,5 @@ include:
   - cache-pubsub/compose.yml
   - users/compose.yml
   - songs/compose.yml
+  - queues/compose.yml
   - gateway/compose.yml

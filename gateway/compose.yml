@@ -10,3 +10,5 @@ services:
         condition: service_started
       songs:
         condition: service_started
+      queues:
+        condition: service_started
