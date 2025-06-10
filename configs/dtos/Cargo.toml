@@ -1,0 +1,12 @@
+[package]
+name = "apelle-configs-dtos"
+version = "0.1.0"
+edition = "2024"
+
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+sqlx.workspace = true
