@@ -123,7 +123,9 @@ name = "apelle-configs"
 version = "0.1.0"
 dependencies = [
  "apelle-common",
+ "apelle-configs-dtos",
  "axum",
+ "itertools",
  "serde",
  "snafu",
  "url",

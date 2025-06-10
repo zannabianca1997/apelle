@@ -7,8 +7,11 @@ license.workspace = true
 
 [dependencies]
 apelle-common.workspace = true
+apelle-configs-dtos = { path = "dtos" }
 
 axum.workspace = true
 serde.workspace = true
 url.workspace = true
 snafu.workspace = true
+
+itertools.workspace = true
