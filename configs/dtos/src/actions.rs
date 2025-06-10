@@ -186,9 +186,6 @@ other_impls! {QueueUserActionSong}
 #[serde(try_from = "&str", into = "&str")]
 pub enum QueueUserActionUser {
     /// Ban the user
-    ///
-    /// This removes the user (see [`QueueUserActionUser::Remove`]) and all
-    /// songs added by the user
     Ban,
     /// Unban the user
     Unban,
