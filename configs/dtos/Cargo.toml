@@ -10,3 +10,4 @@ serde.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 sqlx.workspace = true
+strum = { version = "0.27.1", features = ["derive"] }

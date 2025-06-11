@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 use sqlx::{Decode, Encode};
+use strum::{EnumIter, IntoEnumIterator};
 
 macro_rules! conversions {
 (
@@ -123,9 +124,18 @@ impl<'a> TryFrom<&'a str> for QueueUserAction {
     }
 }
 
+impl QueueUserAction {
+    pub fn iter() -> impl Iterator<Item = Self> {
+        QueueUserActionQueue::iter()
+            .map(QueueUserAction::Queue)
+            .chain(QueueUserActionSong::iter().map(QueueUserAction::Song))
+            .chain(QueueUserActionUser::iter().map(QueueUserAction::User))
+    }
+}
+
 other_impls! {QueueUserAction}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[serde(try_from = "&str", into = "&str")]
 pub enum QueueUserActionQueue {
     /// Delete the queue
@@ -141,7 +151,7 @@ conversions! {
 }
 other_impls! {QueueUserActionQueue}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[serde(try_from = "&str", into = "&str")]
 pub enum QueueUserActionSong {
     /// Remove from queue
@@ -167,6 +177,9 @@ pub enum QueueUserActionSong {
     /// Can be called only on a song that is finished without user interaction,
     /// and only to change to the next song in the queue
     AutoNext,
+
+    /// Like the song
+    Like,
 }
 
 conversions! {
@@ -178,11 +191,12 @@ conversions! {
         Play <=> "PLAY_SONG",
         Pause <=> "PAUSE_SONG",
         Next <=> "NEXT_SONG",
-        AutoNext <=> "AUTO_NEXT_SONG"
+        AutoNext <=> "AUTO_NEXT_SONG",
+        Like <=> "LIKE_SONG"
 }
 other_impls! {QueueUserActionSong}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[serde(try_from = "&str", into = "&str")]
 pub enum QueueUserActionUser {
     /// Ban the user

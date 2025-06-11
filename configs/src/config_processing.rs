@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use apelle_configs_dtos::QueueConfig;
+use apelle_configs_dtos::QueueConfigCreate;
 use itertools::Itertools as _;
 use snafu::Snafu;
 
@@ -13,7 +13,7 @@ pub enum ValidateError {
 }
 
 /// Check if the config is valid and self-consistent
-pub fn validate(config: QueueConfig) -> Result<QueueConfig, ValidateError> {
+pub fn validate(config: QueueConfigCreate) -> Result<QueueConfigCreate, ValidateError> {
     let mut unknown_roles = HashSet::new();
     for referred_roles in [
         &config.creator_role,

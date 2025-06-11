@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::QueueUserAction;
 
@@ -16,6 +18,19 @@ pub struct QueueUserRole {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueueConfig {
+    pub id: Uuid,
+
+    pub creator_role: String,
+    pub default_role: String,
+    pub banned_role: String,
+
+    pub roles: HashMap<String, QueueUserRole>,
+
+    pub crated: DateTime<FixedOffset>,
+    pub updated: DateTime<FixedOffset>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueueConfigCreate {
     pub creator_role: String,
     pub default_role: String,
     pub banned_role: String,
