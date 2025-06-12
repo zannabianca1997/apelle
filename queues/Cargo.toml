@@ -7,8 +7,17 @@ license.workspace = true
 
 [dependencies]
 apelle-common.workspace = true
+apelle-configs-dtos.workspace = true
+apelle-songs-dtos.workspace = true
 
 axum.workspace = true
 serde.workspace = true
 url.workspace = true
 snafu.workspace = true
+
+uuid.workspace = true
+chrono.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+futures.workspace = true

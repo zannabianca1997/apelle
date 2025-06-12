@@ -4,6 +4,8 @@ use snafu::Snafu;
 
 pub mod config;
 
+mod model;
+
 /// Main fatal error
 #[derive(Debug, Snafu)]
 pub enum MainError {}

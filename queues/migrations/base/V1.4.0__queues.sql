@@ -19,7 +19,7 @@ CREATE TABLE queue (
         DEFAULT NULL,
     
     -- Time in the past the song should have started to reach the current position
-    current_song_starts_at 
+    current_song_start_at 
         TIMESTAMP WITH TIME ZONE 
         DEFAULT NULL,
     
@@ -49,7 +49,12 @@ CREATE TABLE queue (
         REFERENCES queue_config
         ON DELETE RESTRICT
         ON UPDATE CASCADE
-        DEFAULT '00000000-0000-0000-0000-000000000000'
+        DEFAULT '00000000-0000-0000-0000-000000000000',
+
+    created TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT NOW(),
+    updated TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT NOW()
 );
 
 CREATE TABLE queue_user (
@@ -91,6 +96,13 @@ CREATE TABLE queued_song (
         TIMESTAMP WITH TIME ZONE 
         NOT NULL 
         DEFAULT NOW()
+
+    queued_by UUID NOT NULL,
+    
+    FOREIGN KEY (queue_id, queued_by)
+        REFERENCES queue_user
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
 CREATE TABLE likes (

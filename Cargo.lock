@@ -153,10 +153,18 @@ name = "apelle-queues"
 version = "0.1.0"
 dependencies = [
  "apelle-common",
+ "apelle-configs-dtos",
+ "apelle-songs-dtos",
  "axum",
+ "chrono",
+ "futures 0.3.31",
  "serde",
  "snafu",
+ "sqlx",
+ "tokio 1.45.1",
+ "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

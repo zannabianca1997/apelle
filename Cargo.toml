@@ -18,6 +18,7 @@ license = "MIT"
 # Members
 apelle-common = { path = "common" }
 apelle-songs-dtos = { path = "songs/dtos" }
+apelle-configs-dtos = { path = "configs/dtos" }
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
