@@ -125,10 +125,16 @@ dependencies = [
  "apelle-common",
  "apelle-configs-dtos",
  "axum",
+ "futures 0.3.31",
  "itertools",
  "serde",
  "snafu",
+ "sqlx",
+ "textwrap-macros",
+ "tokio 1.45.1",
+ "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

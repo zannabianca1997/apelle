@@ -96,7 +96,13 @@ CREATE TABLE queue_config (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    autolike BOOLEAN NOT NULL
+    autolike BOOLEAN NOT NULL,
+
+    created TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT NOW(),
+
+    updated TIMESTAMP WITH TIME ZONE NOT NULL
+        DEFAULT NOW()
 );
 
 ALTER TABLE queue_user_role

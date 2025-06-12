@@ -13,5 +13,14 @@ axum.workspace = true
 serde.workspace = true
 url.workspace = true
 snafu.workspace = true
+uuid.workspace = true
 
 itertools.workspace = true
+
+sqlx.workspace = true
+futures.workspace = true
+tracing.workspace = true
+
+
+textwrap-macros.workspace = true
+tokio.workspace = true

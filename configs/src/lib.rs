@@ -1,37 +1,36 @@
-use axum::{Router, routing::get};
+use axum::{Router, extract::FromRef, routing::get};
 use config::Config;
-use snafu::Snafu;
+use futures::FutureExt as _;
+use snafu::{ResultExt as _, Snafu};
+use sqlx::PgPool;
+use tracing::{Instrument as _, info_span};
 
 pub mod config;
 
 mod config_processing;
 
-mod create {
-    use apelle_common::common_errors::SQLError;
-    use apelle_configs_dtos::{QueueConfig, QueueConfigCreate};
-    use axum::http::StatusCode;
-    use snafu::Snafu;
+mod get;
 
-    #[derive(Debug, Snafu)]
-    pub enum CreateError {
-        #[snafu(transparent)]
-        SqlError { source: SQLError },
-    }
-
-    pub async fn create(
-        config: QueueConfigCreate,
-    ) -> Result<(StatusCode, QueueConfig), CreateError> {
-        todo!()
-    }
+#[derive(Clone, FromRef)]
+pub struct App {
+    db: PgPool,
 }
 
 /// Main fatal error
 #[derive(Debug, Snafu)]
-pub enum MainError {}
+pub enum MainError {
+    DbConnectionError { source: sqlx::Error },
+}
 
-pub async fn app(config: Config) -> Result<Router, MainError> {
-    Ok(Router::new().route(
-        "/public",
-        get(|| async { "Hello! The configs service is up and running." }),
-    ))
+pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
+    tracing::info!("Connecting to database");
+
+    let db = PgPool::connect(db_url.as_str())
+        .map(|r| r.context(DbConnectionSnafu))
+        .instrument(info_span!("Connecting to database"))
+        .await?;
+
+    Ok(Router::new()
+        .route("/queues/{id}", get(get::get))
+        .with_state(App { db }))
 }

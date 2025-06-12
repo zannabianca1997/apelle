@@ -1,7 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
 use serde::{Deserialize, Serialize};
-use sqlx::{Decode, Encode};
+use sqlx::{
+    Decode, Encode, Postgres, Type,
+    postgres::{PgHasArrayType, PgTypeInfo},
+};
 use strum::{EnumIter, IntoEnumIterator};
 
 macro_rules! conversions {
@@ -121,6 +124,18 @@ impl<'a> TryFrom<&'a str> for QueueUserAction {
             .or_else(|value| QueueUserActionQueue::try_from(value).map(QueueUserAction::Queue))
             .or_else(|value| QueueUserActionSong::try_from(value).map(QueueUserAction::Song))
             .or_else(|value| QueueUserActionUser::try_from(value).map(QueueUserAction::User))
+    }
+}
+
+impl Type<Postgres> for QueueUserAction {
+    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+        PgTypeInfo::with_name("queue_user_action")
+    }
+}
+
+impl PgHasArrayType for QueueUserAction {
+    fn array_type_info() -> PgTypeInfo {
+        PgTypeInfo::array_of("queue_user_action")
     }
 }
 

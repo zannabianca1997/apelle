@@ -26,7 +26,9 @@ pub struct QueueConfig {
 
     pub roles: HashMap<String, QueueUserRole>,
 
-    pub crated: DateTime<FixedOffset>,
+    pub autolike: bool,
+
+    pub created: DateTime<FixedOffset>,
     pub updated: DateTime<FixedOffset>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,6 +62,9 @@ pub struct QueueConfigUpdate {
     pub default_role: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub banned_role: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub autolike: Option<bool>,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub roles: HashMap<String, Option<QueueUserRoleUpdate>>,
