@@ -28,14 +28,14 @@ CREATE TABLE queue (
         (
             -- The current song is null
             (current_song IS NULL)
-            AND (current_song_starts_at IS NULL)
+            AND (current_song_start_at IS NULL)
             AND (current_song_position IS NULL)
         )
         OR (
             -- Only one of the time reference is filled in
             (current_song IS NOT NULL)
             AND (
-                (current_song_starts_at IS NULL) <> (current_song_position IS NULL)
+                (current_song_start_at IS NULL) <> (current_song_position IS NULL)
             )
         )
     ),
@@ -95,7 +95,7 @@ CREATE TABLE queued_song (
     queued_at 
         TIMESTAMP WITH TIME ZONE 
         NOT NULL 
-        DEFAULT NOW()
+        DEFAULT NOW(),
 
     queued_by UUID NOT NULL,
     

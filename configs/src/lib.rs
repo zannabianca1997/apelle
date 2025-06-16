@@ -1,4 +1,8 @@
-use axum::{Router, extract::FromRef, routing::get};
+use axum::{
+    Router,
+    extract::FromRef,
+    routing::{get, post},
+};
 use config::Config;
 use futures::FutureExt as _;
 use snafu::{ResultExt as _, Snafu};
@@ -9,6 +13,8 @@ pub mod config;
 
 mod config_processing;
 
+mod create;
+mod delete;
 mod get;
 
 #[derive(Clone, FromRef)]
@@ -31,6 +37,7 @@ pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
         .await?;
 
     Ok(Router::new()
-        .route("/queues/{id}", get(get::get))
+        .route("/queues", post(create::create))
+        .route("/queues/{id}", get(get::get).delete(delete::delete))
         .with_state(App { db }))
 }

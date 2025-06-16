@@ -83,20 +83,21 @@ CREATE TABLE queue_config (
 
     creator_role_id UUID NOT NULL
         REFERENCES queue_user_role
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     default_role_id UUID NOT NULL
         REFERENCES queue_user_role
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
     banned_role_id UUID NOT NULL
         REFERENCES queue_user_role
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    autolike BOOLEAN NOT NULL,
+    autolike BOOLEAN NOT NULL 
+        DEFAULT TRUE,
 
     created TIMESTAMP WITH TIME ZONE NOT NULL
         DEFAULT NOW(),

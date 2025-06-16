@@ -38,6 +38,13 @@ pub struct QueueConfigCreate {
     pub banned_role: String,
 
     pub roles: HashMap<String, QueueUserRole>,
+
+    #[serde(default = "default_autolike", skip_serializing_if = "Clone::clone")]
+    pub autolike: bool,
+}
+
+fn default_autolike() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

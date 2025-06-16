@@ -5,10 +5,11 @@ use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserRole};
 use axum::{
     Json, debug_handler,
     extract::{Path, State},
+    http::StatusCode,
     response::IntoResponse,
 };
 use futures::{FutureExt, StreamExt as _, TryStreamExt};
-use snafu::{ResultExt, Snafu};
+use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
 use textwrap_macros::unfill;
 use uuid::Uuid;
@@ -16,13 +17,17 @@ use uuid::Uuid;
 #[derive(Debug, Snafu)]
 pub enum GetError {
     #[snafu(transparent)]
-    SqlError { source: SQLError },
+    SqlError {
+        source: SQLError,
+    },
+    NotFound,
 }
 
 impl IntoResponse for GetError {
     fn into_response(self) -> axum::response::Response {
         match self {
             GetError::SqlError { source } => source.into_response(),
+            GetError::NotFound => StatusCode::NOT_FOUND.into_response(),
         }
     }
 }
@@ -42,8 +47,8 @@ pub async fn get(
         .trim_ascii(),
     )
     .bind(id)
-    .fetch_one(&db)
-    .map(|r| r.context(SQLSnafu));
+    .fetch_optional(&db)
+    .map(|r| r.context(SQLSnafu)?.context(NotFoundSnafu));
 
     let fetch_roles = sqlx::query(
         unfill!(
@@ -73,7 +78,7 @@ pub async fn get(
     )
     .bind(id)
     .fetch(&db)
-    .map(|r| r.context(SQLSnafu))
+    .map(|r| r.context(SQLSnafu).map_err(GetError::from))
     .try_fold(
         (HashMap::new(), HashMap::new()),
         async |(mut ids, mut roles), row| {
