@@ -39,5 +39,9 @@ pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
     Ok(Router::new()
         .route("/queues", post(create::create))
         .route("/queues/{id}", get(get::get).delete(delete::delete))
+        .nest(
+            "/public",
+            Router::new().route("/queues/{id}", get(get::get)),
+        )
         .with_state(App { db }))
 }
