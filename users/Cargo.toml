@@ -17,7 +17,7 @@ chrono.workspace = true
 sqlx.workspace = true
 tracing.workspace = true
 argon2.workspace = true
-axum-extra = { version = "0.10.1", features = ["typed-header"] }
+axum-extra.workspace = true
 tokio.workspace = true
 futures.workspace = true
 textwrap-macros.workspace = true
