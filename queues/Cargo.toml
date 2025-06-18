@@ -21,3 +21,7 @@ sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 futures.workspace = true
+
+redis.workspace = true
+reqwest.workspace = true
+rand = "0.9.1"

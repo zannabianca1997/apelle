@@ -6,6 +6,7 @@ services:
       APELLE__DB_URL: ${DB_URL?"The database url must be set"}
       APELLE__CACHE_URL: ${CACHE_URL?"The cache url must be set"}
       APELLE__SONGS_URL: ${SONGS_URL?"The songs service url must be set"}
+      APELLE__CONFIGS_URL: ${CONFIGS_URL?"The configs service url must be set"}
     depends_on:
       songs:
         condition: service_started

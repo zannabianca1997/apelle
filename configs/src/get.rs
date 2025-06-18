@@ -94,6 +94,7 @@ pub async fn get(
             roles.insert(
                 name,
                 QueueUserRole {
+                    id,
                     max_likes,
                     permissions: permissions.into_iter().collect(),
                     can_grant: can_grant.into_iter().collect(),

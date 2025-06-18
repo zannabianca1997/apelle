@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use apelle_common::common_errors::{SQLError, SQLSnafu};
-use apelle_configs_dtos::{QueueConfig, QueueConfigCreate, QueueUserAction, QueueUserRole};
+use apelle_configs_dtos::{
+    QueueConfig, QueueConfigCreate, QueueUserAction, QueueUserRole, QueueUserRoleCreate,
+};
 use axum::{Json, debug_handler, extract::State, http::StatusCode, response::IntoResponse};
 use snafu::{ResultExt as _, Snafu};
 use sqlx::{
@@ -60,7 +62,7 @@ pub async fn create(
     // Insert all roles
     let (names, max_likes): (Vec<&str>, Vec<i32>) = roles
         .iter()
-        .map(|(name, QueueUserRole { max_likes, .. })| (name.as_str(), *max_likes as i32))
+        .map(|(name, QueueUserRoleCreate { max_likes, .. })| (name.as_str(), *max_likes as i32))
         .unzip();
     let role_ids: Vec<Uuid> = sqlx::query_scalar(
         unfill!(
@@ -79,7 +81,11 @@ pub async fn create(
     .await
     .context(SQLSnafu)?;
 
-    let name_mapping: HashMap<&str, Uuid> = names.into_iter().zip(role_ids).collect();
+    let name_mapping: HashMap<String, Uuid> = names
+        .into_iter()
+        .map(ToOwned::to_owned)
+        .zip(role_ids)
+        .collect();
 
     // Insert permissions
     let (role_ids, permissions): (Vec<Uuid>, Vec<QueueUserAction>) = roles
@@ -188,7 +194,32 @@ pub async fn create(
             creator_role,
             default_role,
             banned_role,
-            roles,
+            roles: roles
+                .into_iter()
+                .map(
+                    |(
+                        name,
+                        QueueUserRoleCreate {
+                            max_likes,
+                            permissions,
+                            can_grant,
+                            can_revoke,
+                        },
+                    )| {
+                        let id = name_mapping[name.as_str()];
+                        (
+                            name,
+                            QueueUserRole {
+                                id,
+                                max_likes,
+                                permissions,
+                                can_grant,
+                                can_revoke,
+                            },
+                        )
+                    },
+                )
+                .collect(),
             autolike,
         }),
     ))
