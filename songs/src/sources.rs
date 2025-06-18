@@ -42,7 +42,6 @@ pub async fn list(
     Query(PaginationParams { page, page_size }): Query<PaginationParams>,
 ) -> Result<Json<Paginated<Source>>, SQLError> {
     let page = page.unwrap_or(0);
-    let offset = page.saturating_mul(page_size);
 
     // Using LIMIT OFFSET, as there are few sources (probably less than a single
     // page) and they have a easy order
@@ -50,7 +49,7 @@ pub async fn list(
         "SELECT urn, name, created, last_heard FROM source ORDER BY urn DESC LIMIT $1 OFFSET $2",
     )
     .bind(page_size as i64)
-    .bind(offset as i64)
+    .bind(page as i64)
     .map(|row: PgRow| Source {
         urn: row.get(0),
         name: row.get(1),
@@ -65,16 +64,23 @@ pub async fn list(
         .map(|r| r.context(SQLSnafu));
 
     let (items, total): (_, i64) = tokio::try_join!(items, total)?;
+
     let total = total as u32;
+    let size = items.len() as u32;
+    let end = page.saturating_add(size as u32);
+
+    debug_assert!(end <= total);
 
     Ok(Json(Paginated {
-        page_info: PageInfo::regular(
+        page_info: PageInfo {
+            size,
+            total: Some(total),
+            first: Some(0),
+            prev: (page > 0).then(|| page.saturating_sub(page_size as u32)),
             page,
-            Some(total),
-            items.len() as u32,
-            page_size,
-            page.saturating_add(offset) < total,
-        ),
+            next: (end < total).then_some(end),
+            last: Some(total.saturating_sub(page_size as u32)),
+        },
         items,
     }))
 }

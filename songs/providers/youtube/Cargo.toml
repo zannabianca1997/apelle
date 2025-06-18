@@ -24,3 +24,5 @@ textwrap-macros.workspace = true
 redis.workspace = true
 const_format.workspace = true
 serde_json.workspace = true
+base64 = "0.22.1"
+bincode = "2.0.1"

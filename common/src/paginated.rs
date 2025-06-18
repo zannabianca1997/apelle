@@ -35,40 +35,17 @@ pub struct PageInfo<Cursor = u32> {
     pub size: u32,
     /// The total number of items
     pub total: Option<u32>,
-    /// The number of the page
-    pub page: u32,
+
     /// The cursor to the first page, if any
     pub first: Option<Cursor>,
     /// The cursor to the previous page, if any
     pub prev: Option<Cursor>,
+    /// The cursor to the current page
+    pub page: Cursor,
     /// The cursor to the next page, if any
     pub next: Option<Cursor>,
     /// The cursor to the last page, if any
     pub last: Option<Cursor>,
-}
-
-impl PageInfo<u32> {
-    /// Create a page info for a pagination with all pages of the same size
-    pub fn regular(
-        page: u32,
-        total: Option<u32>,
-        size: u32,
-        page_size: u32,
-        next_present: bool,
-    ) -> Self {
-        let last = total.map(|total| total.saturating_sub(1) / page_size);
-        let next = next_present.then_some(page + 1);
-        let prev = page.checked_sub(1);
-        Self {
-            size,
-            total,
-            page,
-            first: Some(0),
-            prev,
-            next,
-            last,
-        }
-    }
 }
 
 /// Pagination parameters

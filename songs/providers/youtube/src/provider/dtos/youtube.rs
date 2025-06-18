@@ -8,16 +8,44 @@ use url::Url;
 
 // == Pagination ==
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Paginated<T> {
     pub items: Vec<T>,
     #[serde(rename = "pageInfo")]
     pub page_info: PageInfo,
-    #[serde(rename = "nextPageToken")]
+    #[serde(
+        rename = "prevPageToken",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub prev_page_token: Option<String>,
+    #[serde(
+        rename = "nextPageToken",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub next_page_token: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl<T> IntoIterator for Paginated<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.into_iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a Paginated<T> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter()
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PageInfo {
     #[serde(rename = "totalResults")]
     pub total_results: u32,
@@ -34,7 +62,7 @@ pub struct Video {
     pub content_details: ContentDetails,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Snippet {
     pub title: String,
     #[serde(default)]
@@ -56,13 +84,13 @@ pub struct ContentDetails {
 
 // == Search ==
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SearchResult {
     pub id: SearchResultId,
     pub snippet: Snippet,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "kind")]
 pub enum SearchResultId {
     #[serde(rename = "youtube#video")]

@@ -1,10 +1,4 @@
-use std::{
-    collections::HashMap,
-    sync::{
-        Arc,
-        atomic::{AtomicU32, Ordering},
-    },
-};
+use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use apelle_common::{
     Reporter, TracingClient,
@@ -12,16 +6,15 @@ use apelle_common::{
     normalize_query,
     paginated::{PageInfo, Paginated, PaginationParams},
 };
-use apelle_songs_dtos::provider::{SearchQueryParams, SearchResponseItemState};
+use apelle_songs_dtos::{provider::SearchQueryParams, public::SearchResponseItemState};
 use axum::{
     Json, debug_handler,
     extract::{Query, State},
     response::IntoResponse,
 };
 use const_format::concatcp;
-use futures::{FutureExt as _, TryFutureExt as _};
 use redis::{AsyncCommands, aio::ConnectionManager};
-use reqwest::{Response, StatusCode};
+use reqwest::StatusCode;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use sqlx::{PgPool, Row as _};
@@ -38,13 +31,6 @@ use super::{
 };
 
 const CACHE_NAMESPACE: &str = concatcp!(crate::CACHE_NAMESPACE, "search:");
-
-const FIRST_PAGE_NAMESPACE: &str = "first-page:";
-const PAGES_NAMESPACE: &str = "pages:";
-const TOTAL_KEY: &str = "total";
-
-const ITEMS_KEY: &str = "items";
-const NEXT_PAGE_KEY: &str = "next-page";
 
 #[derive(Debug, Snafu)]
 pub enum SearchError {
@@ -109,7 +95,7 @@ impl IntoResponse for SearchError {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone, Copy)]
 struct YoutubeQueryParams<'a> {
     part: &'a str,
     r#type: &'a str,
@@ -122,294 +108,11 @@ struct YoutubeQueryParams<'a> {
     #[serde(rename = "q")]
     query: &'a str,
     #[serde(rename = "pageToken")]
-    page_token: Option<String>,
+    page_token: Option<&'a str>,
 }
 
-struct ItemFetcher<'a> {
-    query: &'a str,
-
-    api: &'a YoutubeApi,
-    cache: ConnectionManager,
-    client: &'a TracingClient,
-
-    pages_namespace: String,
-
-    /// The number of calls remaining before the quota for this query is exhausted
-    calls_remaining: AtomicU32,
-}
-
-impl ItemFetcher<'_> {
-    /// Fetch a range of items from the cache or youtube
-    async fn fetch(
-        &self,
-        cache_key: String,
-        offset: u32,
-        buffer: &mut [Option<SearchResponseItem>],
-        current_page_token: Option<String>,
-        total: &AtomicU32,
-    ) -> Result<usize, SearchError> {
-        // Fetch the current page length
-        let (cached_page_len, next_page_token): (u32, Option<String>) = redis::pipe()
-            .llen(cache_key.clone() + ITEMS_KEY)
-            .get(cache_key.clone() + NEXT_PAGE_KEY)
-            .query_async(&mut self.cache.clone())
-            .await
-            .context(CacheSnafu)?;
-
-        tracing::debug!(
-            cached_page_len,
-            next_page_token,
-            "Fetched page info from cache"
-        );
-
-        if cached_page_len == 0 {
-            // Page never fetched
-            if next_page_token.is_some() {
-                tracing::warn!(
-                    %cache_key,
-                    "Page never fetched, but next page token is present"
-                )
-            }
-
-            // Fetch from youtube
-            return self
-                .fetch_from_yt(cache_key.clone(), offset, buffer, current_page_token, total)
-                .await;
-        }
-
-        // If part of the page is after this, fetch the next one
-        let (inside_cached_page, outside_cached_page) =
-            break_buffer(cached_page_len, offset, buffer);
-
-        let fetch_outside_cached_page = async {
-            if let (Some((offset, buffer)), Some(next_page_token)) =
-                (outside_cached_page, next_page_token)
-            {
-                let cache_key = self.pages_namespace.clone() + &next_page_token;
-
-                // Recursively fetch the next cached page
-                Box::pin(self.fetch(cache_key, offset, buffer, Some(next_page_token), total)).await
-            } else {
-                // Either the page is inside the cached page, or there is no next page so we ended the research
-                Ok(0)
-            }
-        };
-
-        let fetch_inside_cached_page = async {
-            if let Some((offset, buffer)) = inside_cached_page {
-                self.fetch_from_cache(cache_key, offset, buffer).await
-            } else {
-                Ok(0)
-            }
-        };
-
-        let (fetched_from_cache, fetched_from_yt) =
-            tokio::try_join!(fetch_inside_cached_page, fetch_outside_cached_page)?;
-
-        Ok(fetched_from_cache + fetched_from_yt)
-    }
-
-    async fn fetch_from_cache(
-        &self,
-        cache_key: String,
-        offset: u32,
-        buffer: &mut [Option<SearchResponseItem>],
-    ) -> Result<usize, SearchError> {
-        tracing::debug!(cache_key, item_count = buffer.len(), "Fetching from cache");
-
-        let cached_items = self
-            .cache
-            .clone()
-            .lrange::<_, Vec<String>>(
-                cache_key.clone() + ITEMS_KEY,
-                offset as _,
-                offset as isize + buffer.len() as isize - 1,
-            )
-            .await
-            .context(CacheSnafu)?;
-
-        if buffer.len() != cached_items.len() {
-            return Err(SearchError::CacheLRangeLengthMismatch {
-                cache_key,
-                requested: buffer.len(),
-                returned: cached_items.len(),
-            });
-        }
-
-        for (buf, item) in buffer.iter_mut().zip(cached_items) {
-            *buf = Some(serde_json::from_str(&item).context(CacheJsonSnafu)?);
-        }
-
-        Ok(buffer.len())
-    }
-
-    async fn fetch_from_yt(
-        &self,
-        cache_key: String,
-        offset: u32,
-        buffer: &mut [Option<SearchResponseItem>],
-        page_token: Option<String>,
-        total: &AtomicU32,
-    ) -> Result<usize, SearchError> {
-        if self
-            .calls_remaining
-            .fetch_sub(1, Ordering::Relaxed)
-            .saturating_mul(self.api.page_size)
-            < offset.saturating_add(buffer.len() as _)
-        {
-            // The page is too far, even if youtube always answers with the max numbers of results we would not reach it.
-            return Err(SearchError::PageTooFar);
-        };
-
-        tracing::debug!(
-            cache_key,
-            item_count = buffer.len(),
-            page_token,
-            "Fetching from youtube"
-        );
-
-        let youtube::Paginated {
-            items,
-            next_page_token,
-            page_info: youtube::PageInfo { total_results },
-        } = self
-            .client
-            .get(self.api.api_search_url.clone())
-            .query(&YoutubeQueryParams {
-                part: "snippet",
-                r#type: "video",
-                safe_search: "none",
-                video_embeddable: "true",
-                max_results: self.api.page_size,
-                query: self.query,
-                page_token,
-            })
-            .header(GOOGLE_API_KEY_HEADER, &self.api.api_key)
-            .send()
-            .map(|r| r.and_then(Response::error_for_status))
-            .and_then(Response::json)
-            .await?;
-
-        // Updating total
-        total.store(total_results, Ordering::Relaxed);
-
-        let mut fetched = 0;
-
-        // Mapping the search results to our internal representation
-        let search_results: Vec<_> = items
-            .into_iter()
-            .filter_map(
-                |youtube::SearchResult {
-                     id,
-                     snippet: youtube::Snippet { title, thumbnails },
-                 }| {
-                    let youtube::SearchResultId::Video { video_id } = id else {
-                        // There is a bug in the youtube api where it returns a
-                        // playlist or a channel if the query perfectly matches
-                        // the title. Clearing out them from the list.
-                        return None;
-                    };
-                    Some(SearchResponseItem {
-                        details: SearchItemDetails {
-                            title,
-                            url: video_url(&self.api.public_url, &video_id),
-                            thumbnails: thumbnails.into_iter().map(|(_, t)| t.into()).collect(),
-                        },
-                        state: SearchResponseItemState::New {
-                            resolve: ResolveRequest { video_id },
-                        },
-                    })
-                },
-            )
-            // Storing them
-            .enumerate()
-            .map(|(i, item)| {
-                let serialized_for_cache =
-                    serde_json::to_string(&item).expect("The serialization should be infallible");
-
-                // Filling the buffer as we pass the window
-                if offset as usize <= i && i < offset as usize + buffer.len() {
-                    buffer[i - offset as usize] = Some(item);
-                    fetched += 1;
-                }
-
-                serialized_for_cache
-            })
-            .collect();
-
-        // Caching the results of the query
-        let cache_update = async {
-            let items_key = cache_key.clone() + ITEMS_KEY;
-            let expiration = self.api.expiration.num_seconds() as u64;
-            let mut pipe = redis::pipe();
-            pipe.atomic()
-                .lpush(&items_key, &search_results)
-                .expire(items_key, expiration as i64);
-            if let Some(next_page_token) = next_page_token.as_ref() {
-                pipe.set_ex(
-                    cache_key.clone() + NEXT_PAGE_KEY,
-                    next_page_token,
-                    expiration,
-                );
-            }
-            pipe.exec_async(&mut self.cache.clone())
-                .await
-                .context(CacheSnafu)?;
-            Ok(())
-        };
-
-        // If there are more element to fetch, call again the API
-        let fill_rest_of_buffer = async {
-            let (_, outside_fetched_page) = break_buffer(search_results.len() as _, offset, buffer);
-            if let (Some((offset, buffer)), Some(next_page_token)) =
-                (outside_fetched_page, next_page_token.as_ref())
-            {
-                tracing::debug!(%next_page_token, "Fetching next page");
-
-                let cache_key = self.pages_namespace.clone() + &next_page_token;
-
-                Box::pin(self.fetch_from_yt(
-                    cache_key,
-                    offset,
-                    buffer,
-                    Some(next_page_token.clone()),
-                    total,
-                ))
-                .await
-            } else {
-                Ok(0)
-            }
-        };
-
-        let ((), n) = tokio::try_join!(cache_update, fill_rest_of_buffer)?;
-
-        Ok(fetched + n)
-    }
-}
-
-/// Splits the buffer into two parts, one that is below the breakpoint and one that is above it
-fn break_buffer(
-    breakpoint: u32,
-    offset: u32,
-    buffer: &mut [Option<SearchResponseItem>],
-) -> (
-    Option<(u32, &mut [Option<SearchResponseItem>])>,
-    Option<(u32, &mut [Option<SearchResponseItem>])>,
-) {
-    let (inside_cached_page, outside_cached_page) =
-        if offset.saturating_add(buffer.len() as _) <= breakpoint {
-            // The entire page is inside the cached page
-            (Some((offset, buffer)), None)
-        } else if offset >= breakpoint {
-            // The entire page is outside the cached page
-            (None, Some((offset - breakpoint, buffer)))
-        } else {
-            // Part of the page is inside the cached page
-            let (b1, b2) = buffer.split_at_mut((breakpoint - offset) as usize);
-            (Some((offset, b1)), Some((0, b2)))
-        };
-    (inside_cached_page, outside_cached_page)
-}
+mod cursor;
+use cursor::Cursor;
 
 #[debug_handler(state=crate::App)]
 pub async fn search(
@@ -418,116 +121,246 @@ pub async fn search(
     client: TracingClient,
     State(youtube_api): State<Arc<YoutubeApi>>,
     Query(SearchQueryParams { query }): Query<SearchQueryParams>,
-    Query(PaginationParams { page, page_size }): Query<PaginationParams>,
-) -> Result<Json<Paginated<SearchResponseItem>>, SearchError> {
+    Query(PaginationParams { page, page_size }): Query<PaginationParams<Cursor>>,
+) -> Result<Json<Paginated<SearchResponseItem, Cursor>>, SearchError> {
     // Normalize the query
     let query = normalize_query(&query);
 
-    // Calculate the offsets
-    let page = page.unwrap_or(0);
-    let page_start = page.saturating_mul(page_size);
-    let page_end = page_start.saturating_add(page_size);
-
     // Cache namespace for this query
-    let cache_namespace = CACHE_NAMESPACE.to_owned() + &query.replace(' ', "-") + ":";
+    let mut items = Vec::with_capacity(page_size as usize);
 
-    let mut items = vec![None; page_size as usize];
-    let total = AtomicU32::new(u32::MAX);
+    // Unpacking the cursor
+    let mut page = page.unwrap_or_else(|| Cursor::new());
 
-    let fetched = ItemFetcher {
-        query: &query,
-        api: &*youtube_api,
-        cache: cache.clone(),
-        client: &client,
-        pages_namespace: cache_namespace.clone() + PAGES_NAMESPACE,
-        calls_remaining: AtomicU32::new(youtube_api.max_upstream_requests),
-    }
-    .fetch(
-        cache_namespace.clone() + FIRST_PAGE_NAMESPACE,
-        page_start,
-        &mut items,
-        None,
-        &total,
+    // Fetching the first page
+    let mut fetched_page = fetch_page(
+        &mut cache,
+        &client,
+        &youtube_api,
+        &query,
+        page.page.as_deref(),
     )
     .await?;
 
-    let fetch_total = async {
-        let total_key = cache_namespace + TOTAL_KEY;
-        let total = total.into_inner();
-        if total == u32::MAX {
-            // No page has been fetched, must get from the cache We are sure
-            // that the key is present as the only way the search concluded
-            // without asking the yt api is that the cache is filled
-            cache.get(total_key).await.context(CacheSnafu)
-        } else {
-            // Caching the total for the next time. This will extend the time to
-            // live of the cache, but the data will be invalidated anyway. The
-            // key will disappear on his own or will be overwritten
-            cache
-                .set_ex::<_, _, ()>(total_key, total, youtube_api.expiration.num_seconds() as _)
-                .await
-                .context(CacheSnafu)?;
-            Ok(total)
+    let total = fetched_page.page_info.total_results;
+
+    let prev_page = if page.offset > 0 || fetched_page.prev_page_token.is_some() {
+        Some(Cursor {
+            page: page.page.clone(),
+            offset: page.offset - page_size as i32,
+        })
+    } else {
+        None
+    };
+
+    // Paging backwards until we reach the wanted page, if a negative offset was provided
+    while page.offset < 0 {
+        if fetched_page.prev_page_token.is_none() {
+            // A page was requested that starts before the first page
+            page = Cursor::new();
+            break;
         }
+
+        fetched_page = fetch_page(
+            &mut cache,
+            &client,
+            &youtube_api,
+            &query,
+            fetched_page.prev_page_token.as_deref(),
+        )
+        .await?;
+        page.page = fetched_page.prev_page_token.take();
+        page.offset += fetched_page.items.len() as i32;
     }
-    .map_err(|source| SearchError::CacheError { source });
 
-    let detect_known = async {
-        let items: Vec<_> = items
-            .drain(..fetched)
-            .map(|i| i.expect("All the items should be filled by the fetcher"))
-            .collect();
+    let page = page;
 
-        // Detecting known songs
-        let video_ids: Vec<_> = items
-            .iter()
-            .map(|i| {
-                let SearchResponseItemState::New {
-                    resolve: ResolveRequest { video_id, .. },
-                } = &i.state
-                else {
-                    unreachable!("Detection still did not run");
-                };
-                video_id.as_str()
-            })
-            .collect();
+    let mut next_page = None;
+    let mut skipping = page.offset;
 
-        let known_ids: HashMap<String, Uuid> =
-            sqlx::query("SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)")
-                .bind(&video_ids)
-                .map(|row| (row.get(0), row.get(1)))
-                .fetch_all(&db)
-                .await
-                .context(SQLSnafu)?
-                .into_iter()
-                .collect();
+    'fill: loop {
+        let next_page_token = fetched_page.next_page_token.take();
 
-        let mut items = items;
-        for i in items.iter_mut() {
-            let SearchResponseItemState::New {
-                resolve: ResolveRequest { video_id, .. },
-            } = &i.state
-            else {
-                unreachable!("Detection still did not run");
-            };
-            if let Some(id) = known_ids.get(video_id).copied() {
-                i.state = SearchResponseItemState::Known { id };
+        for (i, item) in fetched_page.into_iter().enumerate() {
+            if skipping > 0 {
+                skipping -= 1;
+                continue;
+            }
+
+            items.push(item);
+
+            if items.len() >= page_size as usize {
+                // Stopping
+
+                next_page = Some(Cursor {
+                    page: page.page.clone(),
+                    offset: (i + 1) as i32,
+                });
+
+                break 'fill;
             }
         }
 
-        Ok(items)
-    };
+        let Some(next_page_token) = next_page_token else {
+            break;
+        };
 
-    let (total, items) = tokio::try_join!(fetch_total, detect_known)?;
+        fetched_page = fetch_page(
+            &mut cache,
+            &client,
+            &youtube_api,
+            &query,
+            Some(&next_page_token),
+        )
+        .await?;
+    }
+
+    // Detecting known songs and finding their ids
+
+    let video_ids: Vec<_> = items
+        .iter()
+        .map(|i| {
+            if let youtube::SearchResultId::Video { video_id } = &i.id {
+                Some(video_id.as_str())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let known_ids: HashMap<String, Uuid> =
+        sqlx::query("SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)")
+            .bind(&video_ids)
+            .map(|row| (row.get(0), row.get(1)))
+            .fetch_all(&db)
+            .await
+            .context(SQLSnafu)?
+            .into_iter()
+            .collect();
+
+    // Converting the items to our internal representation
+
+    let items: Vec<_> = items
+        .into_iter()
+        .filter_map(
+            |youtube::SearchResult {
+                 id,
+                 snippet: youtube::Snippet { title, thumbnails },
+             }| {
+                let youtube::SearchResultId::Video { video_id } = id else {
+                    // There is a bug in the youtube api where it returns a
+                    // playlist or a channel if the query perfectly matches
+                    // the title. Clearing out them from the list.
+                    return None;
+                };
+                Some(SearchResponseItem {
+                    details: SearchItemDetails {
+                        title,
+                        url: video_url(&youtube_api.public_url, &video_id),
+                        thumbnails: thumbnails.into_iter().map(|(_, t)| t.into()).collect(),
+                    },
+                    state: if let Some(&id) = known_ids.get(&video_id) {
+                        SearchResponseItemState::Known { id }
+                    } else {
+                        SearchResponseItemState::New {
+                            resolve: ResolveRequest { video_id },
+                        }
+                    },
+                })
+            },
+        )
+        .collect();
 
     Ok(Json(Paginated {
-        page_info: PageInfo::regular(
+        page_info: PageInfo {
+            size: items.len() as u32,
+            total: Some(total),
+            first: Some(Cursor::new()),
+            prev: prev_page,
+            next: next_page,
+            last: None,
             page,
-            Some(total),
-            items.len() as _,
-            page_size,
-            page_end < total,
-        ),
+        },
         items,
     }))
+}
+
+/// Iterate over all pages, calling the callback for each item
+/// The callback will receive the current page token, the index of the item in the page, and the item itself
+/// The callback should return true to continue iterating, or false to stop
+async fn iter_pages<I, E>(
+    start: Option<&str>,
+    mut fetcher: impl AsyncFnMut(Option<&str>) -> Result<youtube::Paginated<I>, E>,
+    mut cb: impl AsyncFnMut((Option<&str>, usize), I) -> bool,
+) -> Result<(), E> {
+    let mut current_page = start.map(Cow::Borrowed);
+    loop {
+        let mut fetched_page: youtube::Paginated<I> = fetcher(current_page.as_deref()).await?;
+        let next_page = fetched_page.next_page_token.take();
+
+        for (i, item) in fetched_page.into_iter().enumerate() {
+            if !cb((current_page.as_deref(), i), item).await {
+                return Ok(());
+            }
+        }
+
+        let Some(next_page) = next_page else {
+            return Ok(());
+        };
+
+        current_page = Some(Cow::Owned(next_page));
+    }
+}
+
+/// Get a page either from the cache or from youtube
+async fn fetch_page(
+    cache: &mut ConnectionManager,
+    client: &TracingClient,
+    youtube_api: &Arc<YoutubeApi>,
+    query: &str,
+    page: Option<&str>,
+) -> Result<youtube::Paginated<youtube::SearchResult>, SearchError> {
+    let request = client
+        .get(youtube_api.api_search_url.clone())
+        .query(&YoutubeQueryParams {
+            part: "snippet",
+            r#type: "video",
+            safe_search: "none",
+            video_embeddable: "true",
+            max_results: youtube_api.page_size,
+            query,
+            page_token: page,
+        })
+        .header(GOOGLE_API_KEY_HEADER, &youtube_api.api_key)
+        .build()?;
+
+    let cache_key = CACHE_NAMESPACE.to_owned() + request.url().query().unwrap_or_default();
+
+    // Try to get the page from the cache
+    let cached = cache
+        .get::<_, Option<String>>(&cache_key)
+        .await
+        .context(CacheSnafu)?;
+
+    if let Some(cached) = cached {
+        return Ok(serde_json::from_str(&cached).context(CacheJsonSnafu)?);
+    }
+
+    // Fetch the page from youtube
+    let page = client.client().execute(request).await?.json().await?;
+
+    // Store the page in the cache
+
+    // TODO: This can be done in a separate taks, so we don't block the request
+    // for a cache roundtrip
+    let _: () = cache
+        .set_ex(
+            &cache_key,
+            serde_json::to_string(&page).context(CacheJsonSnafu)?,
+            youtube_api.expiration.num_seconds() as _,
+        )
+        .await
+        .context(CacheSnafu)?;
+
+    Ok(page)
 }
