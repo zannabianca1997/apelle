@@ -5,7 +5,11 @@ use apelle_common::{
     common_errors::{SQLError, SQLSnafu},
 };
 use apelle_configs_dtos::QueueConfig;
-use axum::{Json, debug_handler, extract::State, response::IntoResponse};
+use axum::{
+    Json, debug_handler,
+    extract::{Query, State},
+    response::IntoResponse,
+};
 use chrono::{DateTime, FixedOffset};
 use futures::{FutureExt, TryFutureExt};
 use rand::{Rng, SeedableRng, rngs::SmallRng};
@@ -49,13 +53,22 @@ impl IntoResponse for CreateError {
     }
 }
 
-#[debug_handler(state=crate::App)]
+#[derive(serde::Deserialize)]
+pub struct CreatePathParams {
+    #[serde(default)]
+    pub config: bool,
+}
+
+#[debug_handler(state = crate::App)]
 pub async fn create(
     State(db): State<PgPool>,
     client: TracingClient,
     State(services): State<Arc<Services>>,
     State(code_config): State<Arc<CodeConfig>>,
     user: AuthHeaders,
+    Query(CreatePathParams {
+        config: return_config,
+    }): Query<CreatePathParams>,
     Json(QueueCreate { code, config }): Json<QueueCreate>,
 ) -> Result<(StatusCode, Json<Queue>), CreateError> {
     let Services { configs_url, .. } = &*services;
@@ -125,7 +138,11 @@ pub async fn create(
             id,
             current: None,
             code,
-            config,
+            config: if return_config {
+                either::Left(config)
+            } else {
+                either::Right(config.id)
+            },
             queue: HashMap::new(),
             created,
             updated,

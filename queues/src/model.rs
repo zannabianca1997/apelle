@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use apelle_configs_dtos::QueueConfig;
 use apelle_songs_dtos::public::Song;
 use chrono::{DateTime, Duration, FixedOffset, Local};
+use either::Either;
 use serde::{Serialize, Serializer};
 use uuid::Uuid;
 
@@ -13,7 +14,8 @@ pub struct Queue {
 
     pub current: Option<Current>,
 
-    pub config: QueueConfig,
+    #[serde(with = "either::serde_untagged")]
+    pub config: Either<QueueConfig, Uuid>,
 
     pub queue: HashMap<Uuid, QueuedSong>,
 
