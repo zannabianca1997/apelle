@@ -17,9 +17,6 @@ pub struct Config {
 
     #[serde(with = "apelle_common::iso8601::duration")]
     pub cache_expiration: Duration,
-
-    /// Number of result to ask each provider at once
-    pub page_size: u32,
 }
 
 impl ProvideDefaults for Config {

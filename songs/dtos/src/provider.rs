@@ -1,7 +1,4 @@
 //! DTOs on the inner queue
-
-use std::collections::HashSet;
-
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
@@ -11,8 +8,8 @@ use uuid::Uuid;
 /// Register himself as a provider
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProviderRegistration {
-    /// URNs of the sources this provider can answer for
-    pub source_urns: HashSet<String>,
+    /// URN of the source this provider can answer for
+    pub source_urn: String,
     /// Url where this provider is serving the provider API
     pub url: Url,
     /// Use fast handshake
@@ -26,8 +23,8 @@ pub struct ProviderRegistration {
 /// Register himself as a provider
 #[derive(Debug, Clone, Serialize)]
 pub struct ProviderRegistrationRef<'a> {
-    /// URNs of the sources this provider can answer for
-    pub source_urns: &'a [&'a str],
+    /// URN of the source this provider can answer for
+    pub source_urn: &'a str,
     /// Url where this provider is serving the provider API
     pub url: &'a Url,
     /// Use fast handshake
@@ -41,10 +38,8 @@ pub struct ProviderRegistrationRef<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "error")]
 pub enum ProviderRegistrationError {
-    /// Registration failed as no sources were provided
-    NoSources,
-    /// Registration failed as `songs` does not know some of the urns provided
-    UnknownSources { urns: HashSet<String> },
+    /// Registration failed as `songs` does not know the source provided
+    UnknownSource { urn: String },
     /// Registration failed as the webhook endpoint answered with a non 2xx
     /// status code to a GET request
     WebhookFailed {

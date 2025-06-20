@@ -42,7 +42,6 @@ pub struct App {
 pub struct ProvidersConfig {
     pub honor_fast_handshake: bool,
     pub cache_expiration: Duration,
-    pub page_size: u32,
 }
 
 pub async fn app(
@@ -52,7 +51,6 @@ pub async fn app(
         honor_fast_handshake,
         seen_sources_queue_size,
         cache_expiration,
-        page_size,
     }: Config,
 ) -> Result<Router, MainError> {
     tracing::info!("Connecting to database and cache");
@@ -90,7 +88,6 @@ pub async fn app(
             providers_config: ProvidersConfig {
                 honor_fast_handshake,
                 cache_expiration,
-                page_size,
             },
             seen_sources,
         }))

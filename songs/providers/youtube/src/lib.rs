@@ -212,7 +212,7 @@ pub async fn app(
             let r = client
                 .post(songs_url.join("/providers").unwrap())
                 .json(&ProviderRegistrationRef {
-                    source_urns: &[YOUTUBE_SOURCE_URN],
+                    source_urn: YOUTUBE_SOURCE_URN,
                     url: &url,
                     fast_handshake,
                 })
