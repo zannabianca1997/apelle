@@ -50,15 +50,8 @@ pub enum SearchError {
     CacheJsonError {
         source: serde_json::Error,
     },
-
-    PageTooFar,
-
-    #[snafu(display("The cache server did not return the correct number of items"))]
-    CacheLRangeLengthMismatch {
-        cache_key: String,
-        requested: usize,
-        returned: usize,
-    },
+    TooManyUpstreams,
+    PageTokenNegative,
 }
 
 impl IntoResponse for SearchError {
@@ -66,7 +59,6 @@ impl IntoResponse for SearchError {
         match self {
             SearchError::SQLError { source } => source.into_response(),
             SearchError::CacheError { source } => source.into_response(),
-            SearchError::PageTooFar => StatusCode::BAD_REQUEST.into_response(),
             SearchError::CacheJsonError { source } => {
                 tracing::error!(
                     "Failed to deserialize json present in the cache: {}",
@@ -74,22 +66,17 @@ impl IntoResponse for SearchError {
                 );
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
-            SearchError::CacheLRangeLengthMismatch {
-                cache_key,
-                requested,
-                returned,
-            } => {
-                tracing::error!(
-                    cache_key,
-                    requested,
-                    returned,
-                    "The cache server did not return the correct number of items"
-                );
-                StatusCode::BAD_GATEWAY.into_response()
-            }
             SearchError::RequestError { source } => {
                 tracing::error!("Request to the youtube api error: {}", Reporter(source));
                 StatusCode::BAD_GATEWAY.into_response()
+            }
+            SearchError::TooManyUpstreams => {
+                tracing::warn!("Request failed for too many upstream requests");
+                StatusCode::BAD_REQUEST.into_response()
+            }
+            SearchError::PageTokenNegative => {
+                tracing::warn!("Bad page token: pointing to before the first page");
+                StatusCode::BAD_REQUEST.into_response()
             }
         }
     }
@@ -130,7 +117,7 @@ pub async fn search(
     let mut items = Vec::with_capacity(page_size as usize);
 
     // Semaphore to limit the number of requests to the upstream
-    let allowed_upstreams = tokio::sync::Semaphore::new(youtube_api.max_upstream_requests as _);
+    let mut allowed_upstreams = youtube_api.max_upstream_requests;
 
     // Unpacking the cursor
     let mut page = page.unwrap_or_else(|| Cursor::new());
@@ -142,11 +129,36 @@ pub async fn search(
         &youtube_api,
         &query,
         page.page.as_deref(),
-        &allowed_upstreams,
+        &mut allowed_upstreams,
     )
     .await?;
 
     let total = fetched_page.page_info.total_results;
+
+    // Paging backwards until we reach the wanted page, if a negative offset was provided
+    while page.offset < 0 {
+        if fetched_page.prev_page_token.is_none() {
+            // A page was requested that starts before the first page
+            tracing::warn!(
+                page.page,
+                page.offset,
+                "Fetched a page that starts before the first page"
+            );
+            return Err(SearchError::PageTokenNegative);
+        }
+        page.page = fetched_page.prev_page_token.take();
+
+        fetched_page = fetch_page(
+            &mut cache,
+            &client,
+            &youtube_api,
+            &query,
+            page.page.as_deref(),
+            &mut allowed_upstreams,
+        )
+        .await?;
+        page.offset += fetched_page.items.len() as i32;
+    }
 
     let prev_page = if page.offset > 0 || fetched_page.prev_page_token.is_some() {
         Some(Cursor {
@@ -157,28 +169,9 @@ pub async fn search(
         None
     };
 
-    // Paging backwards until we reach the wanted page, if a negative offset was provided
-    while page.offset < 0 {
-        if fetched_page.prev_page_token.is_none() {
-            // A page was requested that starts before the first page
-            page = Cursor::new();
-            break;
-        }
-        page.page = fetched_page.prev_page_token.take();
-
-        fetched_page = fetch_page(
-            &mut cache,
-            &client,
-            &youtube_api,
-            &query,
-            fetched_page.prev_page_token.as_deref(),
-            &allowed_upstreams,
-        )
-        .await?;
-        page.offset += fetched_page.items.len() as i32;
-    }
-
     let page = page;
+
+    let mut current_page_token = page.page.clone();
 
     let mut next_page = None;
     let mut skipping = page.offset;
@@ -198,7 +191,7 @@ pub async fn search(
                 // Stopping
 
                 next_page = Some(Cursor {
-                    page: page.page.clone(),
+                    page: current_page_token,
                     offset: (i + 1) as i32,
                 });
 
@@ -216,9 +209,10 @@ pub async fn search(
             &youtube_api,
             &query,
             Some(&next_page_token),
-            &allowed_upstreams,
+            &mut allowed_upstreams,
         )
         .await?;
+        current_page_token = Some(next_page_token);
     }
 
     // Detecting known songs and finding their ids
@@ -298,7 +292,7 @@ async fn fetch_page(
     youtube_api: &Arc<YoutubeApi>,
     query: &str,
     page: Option<&str>,
-    allowed_upstreams: &tokio::sync::Semaphore,
+    allowed_upstreams: &mut u32,
 ) -> Result<youtube::Paginated<youtube::SearchResult>, SearchError> {
     let request = client
         .get(youtube_api.api_search_url.clone())
@@ -330,11 +324,10 @@ async fn fetch_page(
 
     // Get a permit to use the upstream, and immediately forget it to limit the
     // total number of requests to the upstream
-    allowed_upstreams
-        .acquire()
-        .await
-        .expect("The semaphore should remain open")
-        .forget();
+    if *allowed_upstreams == 0 {
+        return Err(SearchError::TooManyUpstreams);
+    }
+    *allowed_upstreams -= 1;
 
     let page = client.client().execute(request).await?.json().await?;
 

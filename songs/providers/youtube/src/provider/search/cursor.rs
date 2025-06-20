@@ -14,10 +14,6 @@ impl Cursor {
             offset: 0,
         }
     }
-
-    pub(crate) fn is_start(&self) -> bool {
-        self.page.is_none() && self.offset == 0
-    }
 }
 
 // Encoding and decodind as byte strings
