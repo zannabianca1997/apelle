@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use apelle_common::{
     Reporter, TracingClient,
@@ -129,6 +129,9 @@ pub async fn search(
     // Cache namespace for this query
     let mut items = Vec::with_capacity(page_size as usize);
 
+    // Semaphore to limit the number of requests to the upstream
+    let allowed_upstreams = tokio::sync::Semaphore::new(youtube_api.max_upstream_requests as _);
+
     // Unpacking the cursor
     let mut page = page.unwrap_or_else(|| Cursor::new());
 
@@ -139,6 +142,7 @@ pub async fn search(
         &youtube_api,
         &query,
         page.page.as_deref(),
+        &allowed_upstreams,
     )
     .await?;
 
@@ -160,6 +164,7 @@ pub async fn search(
             page = Cursor::new();
             break;
         }
+        page.page = fetched_page.prev_page_token.take();
 
         fetched_page = fetch_page(
             &mut cache,
@@ -167,9 +172,9 @@ pub async fn search(
             &youtube_api,
             &query,
             fetched_page.prev_page_token.as_deref(),
+            &allowed_upstreams,
         )
         .await?;
-        page.page = fetched_page.prev_page_token.take();
         page.offset += fetched_page.items.len() as i32;
     }
 
@@ -211,6 +216,7 @@ pub async fn search(
             &youtube_api,
             &query,
             Some(&next_page_token),
+            &allowed_upstreams,
         )
         .await?;
     }
@@ -285,33 +291,6 @@ pub async fn search(
     }))
 }
 
-/// Iterate over all pages, calling the callback for each item
-/// The callback will receive the current page token, the index of the item in the page, and the item itself
-/// The callback should return true to continue iterating, or false to stop
-async fn iter_pages<I, E>(
-    start: Option<&str>,
-    mut fetcher: impl AsyncFnMut(Option<&str>) -> Result<youtube::Paginated<I>, E>,
-    mut cb: impl AsyncFnMut((Option<&str>, usize), I) -> bool,
-) -> Result<(), E> {
-    let mut current_page = start.map(Cow::Borrowed);
-    loop {
-        let mut fetched_page: youtube::Paginated<I> = fetcher(current_page.as_deref()).await?;
-        let next_page = fetched_page.next_page_token.take();
-
-        for (i, item) in fetched_page.into_iter().enumerate() {
-            if !cb((current_page.as_deref(), i), item).await {
-                return Ok(());
-            }
-        }
-
-        let Some(next_page) = next_page else {
-            return Ok(());
-        };
-
-        current_page = Some(Cow::Owned(next_page));
-    }
-}
-
 /// Get a page either from the cache or from youtube
 async fn fetch_page(
     cache: &mut ConnectionManager,
@@ -319,6 +298,7 @@ async fn fetch_page(
     youtube_api: &Arc<YoutubeApi>,
     query: &str,
     page: Option<&str>,
+    allowed_upstreams: &tokio::sync::Semaphore,
 ) -> Result<youtube::Paginated<youtube::SearchResult>, SearchError> {
     let request = client
         .get(youtube_api.api_search_url.clone())
@@ -347,6 +327,15 @@ async fn fetch_page(
     }
 
     // Fetch the page from youtube
+
+    // Get a permit to use the upstream, and immediately forget it to limit the
+    // total number of requests to the upstream
+    allowed_upstreams
+        .acquire()
+        .await
+        .expect("The semaphore should remain open")
+        .forget();
+
     let page = client.client().execute(request).await?.json().await?;
 
     // Store the page in the cache
