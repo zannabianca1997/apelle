@@ -1,0 +1,22 @@
+[package]
+name = "apelle-api-docs"
+version = "0.1.0"
+edition = "2024"
+
+license.workspace = true
+
+[dependencies]
+apelle-common.workspace = true
+
+axum.workspace = true
+serde.workspace = true
+url.workspace = true
+snafu.workspace = true
+
+tracing.workspace = true
+utoipa.workspace = true
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "reqwest"] }
+utoipa-axum.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+axum-extra.workspace = true

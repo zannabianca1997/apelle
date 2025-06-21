@@ -1,0 +1,17 @@
+services:
+  api-docs:
+    container_name: ${COMPOSE_PROJECT_NAME}-api-docs
+    restart: always
+    ports:
+      - "8079:8080"
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile.rust
+      args:
+        SERVICE: api-docs
+        # Use release profile, as this is a tool. Also a flag
+        # should be set to embed swagger ui in debug mode 
+        # https://github.com/juhaku/utoipa/pull/528
+    volumes:
+      - ../logs/:/app/logs

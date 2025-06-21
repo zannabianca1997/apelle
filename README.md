@@ -26,12 +26,22 @@ exposes the port it uses, enabling testing of the single service.
 |---------------|------|
 | db            | 5432 |
 | cache-pubsub  | 6379 |
+| api-docs      | 8079 |
 | gateway       | 8080 |
 | users         | 8081 |
 | songs         | 8082 |
 | queues        | 8083 |
 | configs       | 8084 |
 | songs-youtube | 8091 |
+
+## Swagger
+
+The public api is available and testable through the [Swagger
+UI](http://localhost:8080/swagger-ui). A valid account must be provided, and
+will be used for authentication.
+
+The api-docs of the single services can be found by navigating to [the internal
+swagger](http://localhost:8079/swagger-ui).
 
 ## Services
 
@@ -75,6 +85,11 @@ currently playing song.
 
 ### `configs`
 Queue configurations service. Keep track of the configuration of each queue.
+
+### `api-docs`
+api-docs API documentation, serving [api-docs
+UI](https://api-docs.io/tools/api-docs-ui/), the openapi specifications from all
+the services, and an aggregate for the public api served by nginx.
 
 ## Prod-like mode
 

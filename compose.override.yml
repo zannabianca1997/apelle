@@ -1,3 +1,5 @@
+include:
+  - api-docs/compose.yml
 services:
   db:
     ports:

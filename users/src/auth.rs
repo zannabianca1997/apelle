@@ -147,7 +147,7 @@ impl IntoResponses for AuthError {
 }
 
 #[debug_handler(state=crate::App)]
-#[utoipa::path(get, head, path = "/auth",
+#[utoipa::path(get, path = "/auth",
     responses((
         status = StatusCode::OK,
         description = "User autenticated",

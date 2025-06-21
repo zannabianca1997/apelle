@@ -10,8 +10,8 @@ use snafu::{ResultExt, Snafu};
 use utoipa::openapi::{OpenApi, PathItem, RefOr, Tag, path::Operation};
 use utoipa_axum::{router::OpenApiRouter, routes};
 
-const PUBLIC_TAG: &str = "public";
-const SERVICE_TAG: &str = "service";
+pub const PUBLIC_TAG: &str = "public";
+pub const SERVICE_TAG: &str = "service";
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -142,13 +142,40 @@ fn tag_api(paths_prefix: &'static str, openapi: &mut OpenApi, tag: Tag) {
         .paths
         .iter_mut()
         .filter_map(|(path, path_item)| path.starts_with(paths_prefix).then_some(path_item))
-        .flat_map(iter_operations)
+        .flat_map(iter_operations_mut)
         .for_each(|op| op.tags.get_or_insert_default().push(tag.name.clone()));
 
     openapi.tags.get_or_insert_default().push(tag);
 }
 
-fn iter_operations(
+pub fn iter_operations(
+    PathItem {
+        get,
+        put,
+        post,
+        delete,
+        options,
+        head,
+        patch,
+        trace,
+        ..
+    }: &PathItem,
+) -> impl Iterator<Item = &Operation> {
+    [
+        get.as_ref(),
+        put.as_ref(),
+        post.as_ref(),
+        delete.as_ref(),
+        options.as_ref(),
+        head.as_ref(),
+        patch.as_ref(),
+        trace.as_ref(),
+    ]
+    .into_iter()
+    .flatten()
+}
+
+pub fn iter_operations_mut(
     PathItem {
         get,
         put,

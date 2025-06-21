@@ -9,7 +9,7 @@ members = [
     "queues",
     "configs",
     "configs/dtos",
-    "swagger",
+    "api-docs",
 ]
 
 [workspace.package]
@@ -85,7 +85,7 @@ rand_xoshiro = { version = "0.7.0", features = ["serde"] }
 
 [workspace.dependencies.reqwest]
 version = "0.12.18"
-features = ["json"]
+features = ["json", "stream"]
 # Reqwest uses tls by default, that we do not have 
 # inside the containers
 default-features = false

@@ -18,6 +18,8 @@ pub use figment::{
     Figment, Provider, map as figment_map, providers::Serialized, value::magic::RelativePathBuf,
 };
 pub use main_wrapper::Error;
-pub use main_wrapper::service_main;
+pub use main_wrapper::{
+    PUBLIC_TAG, SERVICE_TAG, iter_operations, iter_operations_mut, service_main,
+};
 pub use search::normalize_query;
 pub use tracing_client::TracingClient;

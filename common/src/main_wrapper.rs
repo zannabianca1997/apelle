@@ -163,6 +163,7 @@ where
 }
 mod service_endpoint;
 use service_endpoint::add_service_endpoint;
+pub use service_endpoint::{PUBLIC_TAG, SERVICE_TAG, iter_operations, iter_operations_mut};
 
 pub fn service_main<F, AppConfig, AppError, App>(
     service_name: &'static str,

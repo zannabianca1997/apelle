@@ -98,6 +98,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "apelle-api-docs"
+version = "0.1.0"
+dependencies = [
+ "apelle-common",
+ "axum",
+ "axum-extra",
+ "futures 0.3.31",
+ "reqwest",
+ "serde",
+ "snafu",
+ "tracing",
+ "url",
+ "utoipa",
+ "utoipa-axum",
+ "utoipa-swagger-ui",
+]
+
+[[package]]
 name = "apelle-common"
 version = "0.1.0"
 dependencies = [
@@ -253,22 +271,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
-]
-
-[[package]]
-name = "apelle-swagger"
-version = "0.1.0"
-dependencies = [
- "apelle-common",
- "axum",
- "reqwest",
- "serde",
- "snafu",
- "tracing",
- "url",
- "utoipa",
- "utoipa-axum",
- "utoipa-swagger-ui",
 ]
 
 [[package]]
