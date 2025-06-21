@@ -83,7 +83,7 @@ pub async fn create(
 
     let code = code
         .map(|c| ready(Ok(c)).left_future())
-        .unwrap_or_else(|| gen_queue_code(&mut *tx, &code_config).right_future())
+        .unwrap_or_else(|| gen_queue_code(&mut tx, &code_config).right_future())
         .map_err(|source| CreateError::SqlError { source });
 
     let config = async {

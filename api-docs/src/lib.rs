@@ -165,22 +165,16 @@ async fn public(
         .await;
 
     // Remove the public tag, and all tags that are not used
-    openapi.tags.as_mut().map(|tags| {
+    if let Some(tags) = openapi.tags.as_mut() {
         let unused = tags
             .extract_if(.., |t| {
-                &t.name == PUBLIC_TAG
+                t.name == PUBLIC_TAG
                     || openapi
                         .paths
                         .paths
                         .values()
                         .flat_map(iter_operations)
-                        .all(|op| {
-                            !op.tags
-                                .as_ref()
-                                .map(Vec::as_slice)
-                                .unwrap_or_default()
-                                .contains(&t.name)
-                        })
+                        .all(|op| !op.tags.as_deref().unwrap_or_default().contains(&t.name))
             })
             .map(|t| t.name)
             .collect::<HashSet<_>>();
@@ -191,11 +185,11 @@ async fn public(
             .values_mut()
             .flat_map(iter_operations_mut)
         {
-            op.tags
-                .as_mut()
-                .map(|tags| tags.retain(|t| !unused.contains(t)));
+            if let Some(tags) = op.tags.as_mut() {
+                tags.retain(|t| !unused.contains(t))
+            }
         }
-    });
+    };
 
     (
         TypedHeader(

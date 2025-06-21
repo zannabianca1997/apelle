@@ -27,14 +27,14 @@ use crate::{
 pub enum Error {
     NotFound,
     #[snafu(transparent)]
-    SQLError {
+    Sql {
         source: SQLError,
     },
     #[snafu(transparent)]
-    CacheError {
+    Cache {
         source: CacheError,
     },
-    BadGatewayError {
+    BadGateway {
         provider: String,
         source: reqwest::Error,
     },
@@ -44,9 +44,9 @@ impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         match self {
             Error::NotFound => StatusCode::NOT_FOUND.into_response(),
-            Error::SQLError { source } => source.into_response(),
-            Error::CacheError { source } => source.into_response(),
-            Error::BadGatewayError { provider, source } => {
+            Error::Sql { source } => source.into_response(),
+            Error::Cache { source } => source.into_response(),
+            Error::BadGateway { provider, source } => {
                 tracing::error!(%provider,"Bad gateway: {}", Reporter(source));
                 StatusCode::BAD_GATEWAY.into_response()
             }

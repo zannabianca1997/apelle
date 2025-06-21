@@ -100,7 +100,7 @@ pub async fn resolve(
     if let Some(id) = know_id {
         tracing::info!(%id, video_id, "Song already registered");
 
-        let public = OptionFuture::from(public.then(|| async {
+        let public = OptionFuture::from(public.then_some(async {
             let thumbs = sqlx::query_as(
                 "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
             )

@@ -1,4 +1,4 @@
-use apelle_common::{service_main, Reporter};
+use apelle_common::{Reporter, service_main};
 use apelle_configs::MainError;
 
 fn main() -> Result<(), Reporter<apelle_common::Error<MainError>>> {

@@ -67,7 +67,7 @@ pub async fn list(
 
     let total = total as u32;
     let size = items.len() as u32;
-    let end = page.saturating_add(size as u32);
+    let end = page.saturating_add(size);
 
     debug_assert!(end <= total);
 
@@ -76,10 +76,10 @@ pub async fn list(
             size,
             total: Some(total),
             first: Some(0),
-            prev: (page > 0).then(|| page.saturating_sub(page_size as u32)),
+            prev: (page > 0).then(|| page.saturating_sub(page_size)),
             page,
             next: (end < total).then_some(end),
-            last: Some(total.saturating_sub(page_size as u32)),
+            last: Some(total.saturating_sub(page_size)),
         },
         items,
     }))

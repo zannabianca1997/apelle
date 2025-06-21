@@ -76,10 +76,9 @@ pub fn add_service_endpoint(
         .get
         .as_mut()
         .unwrap();
-    name_op
-        .description
-        .as_mut()
-        .map(|d| *d = d.replace("{name}", service_name));
+    if let Some(d) = name_op.description.as_mut() {
+        *d = d.replace("{name}", service_name)
+    };
     let RefOr::T(name_resp) = name_op
         .responses
         .responses

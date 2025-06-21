@@ -1,5 +1,3 @@
-use std::iter::once;
-
 use apelle_common::Reporter;
 use textwrap_macros::unfill;
 use tokio::sync::mpsc::{Receiver, Sender, error::SendError};

@@ -29,19 +29,19 @@ use crate::{
 #[derive(Debug, Snafu)]
 pub enum ResolveSongError {
     #[snafu(transparent)]
-    SQLError {
+    Sql {
         source: SQLError,
     },
     #[snafu(transparent)]
-    CacheError {
+    Cache {
         source: CacheError,
     },
 
-    ClientError {
+    Client {
         response: reqwest::Response,
     },
 
-    BadGatewayError {
+    BadGateway {
         provider: Url,
         source: reqwest::Error,
     },
@@ -49,9 +49,9 @@ pub enum ResolveSongError {
 impl IntoResponse for ResolveSongError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            ResolveSongError::SQLError { source } => source.into_response(),
-            ResolveSongError::CacheError { source } => source.into_response(),
-            ResolveSongError::ClientError {
+            ResolveSongError::Sql { source } => source.into_response(),
+            ResolveSongError::Cache { source } => source.into_response(),
+            ResolveSongError::Client {
                 response: mut reqwest_response,
             } => {
                 let mut response_builder =
@@ -65,7 +65,7 @@ impl IntoResponse for ResolveSongError {
                     // This unwrap is fine because the body is empty here
                     .unwrap()
             }
-            ResolveSongError::BadGatewayError { provider, source } => {
+            ResolveSongError::BadGateway { provider, source } => {
                 tracing::error!(%provider,"Bad gateway: {}", Reporter(source));
                 StatusCode::BAD_GATEWAY.into_response()
             }
@@ -98,7 +98,7 @@ pub async fn resolve(
         .and_then(async |response| {
             // Propagate the client errors
             if response.status().is_client_error() {
-                return Ok(Err(ResolveSongError::ClientError { response }));
+                return Ok(Err(ResolveSongError::Client { response }));
             }
 
             // Raise for other errors and parse the body
@@ -191,7 +191,7 @@ pub async fn resolve(
             }
 
             // Propagate the original error
-            return Err(ResolveSongError::BadGatewayError {
+            return Err(ResolveSongError::BadGateway {
                 provider,
                 source: err,
             });

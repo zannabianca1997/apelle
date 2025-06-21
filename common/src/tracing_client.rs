@@ -52,6 +52,12 @@ macro_rules! convenience {
     };
 }
 
+impl Default for TracingClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TracingClient {
     pub fn new() -> Self {
         TracingClient {

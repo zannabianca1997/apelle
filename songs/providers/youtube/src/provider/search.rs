@@ -120,7 +120,7 @@ pub async fn search(
     let mut allowed_upstreams = youtube_api.max_upstream_requests;
 
     // Unpacking the cursor
-    let mut page = page.unwrap_or_else(|| Cursor::new());
+    let mut page = page.unwrap_or_else(Cursor::new);
 
     // Fetching the first page
     let mut fetched_page = fetch_page(
@@ -257,7 +257,7 @@ pub async fn search(
                     details: SearchItemDetails {
                         title,
                         url: video_url(&youtube_api.public_url, &video_id),
-                        thumbnails: thumbnails.into_iter().map(|(_, t)| t.into()).collect(),
+                        thumbnails: thumbnails.into_values().map(|t| t.into()).collect(),
                     },
                     state: if let Some(&id) = known_ids.get(&video_id) {
                         SearchResponseItemState::Known { id }
@@ -317,7 +317,7 @@ async fn fetch_page(
         .context(CacheSnafu)?;
 
     if let Some(cached) = cached {
-        return Ok(serde_json::from_str(&cached).context(CacheJsonSnafu)?);
+        return serde_json::from_str(&cached).context(CacheJsonSnafu);
     }
 
     // Fetch the page from youtube

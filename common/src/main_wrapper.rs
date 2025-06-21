@@ -96,7 +96,7 @@ where
     let log_guards = init_logging(service_name, logging).context(InitLoggingSnafu)?;
 
     let middleware = ServiceBuilder::new()
-        .set_request_id(TRACE_ID_HEADER, MakeRequestUuid::default())
+        .set_request_id(TRACE_ID_HEADER, MakeRequestUuid)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
                 let trace_id = request
@@ -126,8 +126,7 @@ where
                 .unpack();
             let app: Router = add_service_endpoint(service_name, app)
                 .context(ServiceSnafu)?
-                .layer(middleware)
-                .into();
+                .layer(middleware);
 
             let tcp_listener = match &serve.socket {
                 SocketConfig::Compact(socket) => TcpListener::bind(socket).await,
