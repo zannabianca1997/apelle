@@ -9,7 +9,7 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{
-    Json,
+    Json, debug_handler,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, NoContent},
@@ -18,6 +18,7 @@ use futures::FutureExt;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row as _};
 use textwrap_macros::unfill;
+use utoipa::IntoResponses;
 use uuid::Uuid;
 
 use crate::{
@@ -25,6 +26,15 @@ use crate::{
     dtos::{UserDto, UserUpdateDto},
 };
 
+#[debug_handler(state=crate::App)]
+#[utoipa::path(get, path = "/me", responses((
+    status=StatusCode::OK,
+    description="Data about the user",
+    body=UserDto
+),SQLError))]
+/// Current user data
+///
+/// Get data about the user the credentials used refer to.
 pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<UserDto>, SQLError> {
     let rest_of_entity =
         sqlx::query_as("SELECT created, updated, last_login FROM apelle_user WHERE id = $1")
@@ -85,6 +95,26 @@ impl IntoResponse for UpdateError {
     }
 }
 
+impl IntoResponses for UpdateError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        crate::create::CreateError::responses()
+    }
+}
+
+#[debug_handler(state=crate::App)]
+#[utoipa::path(patch, path = "/me", responses((
+    status=StatusCode::OK,
+    description="Patched data about the user",
+    body=UserDto
+),UpdateError))]
+/// Patch current user data
+///
+/// Modify the datas about the user the credentials used refer to.
+///
+/// See the creation endpoint for the constraints.
 pub async fn patch(
     State(db): State<PgPool>,
     State(password_hasher): State<Argon2<'static>>,
@@ -152,6 +182,14 @@ pub async fn patch(
     }))
 }
 
+#[debug_handler(state=crate::App)]
+#[utoipa::path(delete, path = "/me", responses((
+    status=StatusCode::OK,
+    description="User deleted"
+),SQLError))]
+/// Delete current user
+///
+/// Delete the user the credentials used refer to.
 pub async fn delete(State(db): State<PgPool>, auth: AuthHeaders) -> Result<NoContent, SQLError> {
     sqlx::query("DELETE FROM apelle_user WHERE id = $1")
         .bind(auth.id())

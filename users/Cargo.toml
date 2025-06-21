@@ -22,3 +22,5 @@ tokio.workspace = true
 futures.workspace = true
 textwrap-macros.workspace = true
 route-recognizer = "0.3.1"
+utoipa.workspace = true
+utoipa-axum.workspace = true

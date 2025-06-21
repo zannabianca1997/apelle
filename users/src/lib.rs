@@ -1,13 +1,11 @@
 use argon2::Argon2;
-use axum::{
-    Router,
-    extract::FromRef,
-    routing::{get, post},
-};
+use axum::extract::FromRef;
 use config::Config;
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use tokio::sync::mpsc::Sender;
+use utoipa::OpenApi;
+use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
 
 pub mod config;
@@ -31,12 +29,15 @@ pub enum MainError {
     Connection { source: sqlx::Error },
 }
 
+#[derive(OpenApi)]
+struct AppApi;
+
 pub async fn app(
     Config {
         db_url,
         login_queue_size,
     }: Config,
-) -> Result<Router, MainError> {
+) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database");
     let db = PgPool::connect(db_url.as_str())
         .await
@@ -52,14 +53,14 @@ pub async fn app(
         login_queue_size,
     ));
 
-    Ok(Router::new()
+    Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .nest(
             "/public",
-            Router::new()
-                .route("/", post(create::create))
-                .route("/me", get(me::get).patch(me::patch).delete(me::delete)),
+            OpenApiRouter::new()
+                .routes(routes!(create::create))
+                .routes(routes!(me::get, me::patch, me::delete)),
         )
-        .route("/auth", get(auth::get))
+        .routes(routes!(auth::get))
         .with_state(App {
             db,
             password_hasher,

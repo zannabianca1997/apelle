@@ -25,6 +25,7 @@ use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
 use textwrap_macros::unfill;
 use tokio::sync::mpsc::Receiver;
+use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{App, auth::origins_headers::OriginHeaders};
@@ -112,12 +113,52 @@ impl IntoResponse for AuthError {
     }
 }
 
+impl IntoResponses for AuthError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [
+            (
+                StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+                openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
+            ),
+            (
+                StatusCode::UNAUTHORIZED.to_string(),
+                openapi::RefOr::T({
+                    let mut res = openapi::Response::new(concat!(
+                        "Username not exists or password is incorrect, ",
+                        "or missing Authorization header"
+                    ));
+                    res.headers.insert(
+                        WWW_AUTHENTICATE.to_string(),
+                        openapi::Header::builder()
+                            .description(Some("Authentication challenge"))
+                            .build(),
+                    );
+                    res
+                }),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
+
+#[debug_handler(state=crate::App)]
+#[utoipa::path(get, head, path = "/auth",
+    responses((
+        status = StatusCode::OK,
+        description = "User autenticated",
+        headers()
+    ), AuthError)
+)]
 /// Check user credentials.
 ///
 /// This will return a 401 if the user is not found or the password is incorrect
 /// Otherwise, it will return a 204, and decorate the response with the auth headers
 /// representing the user data
-#[debug_handler(state=crate::App)]
 pub async fn get(
     State(db): State<PgPool>,
     State(password_hasher): State<Argon2<'static>>,

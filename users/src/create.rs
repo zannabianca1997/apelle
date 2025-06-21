@@ -14,6 +14,7 @@ use axum::{
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use textwrap_macros::unfill;
+use utoipa::{IntoResponses, openapi};
 
 use crate::dtos::{UserCreateDto, UserDto};
 
@@ -23,9 +24,11 @@ pub enum CreateError {
     SQLError {
         source: SQLError,
     },
+
     Conflict {
         name: String,
     },
+
     InvalidName {
         name: String,
     },
@@ -41,12 +44,46 @@ impl IntoResponse for CreateError {
     }
 }
 
+impl IntoResponses for CreateError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [
+            (
+                StatusCode::CONFLICT.to_string(),
+                openapi::RefOr::T(openapi::Response::new("User already exists")),
+            ),
+            (
+                StatusCode::BAD_REQUEST.to_string(),
+                openapi::RefOr::T(openapi::Response::new("Invalid user name")),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
+
 #[debug_handler(state=crate::App)]
+#[utoipa::path(post, path = "/",
+    responses((
+        status = 201,
+        description = "User created",
+        content_type = "application/json",
+        body = UserDto
+    ), CreateError)
+)]
+/// Create a new user
+///
+/// Create a new user with the given name and password. No global role is
+/// assigned. Name must be unique, not empty, not containing trailing or leading
+/// spaces and control characters. It must also fit in a http header.
 pub async fn create(
     State(db): State<PgPool>,
     State(password_hasher): State<Argon2<'static>>,
     Json(UserCreateDto { name, password }): Json<UserCreateDto>,
-) -> Result<Json<UserDto>, CreateError> {
+) -> Result<(StatusCode, Json<UserDto>), CreateError> {
     // Check name validity
     if !check_name(&name) {
         return Err(CreateError::InvalidName { name });
@@ -74,14 +111,17 @@ pub async fn create(
         return Err(CreateError::Conflict { name });
     };
 
-    Ok(Json(UserDto {
-        id,
-        name,
-        roles: HashSet::new(),
-        created,
-        updated,
-        last_login,
-    }))
+    Ok((
+        StatusCode::CREATED,
+        Json(UserDto {
+            id,
+            name,
+            roles: HashSet::new(),
+            created,
+            updated,
+            last_login,
+        }),
+    ))
 }
 
 pub fn check_name(name: &str) -> bool {

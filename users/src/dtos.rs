@@ -2,10 +2,11 @@ use std::collections::HashSet;
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 /// Data to create a new user
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct UserCreateDto {
     /// Unique user name
     pub name: String,
@@ -14,7 +15,7 @@ pub struct UserCreateDto {
 }
 
 /// Data about a user
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct UserDto {
     /// Identifier of the user
     pub id: Uuid,
@@ -30,7 +31,7 @@ pub struct UserDto {
     pub last_login: DateTime<FixedOffset>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct UserUpdateDto {
     pub name: Option<String>,
     pub password: Option<String>,
