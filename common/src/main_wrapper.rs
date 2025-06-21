@@ -4,7 +4,6 @@ use axum::{
     Router,
     body::Body,
     http::{HeaderName, Request},
-    routing::get,
 };
 use clap::Parser as _;
 use figment::{Provider, providers::Serialized};
@@ -15,6 +14,7 @@ use tower::ServiceBuilder;
 use tower_http::{ServiceBuilderExt as _, request_id::MakeRequestUuid, trace::TraceLayer};
 use tracing::info_span;
 use tracing_futures::Instrument as _;
+use utoipa_axum::router::OpenApiRouter;
 
 use crate::{
     cli::{CliArgs, ProvideDefaults},
@@ -41,19 +41,39 @@ impl ProvideDefaults for CommonConfig {
 #[derive(Debug, Snafu)]
 pub enum Error<AppError: std::error::Error + 'static> {
     #[snafu(transparent)]
-    App { source: AppError },
+    App {
+        source: AppError,
+    },
     #[snafu(display("Error in loading configuration"))]
-    Config { source: figment::Error },
+    Config {
+        source: figment::Error,
+    },
     #[snafu(display("Error in initializing logging"))]
-    InitLogging { source: InitLoggingError },
+    InitLogging {
+        source: InitLoggingError,
+    },
     #[snafu(display("Error in building the async runtime"))]
-    TokioRuntime { source: io::Error },
+    TokioRuntime {
+        source: io::Error,
+    },
     #[snafu(display("Cannot bind to socket {socket}"))]
-    BindToSocket { socket: String, source: io::Error },
+    BindToSocket {
+        socket: String,
+        source: io::Error,
+    },
     #[snafu(display("Fatal error in serving app"))]
-    RuntimeError { source: io::Error },
+    RuntimeError {
+        source: io::Error,
+    },
+
+    Service {
+        source: service_endpoint::Error,
+    },
+
     #[snafu(display("Fatal error in joining server thread"))]
-    JoinError { source: JoinError },
+    JoinError {
+        source: JoinError,
+    },
 }
 
 pub const TRACE_ID_HEADER: HeaderName = HeaderName::from_static("x-apelle-trace-id");
@@ -104,9 +124,10 @@ where
                 .instrument(info_span!("Building app"))
                 .await?
                 .unpack();
-            let app = app
-                .nest("/service", service_endpoint(service_name))
-                .layer(middleware);
+            let app: Router = add_service_endpoint(service_name, app)
+                .context(ServiceSnafu)?
+                .layer(middleware)
+                .into();
 
             let tcp_listener = match &serve.socket {
                 SocketConfig::Compact(socket) => TcpListener::bind(socket).await,
@@ -116,7 +137,7 @@ where
                 socket: serve.socket.to_string(),
             })?;
 
-            tracing::info!("Serving app on {socket}", socket = serve.socket);
+            tracing::info!(socket = %serve.socket, "Serving app",);
 
             // Starting server thread
             let serving = tokio::spawn(
@@ -140,10 +161,8 @@ where
     drop(log_guards);
     Ok(())
 }
-
-fn service_endpoint(service_name: &'static str) -> Router {
-    Router::new().route("/name", get(async move || service_name))
-}
+mod service_endpoint;
+use service_endpoint::add_service_endpoint;
 
 pub fn service_main<F, AppConfig, AppError, App>(
     service_name: &'static str,
@@ -185,12 +204,27 @@ async fn shutdown_signal() {
 }
 
 pub trait WrappedService<ThenError> {
-    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), ThenError>);
+    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), ThenError>);
+}
+
+impl<AppError> WrappedService<AppError> for OpenApiRouter {
+    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
+        (self, async || Ok(()))
+    }
+}
+
+impl<Then, AppError> WrappedService<AppError> for (OpenApiRouter, Then)
+where
+    Then: AsyncFnOnce() -> Result<(), AppError>,
+{
+    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
+        self
+    }
 }
 
 impl<AppError> WrappedService<AppError> for Router {
-    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), AppError>) {
-        (self, async || Ok(()))
+    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
+        (self.into(), async || Ok(()))
     }
 }
 
@@ -198,7 +232,7 @@ impl<Then, AppError> WrappedService<AppError> for (Router, Then)
 where
     Then: AsyncFnOnce() -> Result<(), AppError>,
 {
-    fn unpack(self) -> (Router, impl AsyncFnOnce() -> Result<(), AppError>) {
-        self
+    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
+        (self.0.into(), self.1)
     }
 }

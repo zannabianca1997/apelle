@@ -1,5 +1,6 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use snafu::Snafu;
+use utoipa::{IntoResponses, openapi};
 
 use crate::Reporter;
 
@@ -16,6 +17,20 @@ impl IntoResponse for SQLError {
     }
 }
 
+impl IntoResponses for SQLError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
+        )]
+        .into_iter()
+        .collect()
+    }
+}
+
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub struct CacheError {
@@ -29,6 +44,20 @@ impl IntoResponse for CacheError {
     }
 }
 
+impl IntoResponses for CacheError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
+        )]
+        .into_iter()
+        .collect()
+    }
+}
+
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub struct PubSubError {
@@ -39,5 +68,19 @@ impl IntoResponse for PubSubError {
     fn into_response(self) -> axum::response::Response {
         tracing::error!("PubSub Error: {}", Reporter(self));
         StatusCode::INTERNAL_SERVER_ERROR.into_response()
+    }
+}
+
+impl IntoResponses for PubSubError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
+        )]
+        .into_iter()
+        .collect()
     }
 }

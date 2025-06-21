@@ -9,6 +9,7 @@ members = [
     "queues",
     "configs",
     "configs/dtos",
+    "swagger",
 ]
 
 [workspace.package]
@@ -58,7 +59,17 @@ snafu = "0.8.6"
 tracing = "0.1.41"
 tracing-futures = { version = "0.2.5", features = ["tokio"] }
 
+utoipa = { version = "5.4.0", features = [
+    "axum_extras",
+    "chrono",
+    "uuid",
+    "url",
+    "openapi_extensions",
+] }
+utoipa-axum = "0.2.0"
 
+
+# Documentation
 # Misc utils
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 url = { version = "2.5.4", features = ["serde"] }
