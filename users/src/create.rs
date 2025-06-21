@@ -51,11 +51,11 @@ impl IntoResponses for CreateError {
     > {
         [
             (
-                StatusCode::CONFLICT.to_string(),
+                StatusCode::CONFLICT.as_str().to_owned(),
                 openapi::RefOr::T(openapi::Response::new("User already exists")),
             ),
             (
-                StatusCode::BAD_REQUEST.to_string(),
+                StatusCode::BAD_REQUEST.as_str().to_owned(),
                 openapi::RefOr::T(openapi::Response::new("Invalid user name")),
             ),
         ]

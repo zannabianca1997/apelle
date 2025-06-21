@@ -120,11 +120,11 @@ impl IntoResponses for AuthError {
     > {
         [
             (
-                StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+                StatusCode::INTERNAL_SERVER_ERROR.as_str().to_owned(),
                 openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
             ),
             (
-                StatusCode::UNAUTHORIZED.to_string(),
+                StatusCode::UNAUTHORIZED.as_str().to_owned(),
                 openapi::RefOr::T({
                     let mut res = openapi::Response::new(concat!(
                         "Username not exists or password is incorrect, ",

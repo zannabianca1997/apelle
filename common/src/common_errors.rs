@@ -23,7 +23,7 @@ impl IntoResponses for SQLError {
         utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
     > {
         [(
-            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR.as_str().to_owned(),
             openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
         )]
         .into_iter()
@@ -50,7 +50,7 @@ impl IntoResponses for CacheError {
         utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
     > {
         [(
-            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR.as_str().to_owned(),
             openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
         )]
         .into_iter()
@@ -77,7 +77,7 @@ impl IntoResponses for PubSubError {
         utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
     > {
         [(
-            StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR.as_str().to_owned(),
             openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
         )]
         .into_iter()
