@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use apelle_songs_dtos::provider::SongsPathParams;
 use axum::{
-    Router, debug_handler,
+    debug_handler,
     http::HeaderName,
     response::NoContent,
     routing::{get, post, put},
@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use dtos::youtube::Thumbnail;
+use utoipa_axum::router::OpenApiRouter;
 
 use crate::App;
 
@@ -45,8 +46,8 @@ mod insert;
 mod resolve;
 mod search;
 
-pub fn provider() -> Router<App> {
-    Router::new()
+pub fn provider() -> OpenApiRouter<App> {
+    OpenApiRouter::new()
         .route("/", get(ping))
         .route("/search", get(search::search))
         .route("/resolve", post(resolve::resolve))

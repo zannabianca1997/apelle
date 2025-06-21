@@ -1,17 +1,14 @@
 use std::sync::Arc;
 
 use apelle_common::cache_pubsub;
-use axum::{
-    Router,
-    extract::FromRef,
-    routing::{get, post},
-};
+use axum::extract::FromRef;
 use config::Config;
 use futures::FutureExt as _;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
 use url::Url;
+use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::config::CodeConfig;
 
@@ -60,7 +57,7 @@ pub async fn app(
         configs_url,
         code,
     }: Config,
-) -> Result<Router, MainError> {
+) -> Result<OpenApiRouter, MainError> {
     if code.alphabet.is_empty() {
         return Err(MainError::EmptyCodeAlphabet);
     }
@@ -79,8 +76,11 @@ pub async fn app(
 
     let client = reqwest::Client::new();
 
-    Ok(Router::new()
-        .nest("/public", Router::new().route("/", post(create::create)))
+    Ok(OpenApiRouter::new()
+        .nest(
+            "/public",
+            OpenApiRouter::new().routes(routes!(create::create)),
+        )
         .with_state(App {
             db,
             cache,

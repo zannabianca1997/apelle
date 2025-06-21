@@ -22,18 +22,6 @@ impl SeenSourcesWorker {
             tracing::warn!(%urn, "Queue is closed, cannot update source");
         };
     }
-
-    pub async fn seen_many_urns(&self, source_urns: impl IntoIterator<Item = String>) {
-        let mut source_urns = source_urns.into_iter();
-        while let Some(source_urn) = source_urns.next() {
-            if let Err(SendError(urn)) = self.queue.send(source_urn).await {
-                for urn in once(urn).chain(source_urns) {
-                    tracing::warn!(%urn, "Queue is closed, cannot update source");
-                }
-                return;
-            };
-        }
-    }
 }
 
 async fn worker(db: sqlx::Pool<sqlx::Postgres>, mut receiver: Receiver<String>, bufsize: usize) {

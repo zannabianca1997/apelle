@@ -222,18 +222,3 @@ where
         self
     }
 }
-
-impl<AppError> WrappedService<AppError> for Router {
-    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
-        (self.into(), async || Ok(()))
-    }
-}
-
-impl<Then, AppError> WrappedService<AppError> for (Router, Then)
-where
-    Then: AsyncFnOnce() -> Result<(), AppError>,
-{
-    fn unpack(self) -> (OpenApiRouter, impl AsyncFnOnce() -> Result<(), AppError>) {
-        (self.0.into(), self.1)
-    }
-}

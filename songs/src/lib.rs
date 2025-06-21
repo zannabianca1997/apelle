@@ -1,6 +1,5 @@
 use apelle_common::cache_pubsub;
 use axum::{
-    Router,
     extract::FromRef,
     routing::{get, post},
 };
@@ -10,6 +9,7 @@ use futures::FutureExt;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument, info_span};
+use utoipa_axum::router::OpenApiRouter;
 
 const CACHE_NAMESPACE: &str = "apelle:songs:";
 
@@ -52,7 +52,7 @@ pub async fn app(
         seen_sources_queue_size,
         cache_expiration,
     }: Config,
-) -> Result<Router, MainError> {
+) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database and cache");
 
     let db = PgPool::connect(db_url.as_str())
@@ -70,12 +70,12 @@ pub async fn app(
     let seen_sources =
         seen_sources::SeenSourcesWorker::new(db.clone(), seen_sources_queue_size).await;
 
-    Ok(Router::new()
+    Ok(OpenApiRouter::new()
         .route("/sources", get(sources::list).post(sources::register))
         .route("/providers", post(providers::register))
         .nest(
             "/public",
-            Router::new()
+            OpenApiRouter::new()
                 .route("/sources", get(sources::list))
                 .route("/search", get(search::search))
                 .route("/resolve", post(resolve::resolve))

@@ -1,5 +1,4 @@
 use axum::{
-    Router,
     extract::FromRef,
     routing::{get, post},
 };
@@ -8,6 +7,7 @@ use futures::FutureExt as _;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
+use utoipa_axum::router::OpenApiRouter;
 
 pub mod config;
 
@@ -28,7 +28,7 @@ pub enum MainError {
     DbConnectionError { source: sqlx::Error },
 }
 
-pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
+pub async fn app(Config { db_url }: Config) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database");
 
     let db = PgPool::connect(db_url.as_str())
@@ -36,12 +36,12 @@ pub async fn app(Config { db_url }: Config) -> Result<Router, MainError> {
         .instrument(info_span!("Connecting to database"))
         .await?;
 
-    Ok(Router::new()
+    Ok(OpenApiRouter::new()
         .route("/queues", post(create::create))
         .route("/queues/{id}", get(get::get).delete(delete::delete))
         .nest(
             "/public",
-            Router::new().route("/queues/{id}", get(get::get)),
+            OpenApiRouter::new().route("/queues/{id}", get(get::get)),
         )
         .with_state(App { db }))
 }

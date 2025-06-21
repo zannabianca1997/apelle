@@ -5,7 +5,7 @@ use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
 };
-use axum::{Router, extract::FromRef};
+use axum::extract::FromRef;
 use config::Config;
 use futures::{FutureExt, TryFutureExt};
 use reqwest::Response;
@@ -13,6 +13,7 @@ use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument, info_span};
 use url::Url;
+use utoipa_axum::router::OpenApiRouter;
 
 use crate::config::YoutubeConfig;
 
@@ -88,7 +89,7 @@ pub async fn app(
         db_url,
         cache_url,
     }: Config,
-) -> Result<(Router, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
+) -> Result<(OpenApiRouter, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
     tracing::info!("Connecting to database");
     let db = PgPool::connect(db_url.as_str())
         .map(|r| r.context(DbConnectionSnafu))
@@ -190,7 +191,7 @@ pub async fn app(
     };
 
     Ok((
-        Router::new()
+        OpenApiRouter::new()
             .nest("/provider", provider::provider())
             .with_state(App {
                 db,

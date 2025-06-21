@@ -1,8 +1,9 @@
 use apelle_configs_dtos::QueueConfigCreate;
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, ToSchema)]
 pub struct QueueCreate {
     #[serde(default)]
     pub code: Option<String>,
@@ -10,7 +11,7 @@ pub struct QueueCreate {
     pub config: Config,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, ToSchema)]
 pub enum Config {
     Existing(Uuid),
     New(QueueConfigCreate),

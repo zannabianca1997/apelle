@@ -1,6 +1,10 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    time::Duration,
+};
 
-use apelle_common::{PUBLIC_TAG, SERVICE_TAG, TracingClient, iter_operations};
+use apelle_common::{PUBLIC_TAG, TracingClient, iter_operations, iter_operations_mut};
 use axum::{
     Json, Router,
     body::Body,
@@ -11,7 +15,7 @@ use axum::{
 };
 use axum_extra::{TypedHeader, headers::CacheControl};
 use config::Config;
-use futures::{FutureExt, StreamExt, TryFutureExt, TryStreamExt, stream::FuturesUnordered};
+use futures::{FutureExt, StreamExt, TryFutureExt, stream::FuturesUnordered};
 use snafu::Snafu;
 use utoipa::{OpenApi, openapi};
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -162,21 +166,35 @@ async fn public(
 
     // Remove the public tag, and all tags that are not used
     openapi.tags.as_mut().map(|tags| {
-        tags.retain(|t| {
-            t.name != PUBLIC_TAG
-                && openapi
-                    .paths
-                    .paths
-                    .values()
-                    .flat_map(iter_operations)
-                    .any(|op| {
-                        op.tags
-                            .as_ref()
-                            .map(Vec::as_slice)
-                            .unwrap_or_default()
-                            .contains(&t.name)
-                    })
-        });
+        let unused = tags
+            .extract_if(.., |t| {
+                &t.name == PUBLIC_TAG
+                    || openapi
+                        .paths
+                        .paths
+                        .values()
+                        .flat_map(iter_operations)
+                        .all(|op| {
+                            !op.tags
+                                .as_ref()
+                                .map(Vec::as_slice)
+                                .unwrap_or_default()
+                                .contains(&t.name)
+                        })
+            })
+            .map(|t| t.name)
+            .collect::<HashSet<_>>();
+
+        for op in openapi
+            .paths
+            .paths
+            .values_mut()
+            .flat_map(iter_operations_mut)
+        {
+            op.tags
+                .as_mut()
+                .map(|tags| tags.retain(|t| !unused.contains(t)));
+        }
     });
 
     (

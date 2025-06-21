@@ -166,6 +166,8 @@ dependencies = [
  "tokio 1.45.1",
  "tracing",
  "url",
+ "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 
@@ -177,6 +179,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
+ "utoipa",
  "uuid",
 ]
 
@@ -201,6 +204,8 @@ dependencies = [
  "tokio 1.45.1",
  "tracing",
  "url",
+ "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 
@@ -232,6 +237,8 @@ dependencies = [
  "tracing",
  "url",
  "urlencoding",
+ "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 
@@ -270,6 +277,8 @@ dependencies = [
  "tokio 1.45.1",
  "tracing",
  "url",
+ "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 

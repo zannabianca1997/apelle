@@ -6,6 +6,10 @@ use sqlx::{
     postgres::{PgHasArrayType, PgTypeInfo},
 };
 use strum::{EnumIter, IntoEnumIterator};
+use utoipa::{
+    PartialSchema, ToSchema,
+    openapi::{self, Object},
+};
 
 macro_rules! conversions {
 (
@@ -115,6 +119,20 @@ impl From<QueueUserAction> for &'static str {
         }
     }
 }
+
+impl PartialSchema for QueueUserAction {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        openapi::RefOr::T(
+            Object::builder()
+                .description(Some("An action a user makes on a queue"))
+                .schema_type(openapi::Type::String)
+                .enum_values(Some(QueueUserAction::iter().map(<&str>::from)))
+                .build()
+                .into(),
+        )
+    }
+}
+impl ToSchema for QueueUserAction {}
 
 impl<'a> TryFrom<&'a str> for QueueUserAction {
     type Error = &'a str;

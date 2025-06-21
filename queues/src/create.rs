@@ -60,6 +60,13 @@ pub struct CreatePathParams {
 }
 
 #[debug_handler(state = crate::App)]
+#[utoipa::path(post, path = "/")]
+/// Create a new queue
+///
+/// Create a new empty queue with the given code and config.
+///
+/// If the config is not provided, a the default config will be used.
+/// If no code is provided, a random code will be generated.
 pub async fn create(
     State(db): State<PgPool>,
     client: TracingClient,
