@@ -13,6 +13,10 @@ use futures::{FutureExt, StreamExt as _, TryStreamExt};
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
 use textwrap_macros::unfill;
+use utoipa::{
+    IntoResponses,
+    openapi::{self, RefOr},
+};
 use uuid::Uuid;
 
 #[derive(Debug, Snafu)]
@@ -33,7 +37,28 @@ impl IntoResponse for GetError {
     }
 }
 
+impl IntoResponses for GetError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::NOT_FOUND.as_str().to_string(),
+            RefOr::T(openapi::Response::new("Queue not found")),
+        )]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
+
 #[debug_handler(state=crate::App)]
+#[utoipa::path(get, path = "/queues/{id}", responses((status = StatusCode::OK, description = "Queue config", content_type = "application/json", body = QueueConfig), GetError))]
+/// Returns a queue config
+///
+/// Queue configs are immutable. When a queue change its config, a new config is
+/// created instead of changing the old one. This makes the result of this call
+/// cachable.
 pub async fn get(
     Path(id): Path<Uuid>,
     State(db): State<PgPool>,

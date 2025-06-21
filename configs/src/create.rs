@@ -11,6 +11,10 @@ use sqlx::{
     types::chrono::{DateTime, FixedOffset},
 };
 use textwrap_macros::unfill;
+use utoipa::{
+    IntoResponses,
+    openapi::{self, Content, Object, RefOr, Type},
+};
 use uuid::Uuid;
 
 use crate::config_processing::{ValidateError, validate};
@@ -33,8 +37,36 @@ impl IntoResponse for CreateError {
         }
     }
 }
+impl IntoResponses for CreateError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::BAD_REQUEST.as_str().to_string(),
+            RefOr::T(
+                openapi::Response::builder()
+                    .description("Invalid queue config")
+                    .content(
+                        "application/json",
+                        Content::builder()
+                            .schema(Some(Object::with_type(Type::String)))
+                            .build(),
+                    )
+                    .build(),
+            ),
+        )]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
 
 #[debug_handler(state=crate::App)]
+#[utoipa::path(post, path = "/queues", responses((status = 201, description = "Queue config created", body = QueueConfig, content_type = "application/json"), CreateError))]
+/// Create a new queue config
+///
+/// The created confing will be assigned a random uuid, that will be return in the response.
 pub async fn create(
     State(db): State<PgPool>,
     Json(config): Json<QueueConfigCreate>,

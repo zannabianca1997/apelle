@@ -1,13 +1,10 @@
-use axum::{
-    extract::FromRef,
-    routing::{get, post},
-};
+use axum::extract::FromRef;
 use config::Config;
 use futures::FutureExt as _;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
-use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::{router::OpenApiRouter, routes};
 
 pub mod config;
 
@@ -37,11 +34,8 @@ pub async fn app(Config { db_url }: Config) -> Result<OpenApiRouter, MainError> 
         .await?;
 
     Ok(OpenApiRouter::new()
-        .route("/queues", post(create::create))
-        .route("/queues/{id}", get(get::get).delete(delete::delete))
-        .nest(
-            "/public",
-            OpenApiRouter::new().route("/queues/{id}", get(get::get)),
-        )
+        .routes(routes!(create::create))
+        .routes(routes!(get::get, delete::delete))
+        .nest("/public", OpenApiRouter::new().routes(routes!(get::get)))
         .with_state(App { db }))
 }

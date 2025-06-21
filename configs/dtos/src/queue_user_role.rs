@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::QueueUserAction;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct QueueUserRole {
     pub id: Uuid,
 
@@ -19,7 +19,7 @@ pub struct QueueUserRole {
     pub can_revoke: HashSet<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct QueueConfig {
     pub id: Uuid,
 

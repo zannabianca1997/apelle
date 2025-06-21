@@ -7,6 +7,10 @@ use axum::{
 };
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
+use utoipa::{
+    IntoResponses,
+    openapi::{self, RefOr},
+};
 use uuid::Uuid;
 
 #[derive(Debug, Snafu)]
@@ -29,7 +33,34 @@ impl IntoResponse for DeleteError {
     }
 }
 
+impl IntoResponses for DeleteError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [
+            (
+                StatusCode::NOT_FOUND.as_str().to_string(),
+                RefOr::T(openapi::Response::new("Queue config not found")),
+            ),
+            (
+                StatusCode::FORBIDDEN.as_str().to_string(),
+                RefOr::T(openapi::Response::new(
+                    "Cannot delete default config (nil UUID)",
+                )),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
+
 #[debug_handler(state=crate::App)]
+#[utoipa::path(delete, path = "/queues/{id}", responses((status = StatusCode::OK, description = "Queue config deleted"), DeleteError))]
+/// Delete a queue config
+///
+///
 pub async fn delete(
     Path(id): Path<Uuid>,
     State(db): State<PgPool>,
