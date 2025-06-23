@@ -78,6 +78,16 @@ CREATE TABLE queue_user (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
 
+    -- First time the user connected
+    created TIMESTAMP WITH TIME ZONE
+        NOT NULL
+        DEFAULT NOW(),
+
+    -- Last time the user was seen
+    last_seen TIMESTAMP WITH TIME ZONE
+        NOT NULL
+        DEFAULT NOW(),
+
     PRIMARY KEY (queue_id, user_id)
 );
 

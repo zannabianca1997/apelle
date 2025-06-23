@@ -25,6 +25,7 @@ apelle-configs-dtos = { path = "configs/dtos" }
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
 axum-extra = { version = "0.10.1", features = ["query", "typed-header"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal", "sync"] }
+tower = "0.5.2"
 
 # Database
 sqlx = { version = "0.8.6", features = [
@@ -69,7 +70,6 @@ utoipa = { version = "5.4.0", features = [
 utoipa-axum = "0.2.0"
 
 
-# Documentation
 # Misc utils
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 url = { version = "2.5.4", features = ["serde"] }

@@ -1,23 +1,38 @@
 use std::sync::Arc;
 
 use apelle_common::cache_pubsub;
-use axum::extract::FromRef;
+use axum::{extract::FromRef, middleware::from_fn_with_state};
 use config::Config;
 use futures::FutureExt as _;
+use serde::{Deserialize, Serialize};
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
 use url::Url;
 use utoipa_axum::{router::OpenApiRouter, routes};
+use uuid::Uuid;
 
-use crate::config::CodeConfig;
+use crate::{
+    config::CodeConfig,
+    middleware::{queue_config::extract_queue_config, user::extract_queue_user},
+};
 
 pub mod config;
 
 mod dtos;
 mod model;
 
+mod middleware {
+    pub mod queue_config;
+    pub mod user;
+}
+
 mod create;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+struct QueuePathParams {
+    pub id: Uuid,
+}
 
 /// Main fatal error
 #[derive(Debug, Snafu)]
@@ -76,19 +91,29 @@ pub async fn app(
 
     let client = reqwest::Client::new();
 
+    let app = App {
+        db,
+        cache,
+        client,
+        services: Arc::new(Services {
+            songs_url,
+            configs_url,
+        }),
+        code: Arc::new(code),
+    };
+
+    let queue_routes = OpenApiRouter::new().route_layer(
+        tower::ServiceBuilder::new()
+            .layer(from_fn_with_state(app.clone(), extract_queue_config))
+            .layer(from_fn_with_state(app.clone(), extract_queue_user)),
+    );
+
     Ok(OpenApiRouter::new()
         .nest(
             "/public",
-            OpenApiRouter::new().routes(routes!(create::create)),
+            OpenApiRouter::new()
+                .routes(routes!(create::create))
+                .nest("/{id}", queue_routes),
         )
-        .with_state(App {
-            db,
-            cache,
-            client,
-            services: Arc::new(Services {
-                songs_url,
-                configs_url,
-            }),
-            code: Arc::new(code),
-        }))
+        .with_state(app))
 }
