@@ -56,7 +56,7 @@ impl AuthHeaders {
         str::from_utf8(self.name.as_bytes()).expect("All constructors checks this is valid")
     }
 
-    pub fn roles(&self) -> impl IntoIterator<Item = &str> {
+    pub fn roles(&self) -> impl Iterator<Item = &str> {
         self.roles
             .as_ref()
             .map(|r| r.to_str().expect("All constructors checks this is valid"))

@@ -22,7 +22,7 @@ use utoipa::IntoResponses;
 use uuid::Uuid;
 
 use crate::{
-    create::check_name,
+    create::{self, check_name},
     dtos::{UserDto, UserUpdateDto},
 };
 
@@ -36,39 +36,21 @@ use crate::{
 ///
 /// Get data about the user the credentials used refer to.
 pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<UserDto>, SQLError> {
-    let rest_of_entity =
+    let (created, updated, last_login) =
         sqlx::query_as("SELECT created, updated, last_login FROM apelle_user WHERE id = $1")
             .bind(auth.id())
-            .fetch_one(&db);
-
-    let ((created, updated, last_login), roles) =
-        tokio::try_join!(rest_of_entity, fetch_roles(&db, auth.id())).context(SQLSnafu)?;
+            .fetch_one(&db)
+            .await
+            .context(SQLSnafu)?;
 
     Ok(Json(UserDto {
         id: auth.id(),
         name: auth.name().to_string(),
-        roles,
+        roles: auth.roles().map(ToOwned::to_owned).collect(),
         created,
         updated,
         last_login,
     }))
-}
-
-async fn fetch_roles(db: &PgPool, id: Uuid) -> Result<HashSet<String>, sqlx::Error> {
-    sqlx::query(unfill!(
-        "
-        SELECT gr.name 
-        FROM apelle_user_global_role ugr
-        INNER JOIN apelle_global_role gr
-        ON ugr.global_role_id = gr.id
-        WHERE ugr.user_id = $1
-        "
-    ))
-    .bind(id)
-    .map(|row| row.get(0))
-    .fetch_all(db)
-    .await
-    .map(HashSet::from_iter)
 }
 
 #[derive(Debug, Snafu)]
@@ -157,25 +139,20 @@ pub async fn patch(
         .push(" RETURNING  created, updated, last_login")
         .build_query_as();
 
-    let ((created, updated, last_login), roles) = tokio::try_join!(
-        async {
-            Ok::<_, UpdateError>(if let Some(name) = &name {
-                query
-                    .fetch_optional(&db)
-                    .await
-                    .context(SQLSnafu)?
-                    .context(ConflictSnafu { name })?
-            } else {
-                query.fetch_one(&db).await.context(SQLSnafu)?
-            })
-        },
-        fetch_roles(&db, auth.id()).map(|v| Ok(v.context(SQLSnafu)?))
-    )?;
+    let (created, updated, last_login) = if let Some(name) = &name {
+        query
+            .fetch_optional(&db)
+            .await
+            .context(SQLSnafu)?
+            .context(ConflictSnafu { name })?
+    } else {
+        query.fetch_one(&db).await.context(SQLSnafu)?
+    };
 
     Ok(Json(UserDto {
         id: auth.id(),
         name: name.unwrap_or_else(|| auth.name().to_string()),
-        roles,
+        roles: auth.roles().map(ToOwned::to_owned).collect(),
         created,
         updated,
         last_login,
@@ -184,7 +161,7 @@ pub async fn patch(
 
 #[debug_handler(state=crate::App)]
 #[utoipa::path(delete, path = "/me", responses((
-    status=StatusCode::OK,
+    status=StatusCode::NO_CONTENT,
     description="User deleted"
 ),SQLError))]
 /// Delete current user
