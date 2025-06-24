@@ -17,7 +17,10 @@ use axum_extra::{TypedHeader, headers::CacheControl};
 use config::Config;
 use futures::{FutureExt, StreamExt, TryFutureExt, stream::FuturesUnordered};
 use snafu::Snafu;
-use utoipa::{OpenApi, openapi};
+use utoipa::{
+    OpenApi,
+    openapi::{self, path::Operation},
+};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::{Config as SwaggerConfig, SwaggerUi};
 
@@ -155,10 +158,18 @@ async fn public(
                     .paths
                     .paths
                     .into_iter()
-                    .filter_map(|(path, item)| {
+                    .filter_map(|(path, mut item)| {
                         // Taking only the public enpoints, and replacing the prefix
                         // with the public path
                         let path = path.strip_prefix("/public")?;
+
+                        // Prefixing each operation id with the service name
+                        for Operation { operation_id, .. } in iter_operations_mut(&mut item) {
+                            if let Some(operation_id) = operation_id {
+                                *operation_id = format!("{service}_{operation_id}");
+                            }
+                        }
+
                         Some((format!("{public}{path}"), item))
                     })
                     .collect();
