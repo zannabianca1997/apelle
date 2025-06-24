@@ -1,8 +1,9 @@
 use std::{collections::HashMap, future::ready, ops::Add, sync::Arc};
 
 use apelle_common::{
-    AuthHeaders, Reporter, TracingClient,
+    AuthHeaders, Reporter, ServicesClient,
     common_errors::{SQLError, SQLSnafu},
+    id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::QueueConfig;
 use axum::{
@@ -16,6 +17,7 @@ use rand::{Rng, SeedableRng, rngs::SmallRng};
 use reqwest::StatusCode;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::{PgConnection, PgPool};
+use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{
@@ -53,14 +55,45 @@ impl IntoResponse for CreateError {
     }
 }
 
-#[derive(serde::Deserialize)]
+impl IntoResponses for CreateError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [
+            (
+                StatusCode::NOT_FOUND.as_str().to_string(),
+                openapi::Response::new("Config not found").into(),
+            ),
+            (
+                StatusCode::BAD_GATEWAY.as_str().to_string(),
+                openapi::Response::new("Failed to connect to config service").into(),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .collect()
+    }
+}
+
+#[derive(serde::Deserialize, IntoParams)]
 pub struct CreatePathParams {
+    /// Return the full queue config instead of just the UUID
     #[serde(default)]
+    /// Return the whole config instead of just the id
     pub config: bool,
 }
 
 #[debug_handler(state = crate::App)]
-#[utoipa::path(post, path = "/")]
+#[utoipa::path(post, path = "/",
+    responses((
+        status = StatusCode::CREATED,
+        description = "Queue created",
+        body = Queue,
+        content_type = "application/json"
+    ),CreateError),
+    params(CreatePathParams)
+)]
 /// Create a new queue
 ///
 /// Create a new empty queue with the given code and config.
@@ -69,7 +102,7 @@ pub struct CreatePathParams {
 /// If no code is provided, a random code will be generated.
 pub async fn create(
     State(db): State<PgPool>,
-    client: TracingClient,
+    client: ServicesClient,
     State(services): State<Arc<Services>>,
     State(code_config): State<Arc<CodeConfig>>,
     user: AuthHeaders,
@@ -146,9 +179,9 @@ pub async fn create(
             current: None,
             code,
             config: if return_config {
-                either::Left(config)
+                IdOrRep::Rep(config)
             } else {
-                either::Right(config.id)
+                IdOrRep::Id(config.id)
             },
             queue: HashMap::new(),
             created,

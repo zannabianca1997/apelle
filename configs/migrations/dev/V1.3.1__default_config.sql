@@ -34,6 +34,7 @@ BEGIN
    INSERT INTO queue_user_role_permission (role_id, permission)
    VALUES
       -- Admin ( full control )
+      (admin_role_id, 'GET_QUEUE'),
       (admin_role_id, 'DELETE_QUEUE'),
       (admin_role_id, 'CONFIGURE_QUEUE'),
       (admin_role_id, 'REMOVE_SONG'),
@@ -48,11 +49,13 @@ BEGIN
       (admin_role_id, 'UNBAN_USER'),
       (admin_role_id, 'REMOVE_USER'),
       -- Voter (can like and enqueue songs)
+      (voter_role_id, 'GET_QUEUE'),
       (voter_role_id, 'LIKE_SONG'),
       (voter_role_id, 'ENQUEUE_SONG'),
       (voter_role_id, 'AUTO_NEXT_SONG'),
       -- Banned (no action available)
       -- Observer (can only keep the queue running)
+      (observer_role_id, 'GET_QUEUE'),
       (observer_role_id, 'AUTO_NEXT_SONG');
 
 

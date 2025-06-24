@@ -79,11 +79,11 @@ pub async fn extract_queue_user(
     // Create the user, or get the existing one setup
     let (role_id, autolike_override): (Uuid, Option<bool>) = sqlx::query_as(unfill!(
         "
-            INSERT INTO queue_user (queue_id, user_id, role_id)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (queue_id, user_id) DO UPDATE SET last_seen = NOW()
-            RETURNING role_id, autolike
-            "
+        INSERT INTO queue_user (queue_id, user_id, role_id)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (queue_id, user_id) DO UPDATE SET last_seen = NOW()
+        RETURNING role_id, autolike
+        "
     ))
     .bind(queue_id)
     .bind(user.id())

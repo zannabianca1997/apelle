@@ -4,7 +4,7 @@ use std::{
     time::Duration,
 };
 
-use apelle_common::{PUBLIC_TAG, Reporter, TracingClient, iter_operations, iter_operations_mut};
+use apelle_common::{PUBLIC_TAG, Reporter, ServicesClient, iter_operations, iter_operations_mut};
 use axum::{
     Json, Router,
     body::Body,
@@ -54,7 +54,7 @@ struct AppApi;
 /// Returns the api exposed by a specific service
 async fn service(
     State(services): State<Arc<HashMap<String, Service>>>,
-    client: TracingClient,
+    client: ServicesClient,
     Path(name): Path<String>,
 ) -> Response {
     // Get the service url
@@ -118,7 +118,7 @@ struct PublicApiDocs;
 /// Returns the api exposed by a specific service
 async fn public(
     State(services): State<Arc<HashMap<String, Service>>>,
-    client: TracingClient,
+    client: ServicesClient,
 ) -> (TypedHeader<CacheControl>, Json<openapi::OpenApi>) {
     // Fetch all the docs for every service that's exposed
     let mut openapi = services

@@ -11,5 +11,6 @@ uuid.workspace = true
 chrono.workspace = true
 sqlx.workspace = true
 strum = { version = "0.27.1", features = ["derive"] }
-
 utoipa.workspace = true
+utoipa-axum.workspace = true
+either = "1.15.0"

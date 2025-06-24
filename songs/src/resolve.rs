@@ -1,7 +1,7 @@
 use std::{convert::identity, mem};
 
 use apelle_common::{
-    AuthHeaders, Reporter, TracingClient,
+    AuthHeaders, Reporter, ServicesClient,
     common_errors::{CacheError, SQLError, SQLSnafu},
 };
 use apelle_songs_dtos::{provider::ResolveResponse, public::ResolveSongRequest};
@@ -116,7 +116,7 @@ pub async fn resolve(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
-    client: TracingClient,
+    client: ServicesClient,
     user: AuthHeaders,
     Json(ResolveSongRequest { source_urn, data }): Json<ResolveSongRequest>,
 ) -> Result<Redirect, ResolveSongError> {

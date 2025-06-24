@@ -125,6 +125,7 @@ dependencies = [
  "axum-extra",
  "chrono",
  "clap",
+ "derive_more",
  "dotenvy",
  "figment",
  "futures 0.3.31",
@@ -176,10 +177,12 @@ name = "apelle-configs-dtos"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "either",
  "serde",
  "sqlx",
  "strum",
  "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 
@@ -193,7 +196,6 @@ dependencies = [
  "axum",
  "axum-extra",
  "chrono",
- "either",
  "futures 0.3.31",
  "rand 0.9.1",
  "redis",
@@ -254,6 +256,7 @@ dependencies = [
  "serde",
  "serde_json",
  "url",
+ "utoipa",
  "uuid",
 ]
 

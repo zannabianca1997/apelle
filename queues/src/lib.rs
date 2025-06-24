@@ -9,12 +9,13 @@ use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
 use url::Url;
+use utoipa::{IntoParams, OpenApi};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
 
 use crate::{
     config::CodeConfig,
-    middleware::{queue_config::extract_queue_config, user::extract_queue_user},
+    middleware::{config::extract_queue_config, user::extract_queue_user},
 };
 
 pub mod config;
@@ -23,13 +24,14 @@ mod dtos;
 mod model;
 
 mod middleware {
-    pub mod queue_config;
+    pub mod config;
     pub mod user;
 }
 
 mod create;
+mod get;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
 struct QueuePathParams {
     pub id: Uuid,
 }
@@ -63,6 +65,9 @@ pub struct Services {
     /// Url of the `configs` service
     pub configs_url: Url,
 }
+
+#[derive(OpenApi)]
+struct AppApi;
 
 pub async fn app(
     Config {
@@ -102,13 +107,13 @@ pub async fn app(
         code: Arc::new(code),
     };
 
-    let queue_routes = OpenApiRouter::new().route_layer(
+    let queue_routes = OpenApiRouter::new().routes(routes!(get::get)).route_layer(
         tower::ServiceBuilder::new()
             .layer(from_fn_with_state(app.clone(), extract_queue_config))
             .layer(from_fn_with_state(app.clone(), extract_queue_user)),
     );
 
-    Ok(OpenApiRouter::new()
+    Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .nest(
             "/public",
             OpenApiRouter::new()

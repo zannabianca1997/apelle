@@ -6,7 +6,7 @@ use serde_json::value::Value;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, ToSchema, Deserialize)]
 pub struct Song {
     /// Unique id of the song
     pub id: Uuid,
@@ -29,6 +29,17 @@ pub struct Song {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[schema(value_type = Object, nullable, required = false)]
     pub source_data: Option<Value>,
+}
+
+#[derive(Debug, Deserialize, IntoParams, Serialize)]
+pub struct SolvedQueryParams {
+    #[serde(default = "default_true")]
+    /// Include the data from the song source
+    pub source_data: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]

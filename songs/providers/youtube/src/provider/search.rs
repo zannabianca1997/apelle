@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use apelle_common::{
-    Reporter, TracingClient,
+    Reporter, ServicesClient,
     common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
     normalize_query,
     paginated::{PageInfo, Paginated, PaginationParams},
@@ -105,7 +105,7 @@ use cursor::Cursor;
 pub async fn search(
     State(mut cache): State<ConnectionManager>,
     State(db): State<PgPool>,
-    client: TracingClient,
+    client: ServicesClient,
     State(youtube_api): State<Arc<YoutubeApi>>,
     Query(SearchQueryParams { query }): Query<SearchQueryParams>,
     Query(PaginationParams { page, page_size }): Query<PaginationParams<Cursor>>,
@@ -288,7 +288,7 @@ pub async fn search(
 /// Get a page either from the cache or from youtube
 async fn fetch_page(
     cache: &mut ConnectionManager,
-    client: &TracingClient,
+    client: &ServicesClient,
     youtube_api: &Arc<YoutubeApi>,
     query: &str,
     page: Option<&str>,

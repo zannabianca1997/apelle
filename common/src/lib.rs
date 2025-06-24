@@ -3,13 +3,14 @@ pub mod cache_pubsub;
 mod cli;
 pub mod common_errors;
 mod error_reporter;
+pub mod id_or_rep;
 pub mod iso8601;
 mod logging;
 mod main_wrapper;
 pub mod paginated;
 mod search;
 mod serve;
-mod tracing_client;
+mod services_client;
 
 pub use auth::AuthHeaders;
 pub use cli::ProvideDefaults;
@@ -22,4 +23,4 @@ pub use main_wrapper::{
     PUBLIC_TAG, SERVICE_TAG, iter_operations, iter_operations_mut, service_main,
 };
 pub use search::normalize_query;
-pub use tracing_client::TracingClient;
+pub use services_client::ServicesClient;

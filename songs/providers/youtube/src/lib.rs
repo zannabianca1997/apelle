@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use apelle_common::{TracingClient, cache_pubsub};
+use apelle_common::{ServicesClient, cache_pubsub};
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
@@ -99,7 +99,7 @@ pub async fn app(
         .map(|r| r.context(CacheConnectionSnafu))
         .instrument(info_span!("Connecting to cache"));
 
-    let client = TracingClient::new();
+    let client = ServicesClient::new();
 
     let handshake = async {
         tracing::info!("Connecting to songs service");

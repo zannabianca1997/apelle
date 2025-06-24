@@ -1,7 +1,7 @@
 use std::{num::TryFromIntError, sync::Arc};
 
 use apelle_common::{
-    Reporter, TracingClient,
+    Reporter, ServicesClient,
     common_errors::{SQLError, SQLSnafu},
 };
 use apelle_songs_dtos::provider::{ResolveQueryParams, ResolveResponse};
@@ -86,7 +86,7 @@ impl IntoResponse for ResolveError {
 pub async fn resolve(
     State(db): State<PgPool>,
     State(youtube_api): State<Arc<YoutubeApi>>,
-    client: TracingClient,
+    client: ServicesClient,
     Query(ResolveQueryParams { public }): Query<ResolveQueryParams>,
     Json(ResolveRequest { video_id }): Json<ResolveRequest>,
 ) -> Result<Json<ResolveResponse<PublicSongData, YoutubeSongData>>, ResolveError> {

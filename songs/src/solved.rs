@@ -1,8 +1,8 @@
 use apelle_common::{
-    Reporter, TracingClient,
+    Reporter, ServicesClient,
     common_errors::{CacheError, SQLError, SQLSnafu},
 };
-use apelle_songs_dtos::public::Song;
+use apelle_songs_dtos::public::{SolvedQueryParams, Song};
 use axum::{
     Json, debug_handler,
     extract::{Path, Query, State},
@@ -75,17 +75,6 @@ impl IntoResponses for Error {
     }
 }
 
-fn default_true() -> bool {
-    true
-}
-
-#[derive(Debug, Deserialize, IntoParams)]
-pub struct GetQueryParams {
-    #[serde(default = "default_true")]
-    /// Include the data from the song source
-    source_data: bool,
-}
-
 /// Get song data
 ///
 /// Get the data of a song that was previously resolved. If `source_data` is set
@@ -97,15 +86,15 @@ pub struct GetQueryParams {
         (status = StatusCode::OK, description = "Song data", content_type = "application/json", body = Song), 
         Error
     ),
-    params(GetQueryParams),
+    params(SolvedQueryParams),
 )]
 pub async fn get(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
-    client: TracingClient,
+    client: ServicesClient,
     Path(id): Path<Uuid>,
-    Query(GetQueryParams { source_data }): Query<GetQueryParams>,
+    Query(SolvedQueryParams { source_data }): Query<SolvedQueryParams>,
 ) -> Result<(TypedHeader<CacheControl>, Json<Song>), Error> {
     tracing::debug!(%id, "Getting song data");
 
@@ -191,7 +180,7 @@ pub async fn delete(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
-    client: TracingClient,
+    client: ServicesClient,
     Path(id): Path<Uuid>,
 ) -> Result<NoContent, Error> {
     tracing::info!(%id, "Deleting song");

@@ -6,16 +6,18 @@ use reqwest::{IntoUrl, Method, Request, RequestBuilder, Response};
 
 use crate::{AuthHeaders, main_wrapper::TRACE_ID_HEADER};
 
+/// Client for intra-microservice requests
+///
 /// A wrapper around reqwest::Client that propagates the trace id and
 /// authentication headers
 #[derive(Debug, Clone)]
-pub struct TracingClient {
+pub struct ServicesClient {
     client: reqwest::Client,
     trace_id: HeaderValue,
     auth: Option<AuthHeaders>,
 }
 
-impl<S> FromRequestParts<S> for TracingClient
+impl<S> FromRequestParts<S> for ServicesClient
 where
     reqwest::Client: FromRef<S>,
     S: Sync + Send,
@@ -26,7 +28,7 @@ where
         parts: &mut axum::http::request::Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        Ok(TracingClient {
+        Ok(ServicesClient {
             client: reqwest::Client::from_ref(state),
             trace_id: parts
                 .headers
@@ -52,15 +54,15 @@ macro_rules! convenience {
     };
 }
 
-impl Default for TracingClient {
+impl Default for ServicesClient {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TracingClient {
+impl ServicesClient {
     pub fn new() -> Self {
-        TracingClient {
+        ServicesClient {
             client: reqwest::Client::new(),
             trace_id: generate_trace_id(),
             auth: None,

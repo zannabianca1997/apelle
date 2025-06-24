@@ -15,13 +15,19 @@ macro_rules! conversions {
 (
     $typ:ident: $( $var:ident <=> $value:literal ),*
 ) => {
-    impl From<$typ> for &'static str {
-        fn from(value: $typ) -> Self {
-            match value {
+    impl $typ {
+        pub const fn as_str(&self) -> &'static str {
+            match self {
                 $(
                     $typ::$var => $value,
                 )*
             }
+        }
+    }
+
+    impl From<$typ> for &'static str {
+        fn from(value: $typ) -> Self {
+            value.as_str()
         }
     }
 
@@ -171,6 +177,8 @@ other_impls! {QueueUserAction}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[serde(try_from = "&str", into = "&str")]
 pub enum QueueUserActionQueue {
+    /// Get the queue data
+    Get,
     /// Delete the queue
     Delete,
     /// Change the queue configuration
@@ -179,6 +187,7 @@ pub enum QueueUserActionQueue {
 
 conversions! {
     QueueUserActionQueue:
+        Get <=> "GET_QUEUE",
         Delete <=> "DELETE_QUEUE",
         Configure <=> "CONFIGURE_QUEUE"
 }

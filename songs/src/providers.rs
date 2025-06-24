@@ -1,7 +1,7 @@
 use std::borrow::{Borrow, BorrowMut};
 
 use apelle_common::{
-    TracingClient,
+    ServicesClient,
     common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
 };
 use apelle_songs_dtos::provider::{
@@ -93,7 +93,7 @@ impl IntoResponse for ProviderRegistrationError {
 )]
 pub async fn register(
     State(db): State<PgPool>,
-    client: TracingClient,
+    client: ServicesClient,
     State(mut cache): State<redis::aio::ConnectionManager>,
     State(ProvidersConfig {
         honor_fast_handshake,
@@ -164,7 +164,10 @@ async fn check_urn_presence(db: &PgPool, urn: &str) -> Result<(), ProviderRegist
 ///
 /// We leverage the fact that the provider API requires the
 /// root to return a 2xx on a GET request
-async fn check_webhook(client: &TracingClient, url: &Url) -> Result<(), ProviderRegistrationError> {
+async fn check_webhook(
+    client: &ServicesClient,
+    url: &Url,
+) -> Result<(), ProviderRegistrationError> {
     client
         .get(url.clone())
         .send()

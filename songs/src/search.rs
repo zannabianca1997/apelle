@@ -4,7 +4,7 @@ use std::{
 };
 
 use apelle_common::{
-    Reporter, TracingClient,
+    Reporter, ServicesClient,
     common_errors::{CacheError, CacheSnafu, SQLError},
     normalize_query,
     paginated::{PageInfo, Paginated, PaginationParams},
@@ -179,7 +179,7 @@ pub async fn search(
     State(ProvidersConfig {
         cache_expiration, ..
     }): State<ProvidersConfig>,
-    client: TracingClient,
+    client: ServicesClient,
     axum_extra::extract::Query(SearchQueryParams {
         query: original_query,
         sources,

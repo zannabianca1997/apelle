@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use apelle_common::{
-    Reporter, TracingClient,
+    Reporter, ServicesClient,
     common_errors::{SQLError, SQLSnafu},
 };
 use apelle_configs_dtos::QueueConfig;
@@ -53,7 +53,7 @@ impl IntoResponse for FetchConfigError {
 pub async fn extract_queue_config(
     State(db): State<PgPool>,
     State(services): State<Arc<Services>>,
-    client: TracingClient,
+    client: ServicesClient,
     Path(QueuePathParams { id: queue_id }): Path<QueuePathParams>,
     mut request: Request,
     next: Next,
@@ -68,12 +68,7 @@ pub async fn extract_queue_config(
 
     // Get the config from the config service
     let config: QueueConfig = client
-        .get(
-            services
-                .configs_url
-                .join(&format!("queues/{config_id}"))
-                .unwrap(),
-        )
+        .get(services.configs_url.join(&config_id.to_string()).unwrap())
         .send()
         .await?
         .error_for_status()?

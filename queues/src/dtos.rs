@@ -12,6 +12,7 @@ pub struct QueueCreate {
 }
 
 #[derive(Deserialize, Clone, Debug, ToSchema)]
+#[serde(untagged)]
 pub enum Config {
     Existing(Uuid),
     New(QueueConfigCreate),

@@ -14,6 +14,7 @@ CREATE TABLE queue_user_role (
 
 -- Actions each user can perform
 CREATE TYPE queue_user_action AS ENUM(
+    'GET_QUEUE',
     'DELETE_QUEUE',
     'CONFIGURE_QUEUE',
     

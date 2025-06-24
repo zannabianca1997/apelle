@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
+use apelle_common::id_or_rep::IdOrRep;
 use apelle_configs_dtos::QueueConfig;
 use apelle_songs_dtos::public::Song;
 use chrono::{DateTime, Duration, FixedOffset, Local};
-use either::Either;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct Queue {
     pub id: Uuid,
     pub code: String,
 
     pub current: Option<Current>,
 
-    #[serde(with = "either::serde_untagged")]
-    pub config: Either<QueueConfig, Uuid>,
+    pub config: IdOrRep<QueueConfig>,
 
     pub queue: HashMap<Uuid, QueuedSong>,
 
@@ -23,27 +23,34 @@ pub struct Queue {
     pub updated: DateTime<FixedOffset>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct Current {
     song: Song,
     player_state_id: Uuid,
+    #[serde(flatten)]
     state: TimeRef,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, ToSchema)]
+#[serde(untagged)]
 enum TimeRef {
     Relative { position: Duration },
     Absolute { starts_at: DateTime<FixedOffset> },
 }
 
 impl Current {
-    pub fn new(song: Song) -> Self {
+    pub fn playing(song: Song, player_state_id: Uuid, starts_at: DateTime<FixedOffset>) -> Self {
         Self {
             song,
-            player_state_id: Uuid::new_v4(),
-            state: TimeRef::Relative {
-                position: Duration::zero(),
-            },
+            player_state_id,
+            state: TimeRef::Absolute { starts_at },
+        }
+    }
+    pub fn stopped(song: Song, player_state_id: Uuid, position: Duration) -> Self {
+        Self {
+            song,
+            player_state_id,
+            state: TimeRef::Relative { position },
         }
     }
 
@@ -79,7 +86,7 @@ impl Current {
     }
 
     /// If the song is stopped
-    pub fn stopped(&self) -> bool {
+    pub fn is_stopped(&self) -> bool {
         match self.state {
             TimeRef::Relative { .. } => true,
             TimeRef::Absolute { starts_at } => {
@@ -89,8 +96,8 @@ impl Current {
     }
 
     /// If the song is playing
-    pub fn playing(&self) -> bool {
-        !self.stopped()
+    pub fn is_playing(&self) -> bool {
+        !self.is_stopped()
     }
 
     /// If the song was manually paused
@@ -126,47 +133,14 @@ impl Current {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
-pub struct CurrentDto<'a> {
-    pub song: &'a Song,
-    pub player_state_id: Uuid,
-
-    /// Position in the song
-    #[serde(with = "apelle_common::iso8601::duration")]
-    pub position: Duration,
-    /// Point in time when the song should have started to reach the current
-    pub starts_at: DateTime<FixedOffset>,
-    /// If the song is stopped
-    pub stopped: bool,
-    /// If the song was manually paused
-    pub paused: bool,
-}
-
-impl Serialize for Current {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        CurrentDto::from(self).serialize(serializer)
-    }
-}
-
-impl<'a> From<&'a Current> for CurrentDto<'a> {
-    fn from(value: &'a Current) -> Self {
-        Self {
-            song: &value.song,
-            player_state_id: value.player_state_id,
-            position: value.position(),
-            starts_at: value.starts_at(),
-            stopped: value.stopped(),
-            paused: value.paused(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct QueuedSong {
-    pub song: Song,
+    /// Song that was queued
+    pub song: IdOrRep<Song>,
+    /// When the song was queued
     pub queued_at: DateTime<FixedOffset>,
+    /// Number of likes this song has
     pub likes: u16,
+    /// Number of likes this song has by the current user
+    pub user_likes: u16,
 }
