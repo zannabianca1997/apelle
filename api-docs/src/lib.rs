@@ -4,7 +4,7 @@ use std::{
     time::Duration,
 };
 
-use apelle_common::{PUBLIC_TAG, TracingClient, iter_operations, iter_operations_mut};
+use apelle_common::{PUBLIC_TAG, Reporter, TracingClient, iter_operations, iter_operations_mut};
 use axum::{
     Json, Router,
     body::Body,
@@ -138,7 +138,11 @@ async fn public(
             Ok(r) => Some(r),
             Err((service, err)) => {
                 // Don't fail if a service is down, show only the ones that are up
-                tracing::error!(service, "Error in connecting to the service: {err}");
+                tracing::error!(
+                    service,
+                    "Error in connecting to the service: {}",
+                    Reporter(err)
+                );
                 None
             }
         })
