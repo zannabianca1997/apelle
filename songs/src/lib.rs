@@ -74,13 +74,14 @@ pub async fn app(
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .routes(routes!(sources::register, sources::list))
         .routes(routes!(providers::register))
+        .routes(routes!(solved::get, solved::delete))
         .nest(
             "/public",
             OpenApiRouter::new()
                 .routes(routes!(sources::list))
                 .routes(routes!(search::search))
                 .routes(routes!(resolve::resolve))
-                .routes(routes!(solved::get, solved::delete)),
+                .routes(routes!(solved::get)),
         )
         .with_state(App {
             db,
