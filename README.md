@@ -45,8 +45,68 @@ swagger](http://localhost:8079/swagger-ui).
 
 ## Services
 
-Here is a short description of each service. See the dedicated `README.md` in
-each service directory for more details.
+This is the full graph of the services, with the dependencies between them.
+
+```mermaid
+flowchart
+    internet@{ shape: circle, label: "Extern web" }
+    gateway[Gateway<br>Nginx]
+    webui[Frontend<br>Svelte SPA]
+    migrator[Flyway<br>Java image<br>Runned once on demand]
+    api-docs["Open Api documentation<br>Rust microservice<br>Running only at build-time and dev"]
+
+    db@{ shape: cyl, label: "Postgres" }
+    cache-pubsub[Redis/Valkey<br>working both as a cache and pub-sub]
+
+    subgraph services
+        users[Users<br>Rust microservice] 
+        songs[Songs<br>Rust microservice] 
+        queues[Queues<br>Rust microservice] 
+        configs[Configs<br>Rust microservice] 
+        events[Queues events<br>Rust microservice]
+        subgraph providers[Providers]
+            songs-youtube[Youtube provider<br>Rust microservice] 
+        end
+    end
+
+    internet <--> gateway
+
+    gateway -->|/| webui
+
+    gateway -->|auth subrequest| users
+    gateway -->|/api/users| users
+
+    gateway -->|/api/songs| songs
+    songs --> providers
+    songs -->|searches cache<br>provider list| cache-pubsub
+
+
+    songs-youtube -->|www\.googleapis\.com| gateway
+    songs-youtube -->|search cache| cache-pubsub
+
+    gateway -->|/api/queues| queues
+    queues --> configs
+    queues --> songs
+    queues -->|publish events| cache-pubsub 
+    queues -->|"/api/queues/{id}/events"| events
+
+    events -->|subscribe to events| cache-pubsub
+
+    gateway -->|/api/configs| configs
+
+    services -->|store permanent data on| db
+    services -.->|collect migrations| migrator -->|applies migrations| db
+
+    gateway -->|/api-docs| api-docs
+    gateway -->|/swagger-ui| api-docs
+
+    webui -.->|bindings built from| api-docs
+
+    services -.->|collect openapi specs| api-docs
+```
+
+Following is a short description of each service. See the dedicated `README.md`
+in each service directory for more details.
 
 ## `db`
 A simple postgres instance. It is used to store all permanent data.
