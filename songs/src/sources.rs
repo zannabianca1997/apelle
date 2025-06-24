@@ -12,7 +12,19 @@ use futures::FutureExt;
 use snafu::ResultExt;
 use sqlx::{PgPool, Row, postgres::PgRow};
 
+/// Register a new source
+///
+/// This will add a new source to the ones available for solving. If the source
+/// already exists, nothing will be done, and no error will be returned.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(
+    post,
+    path = "/sources",
+    responses(
+        (status = StatusCode::NO_CONTENT, description = "Source registered"),
+        SQLError
+    )
+)]
 pub async fn register(
     State(db): State<PgPool>,
     Json(SourceRegister { urn, name }): Json<SourceRegister>,
@@ -36,7 +48,19 @@ pub async fn register(
     Ok(NoContent)
 }
 
+/// List available sources
+///
+/// Get a paginated list of sources. The sources are alphabetically ordered.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(
+    get,
+    path = "/sources",
+    responses(
+        (status = StatusCode::OK, description = "List of sources", body = Paginated<Source>),
+        SQLError
+    ),
+    params(PaginationParams)
+)]
 pub async fn list(
     State(db): State<PgPool>,
     Query(PaginationParams { page, page_size }): Query<PaginationParams>,

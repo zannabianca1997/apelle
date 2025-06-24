@@ -31,6 +31,7 @@ use apelle_songs_dtos::{
     provider::{self, SearchQueryParamsRef},
     public::{SearchQueryParams, SearchResponseItem},
 };
+use utoipa::{IntoResponses, openapi};
 
 use crate::{
     ProvidersConfig,
@@ -98,6 +99,40 @@ impl IntoResponse for SearchError {
     }
 }
 
+impl IntoResponses for SearchError {
+    fn responses() -> BTreeMap<String, utoipa::openapi::RefOr<utoipa::openapi::response::Response>>
+    {
+        [
+            (
+                StatusCode::INTERNAL_SERVER_ERROR.as_str().to_owned(),
+                openapi::RefOr::T(openapi::Response::new("Internal Server Error")),
+            ),
+            (
+                StatusCode::BAD_REQUEST.as_str().to_owned(),
+                openapi::RefOr::T(openapi::Response::new(
+                    "Bad page token: either invalid, not from this search, or expired",
+                )),
+            ),
+            (
+                StatusCode::BAD_GATEWAY.as_str().to_owned(),
+                openapi::RefOr::T(openapi::Response::new(
+                    "Error in connectiong to the providers",
+                )),
+            ),
+            (
+                StatusCode::NOT_FOUND.as_str().to_owned(),
+                openapi::RefOr::T(openapi::Response::new(
+                    "One of the requested sources was not found",
+                )),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .chain(CacheError::responses())
+        .collect()
+    }
+}
+
 mod cursor;
 use cursor::Cursor;
 
@@ -108,7 +143,36 @@ struct SearchState {
     rng: Xoshiro256PlusPlus,
 }
 
+/// Search for songs
+///
+/// Search for songs based on a query. The query will be normalized by
+/// lowercasing it, removing all the non-alphanumeric characters, and
+/// normalizing all spaces with a single space.
+///
+/// If songs from only one source is wanted, the `source` query parameter can be
+/// used. It can be repeated to generate an aggregated query. If omitted, all
+/// available sources will be used.
+///
+/// The order of the songs from a single source is kept. Different sources are
+/// randomly mixed, but in a way that depends only from the set of sources
+/// choosen and the query.
+///
+/// The songs are paginated. The cursor is an opaque string. The duration of
+/// validity of the cursor depends on the specific providers. In case it
+/// expires, a `400 Bad Request` is returned.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(
+    get,
+    path = "/search",
+    responses(
+        (status = StatusCode::OK, description = "Search results", body = Paginated<SearchResponseItem, Cursor>),
+        SearchError
+    ),
+    params(
+        SearchQueryParams,
+        PaginationParams<Cursor>
+    )
+)]
 pub async fn search(
     State(mut cache): State<ConnectionManager>,
     State(db): State<PgPool>,

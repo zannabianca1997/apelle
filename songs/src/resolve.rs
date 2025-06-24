@@ -19,6 +19,7 @@ use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
 use textwrap_macros::unfill;
 use url::Url;
+use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{
@@ -73,7 +74,44 @@ impl IntoResponse for ResolveSongError {
     }
 }
 
+impl IntoResponses for ResolveSongError {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [
+            (
+                StatusCode::BAD_GATEWAY.as_str().to_string(),
+                openapi::Response::new("Error in connecting to provider").into(),
+            ),
+            (
+                "4xx".to_string(),
+                openapi::Response::new("Other errors streamed from the provider").into(),
+            ),
+        ]
+        .into_iter()
+        .chain(SQLError::responses())
+        .chain(CacheError::responses())
+        .collect()
+    }
+}
+
+/// Resolve a song
+///
+/// This will create a new song in the database. The body of the request must
+/// come from the `state.resolve` field of a search response.
+///
+/// If successful, the client will be redirected to the created song. Ignoring
+/// the redirect is fine and will result in less requests.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(
+    post,
+    path = "/resolve",
+    responses((
+        status = StatusCode::SEE_OTHER,
+        description = "Song resolved"
+    ), ResolveSongError)
+)]
 pub async fn resolve(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,

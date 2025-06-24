@@ -3,10 +3,11 @@ use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
 use url::Url;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 /// Register himself as a provider
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct ProviderRegistration {
     /// URN of the source this provider can answer for
     pub source_urn: String,
@@ -35,7 +36,7 @@ pub struct ProviderRegistrationRef<'a> {
     pub fast_handshake: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(tag = "error")]
 pub enum ProviderRegistrationError {
     /// Registration failed as `songs` does not know the source provided

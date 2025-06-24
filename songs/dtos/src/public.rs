@@ -3,9 +3,10 @@ use std::collections::HashSet;
 use chrono::{DateTime, Duration, offset::FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct Song {
     /// Unique id of the song
     pub id: Uuid,
@@ -26,20 +27,22 @@ pub struct Song {
     /// data. They are provided on-demand
     /// as they require querying the source service
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(value_type = Object, nullable, required = false)]
     pub source_data: Option<Value>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct ResolveSongRequest {
     /// URN of the song source
     pub source_urn: String,
     /// Data that the user used to define the song
     ///
     /// e.g. the video id for youtube
+    #[schema(value_type = Object)]
     pub data: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, IntoParams)]
 pub struct SearchQueryParams {
     /// Search query
     #[serde(rename = "q")]
@@ -48,28 +51,33 @@ pub struct SearchQueryParams {
     ///
     /// Empty to use all sources
     #[serde(default, rename = "source")]
+    #[into_params(explode)]
     pub sources: HashSet<String>,
 }
 
 /// How to resolve this search item
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, ToSchema)]
 #[serde(tag = "state")]
 pub enum SearchResponseItemState<R = Value> {
     /// Need to be resolved
-    New { resolve: R },
+    New {
+        #[schema(value_type = Object)]
+        resolve: R,
+    },
     /// Is a known song
     Known { id: Uuid },
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, ToSchema)]
 pub struct SearchResponseItem<D = Value, R = Value> {
     /// Source that provided this search result
     pub source: String,
     /// Data to pass the frontend describing the song
+    #[schema(value_type = Object)]
     pub details: D,
     /// Data to pass the service to resolve the song
     pub state: SearchResponseItemState<R>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, ToSchema)]
 pub struct UnknownSources(pub Vec<String>);

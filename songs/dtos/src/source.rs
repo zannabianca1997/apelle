@@ -2,12 +2,13 @@
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 /// Create a new source
 ///
 /// This is sent from source providers to the songs service
 /// to signal that a new source is available
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct SourceRegister {
     pub urn: String,
     pub name: String,
@@ -23,7 +24,7 @@ pub struct SourceRegisterRef<'a> {
 }
 
 /// Information about a source registered in the database
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct Source {
     pub urn: String,
     pub name: String,

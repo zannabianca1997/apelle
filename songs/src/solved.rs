@@ -8,6 +8,10 @@ use axum::{
     extract::{Path, Query, State},
     response::{IntoResponse, NoContent},
 };
+use axum_extra::{
+    TypedHeader,
+    headers::{CacheControl, Header as _},
+};
 use chrono::Duration;
 use futures::TryFutureExt;
 use redis::aio::ConnectionManager;
@@ -16,6 +20,7 @@ use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use textwrap_macros::unfill;
+use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{
@@ -54,17 +59,46 @@ impl IntoResponse for Error {
     }
 }
 
+impl IntoResponses for Error {
+    fn responses() -> std::collections::BTreeMap<
+        String,
+        utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
+    > {
+        [(
+            StatusCode::BAD_GATEWAY.as_str().to_string(),
+            openapi::Response::new("Error returned from provider").into(),
+        )]
+        .into_iter()
+        .chain(SQLError::responses())
+        .chain(CacheError::responses())
+        .collect()
+    }
+}
+
 fn default_true() -> bool {
     true
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct GetQueryParams {
     #[serde(default = "default_true")]
+    /// Include the data from the song source
     source_data: bool,
 }
 
+/// Get song data
+///
+/// Get the data of a song that was previously resolved. If `source_data` is set
+/// to `true`, the data from the song source will be included (like thumbnails
+/// and url).
 #[debug_handler(state=crate::App)]
+#[utoipa::path(get, path = "/solved/{id}", 
+    responses(
+        (status = StatusCode::OK, description = "Song data", content_type = "application/json", body = Song), 
+        Error
+    ),
+    params(GetQueryParams),
+)]
 pub async fn get(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,
@@ -72,7 +106,7 @@ pub async fn get(
     client: TracingClient,
     Path(id): Path<Uuid>,
     Query(GetQueryParams { source_data }): Query<GetQueryParams>,
-) -> Result<Json<Song>, Error> {
+) -> Result<(TypedHeader<CacheControl>, Json<Song>), Error> {
     tracing::debug!(%id, "Getting song data");
 
     let (title, duration, added_by, created, source_urn): (_, i32, _, _, String) =
@@ -90,17 +124,36 @@ pub async fn get(
         .context(SQLSnafu)?
         .ok_or(Error::NotFound)?;
 
+    // The song data in the database won't be updated
+    let mut cache_control = CacheControl::new()
+        .with_immutable()
+        .with_max_age(std::time::Duration::from_secs(31536000));
+
     let source_data = if source_data {
         let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
 
-        let response = client
+        let (response_cache, response) = client
             .get(solved_endpoint(&provider, id))
             .send()
-            .and_then(async |r| r.error_for_status()?.json().await)
+            .and_then(async |r| {
+                let r = r.error_for_status()?;
+
+                let cache_control =
+                    CacheControl::decode(&mut r.headers().get_all(CacheControl::name()).iter())
+                        .unwrap_or(cache_control);
+
+                let content = r.json().await?;
+
+                Ok((cache_control, content))
+            })
             .await
             .with_context(|_| BadGatewaySnafu {
                 provider: provider.to_string(),
             })?;
+
+        // Using the cache control header of the response, as it is surely more
+        // restrictive
+        cache_control = response_cache;
 
         // Marking that we seen the source
         seen_sources.seen_urn(source_urn).await;
@@ -110,17 +163,30 @@ pub async fn get(
         None
     };
 
-    Ok(Json(Song {
-        id,
-        title,
-        duration: Duration::seconds(duration as _),
-        added_by,
-        created,
-        source_data,
-    }))
+    Ok((
+        TypedHeader(cache_control),
+        Json(Song {
+            id,
+            title,
+            duration: Duration::seconds(duration as _),
+            added_by,
+            created,
+            source_data,
+        }),
+    ))
 }
 
+/// Delete a song
+///
+/// This will delete the song from the database and ask the provider to delete
+/// the song.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(delete, path = "/solved/{id}", 
+    responses(
+        (status = StatusCode::NO_CONTENT, description = "Song deleted"),
+        Error
+    )
+)]
 pub async fn delete(
     State(db): State<PgPool>,
     State(mut cache): State<ConnectionManager>,

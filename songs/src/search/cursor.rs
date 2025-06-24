@@ -1,6 +1,7 @@
 use base64::Engine as _;
 use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize, de::Error as _, ser::Error as _};
+use utoipa::ToSchema;
 
 #[derive(Debug, Clone, Encode, Decode, Copy)]
 pub struct Cursor {
@@ -42,5 +43,24 @@ impl<'de> Deserialize<'de> for Cursor {
         )
         .map_err(|e| D::Error::custom(e.to_string()))?
         .0)
+    }
+}
+
+impl ToSchema for Cursor {
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        String::schemas(schemas);
+    }
+}
+
+impl utoipa::__dev::ComposeSchema for Cursor {
+    fn compose(
+        new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        String::compose(new_generics)
     }
 }

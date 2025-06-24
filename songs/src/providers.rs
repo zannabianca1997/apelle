@@ -76,7 +76,21 @@ impl IntoResponse for ProviderRegistrationError {
     }
 }
 
+/// Register a new provider
+///
+/// This will register a new provider for the specific song. The sources must be
+/// already registered.
+///
+/// If `fast_handshake` is false, the provider must be already running as it
+/// will be checked.
 #[debug_handler(state=crate::App)]
+#[utoipa::path(
+    post,
+    path = "/providers",
+    responses(
+        (status = StatusCode::NO_CONTENT, description = "Provider registered")
+    )
+)]
 pub async fn register(
     State(db): State<PgPool>,
     client: TracingClient,

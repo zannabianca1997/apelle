@@ -1,15 +1,13 @@
 use apelle_common::cache_pubsub;
-use axum::{
-    extract::FromRef,
-    routing::{get, post},
-};
+use axum::extract::FromRef;
 use chrono::Duration;
 use config::Config;
 use futures::FutureExt;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use tracing::{Instrument, info_span};
-use utoipa_axum::router::OpenApiRouter;
+use utoipa::OpenApi;
+use utoipa_axum::{router::OpenApiRouter, routes};
 
 const CACHE_NAMESPACE: &str = "apelle:songs:";
 
@@ -44,6 +42,9 @@ pub struct ProvidersConfig {
     pub cache_expiration: Duration,
 }
 
+#[derive(OpenApi)]
+pub struct AppApi;
+
 pub async fn app(
     Config {
         db_url,
@@ -70,16 +71,16 @@ pub async fn app(
     let seen_sources =
         seen_sources::SeenSourcesWorker::new(db.clone(), seen_sources_queue_size).await;
 
-    Ok(OpenApiRouter::new()
-        .route("/sources", get(sources::list).post(sources::register))
-        .route("/providers", post(providers::register))
+    Ok(OpenApiRouter::with_openapi(AppApi::openapi())
+        .routes(routes!(sources::register, sources::list))
+        .routes(routes!(providers::register))
         .nest(
             "/public",
             OpenApiRouter::new()
-                .route("/sources", get(sources::list))
-                .route("/search", get(search::search))
-                .route("/resolve", post(resolve::resolve))
-                .route("/solved/{id}", get(solved::get).delete(solved::delete)),
+                .routes(routes!(sources::list))
+                .routes(routes!(search::search))
+                .routes(routes!(resolve::resolve))
+                .routes(routes!(solved::get, solved::delete)),
         )
         .with_state(App {
             db,
