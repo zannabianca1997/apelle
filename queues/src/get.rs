@@ -167,7 +167,12 @@ pub async fn get(
             updated,
         )| async move {
             let current_song = OptionFuture::from(Option::map(current_song, |current: Uuid| {
-                solve_song(current_client, current_services, id, return_songs_source)
+                solve_song(
+                    current_client,
+                    current_services,
+                    current,
+                    return_songs_source,
+                )
             }))
             .await
             .transpose()?;
@@ -260,7 +265,7 @@ pub async fn get(
                 stream::once(Box::pin(async move {
                     let mut r = r?;
                     let (_, QueuedSong { song, .. }) = &mut r;
-                    song.or_try_extract_inplace(|current| {
+                    song.or_try_extract_inplace(|id| {
                         solve_song(client, services, id, return_songs_source)
                     })
                     .await?;

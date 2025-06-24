@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use apelle_common::{
     AuthHeaders,
     common_errors::{SQLError, SQLSnafu},
@@ -14,15 +12,12 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, NoContent},
 };
-use futures::FutureExt;
 use snafu::{OptionExt, ResultExt, Snafu};
-use sqlx::{PgPool, Row as _};
-use textwrap_macros::unfill;
+use sqlx::PgPool;
 use utoipa::IntoResponses;
-use uuid::Uuid;
 
 use crate::{
-    create::{self, check_name},
+    create::check_name,
     dtos::{UserDto, UserUpdateDto},
 };
 
