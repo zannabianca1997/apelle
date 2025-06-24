@@ -16,11 +16,10 @@ use chrono::Duration;
 use futures::TryFutureExt;
 use redis::aio::ConnectionManager;
 use reqwest::StatusCode;
-use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu};
 use sqlx::PgPool;
 use textwrap_macros::unfill;
-use utoipa::{IntoParams, IntoResponses, openapi};
+use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{
