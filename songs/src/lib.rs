@@ -1,4 +1,7 @@
-use apelle_common::cache_pubsub;
+use apelle_common::{
+    cache_pubsub,
+    db::{SqlState, db_state_and_layer},
+};
 use axum::extract::FromRef;
 use chrono::Duration;
 use config::Config;
@@ -29,11 +32,17 @@ pub enum MainError {
 
 #[derive(Clone, FromRef)]
 pub struct App {
-    db: PgPool,
+    db: SqlState,
     cache: redis::aio::ConnectionManager,
     client: reqwest::Client,
     providers_config: ProvidersConfig,
     seen_sources: seen_sources::SeenSourcesWorker,
+}
+
+impl FromRef<App> for PgPool {
+    fn from_ref(input: &App) -> Self {
+        PgPool::from_ref(&input.db)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -56,7 +65,7 @@ pub async fn app(
 ) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database and cache");
 
-    let db = PgPool::connect(db_url.as_str())
+    let db = db_state_and_layer(db_url)
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
@@ -64,12 +73,12 @@ pub async fn app(
         .map(|r| r.context(CacheConnectionSnafu))
         .instrument(info_span!("Connecting to cache"));
 
-    let (db, cache) = tokio::try_join!(db, cache)?;
+    let ((db, tx_layer), cache) = tokio::try_join!(db, cache)?;
 
     let client = reqwest::Client::new();
 
     let seen_sources =
-        seen_sources::SeenSourcesWorker::new(db.clone(), seen_sources_queue_size).await;
+        seen_sources::SeenSourcesWorker::new(PgPool::from_ref(&db), seen_sources_queue_size).await;
 
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .routes(routes!(sources::register, sources::list))
@@ -83,6 +92,7 @@ pub async fn app(
                 .routes(routes!(resolve::resolve))
                 .routes(routes!(solved::get)),
         )
+        .route_layer(tx_layer)
         .with_state(App {
             db,
             client,

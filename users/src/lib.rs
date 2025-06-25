@@ -1,3 +1,4 @@
+use apelle_common::db::{SqlState, db_state_and_layer};
 use argon2::Argon2;
 use axum::extract::FromRef;
 use config::Config;
@@ -17,7 +18,7 @@ mod me;
 
 #[derive(Debug, Clone, FromRef)]
 pub struct App {
-    db: PgPool,
+    db: SqlState,
     password_hasher: Argon2<'static>,
     login_sender: Sender<Uuid>,
 }
@@ -39,9 +40,7 @@ pub async fn app(
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database");
-    let db = PgPool::connect(db_url.as_str())
-        .await
-        .context(ConnectionSnafu)?;
+    let (db, tx_layer) = db_state_and_layer(db_url).await.context(ConnectionSnafu)?;
 
     let password_hasher = Argon2::default();
 
@@ -49,7 +48,7 @@ pub async fn app(
 
     tokio::spawn(auth::login_updater(
         login_receiver,
-        db.clone(),
+        PgPool::from_ref(&db),
         login_queue_size,
     ));
 
@@ -61,6 +60,7 @@ pub async fn app(
                 .routes(routes!(me::get, me::patch, me::delete)),
         )
         .routes(routes!(auth::get))
+        .route_layer(tx_layer)
         .with_state(App {
             db,
             password_hasher,

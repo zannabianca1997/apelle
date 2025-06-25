@@ -1,9 +1,7 @@
 use std::{collections::HashMap, future::ready, ops::Add, sync::Arc};
 
 use apelle_common::{
-    AuthHeaders, Reporter, ServicesClient,
-    common_errors::{SQLError, SQLSnafu},
-    id_or_rep::IdOrRep,
+    AuthHeaders, Reporter, ServicesClient, db::SqlError, db::SqlTx, id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::QueueConfig;
 use axum::{
@@ -15,8 +13,8 @@ use chrono::{DateTime, FixedOffset};
 use futures::{FutureExt, TryFutureExt};
 use rand::{Rng, SeedableRng, rngs::SmallRng};
 use reqwest::StatusCode;
-use snafu::{ResultExt as _, Snafu};
-use sqlx::{PgConnection, PgPool};
+use snafu::Snafu;
+use sqlx::PgConnection;
 use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
 
@@ -31,7 +29,7 @@ use crate::{
 pub enum CreateError {
     #[snafu(transparent)]
     SqlError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     ConnectionError {
@@ -71,7 +69,7 @@ impl IntoResponses for CreateError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -101,7 +99,7 @@ pub struct CreatePathParams {
 /// If the config is not provided, a the default config will be used.
 /// If no code is provided, a random code will be generated.
 pub async fn create(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     State(code_config): State<Arc<CodeConfig>>,
@@ -112,7 +110,6 @@ pub async fn create(
     Json(QueueCreate { code, config }): Json<QueueCreate>,
 ) -> Result<(StatusCode, Json<Queue>), CreateError> {
     let Services { configs_url, .. } = &*services;
-    let mut tx = db.begin().await.context(SQLSnafu)?;
 
     let code = code
         .map(|c| ready(Ok(c)).left_future())
@@ -157,20 +154,18 @@ pub async fn create(
         )
         .bind(&code)
         .bind(config.id)
-        .fetch_one(&mut *tx)
+        .fetch_one(&mut tx)
         .await
-        .context(SQLSnafu)?;
+        .map_err(SqlError::from)?;
 
     // Create the queue user
     sqlx::query("INSERT INTO queue_user (queue_id, user_id, role_id) VALUES ($1, $2, $3)")
         .bind(id)
         .bind(user.id())
         .bind(config.roles[&config.creator_role].id)
-        .execute(&mut *tx)
+        .execute(&mut tx)
         .await
-        .context(SQLSnafu)?;
-
-    tx.commit().await.context(SQLSnafu)?;
+        .map_err(SqlError::from)?;
 
     Ok((
         StatusCode::CREATED,
@@ -190,13 +185,12 @@ pub async fn create(
     ))
 }
 
-async fn gen_queue_code(db: &mut PgConnection, config: &CodeConfig) -> Result<String, SQLError> {
+async fn gen_queue_code(db: &mut PgConnection, config: &CodeConfig) -> Result<String, SqlError> {
     tracing::debug!("Generating queue code");
 
     let count: u64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM queue")
         .fetch_one(&mut *db)
-        .await
-        .context(SQLSnafu)? as _;
+        .await? as _;
 
     let mut rng = SmallRng::from_os_rng();
     let mut bits = count.add(1).ilog2().add(1).max(config.min_bits);
@@ -222,8 +216,7 @@ async fn gen_queue_code(db: &mut PgConnection, config: &CodeConfig) -> Result<St
         if sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM queue WHERE code = $1")
             .bind(&code)
             .fetch_one(&mut *db)
-            .await
-            .context(SQLSnafu)?
+            .await?
             == 0
         {
             return Ok(code);

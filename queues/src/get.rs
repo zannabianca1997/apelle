@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
     id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserActionQueue};
@@ -13,12 +13,10 @@ use axum::{
     response::IntoResponse,
 };
 use chrono::Duration;
-use futures::{
-    FutureExt, StreamExt, TryFutureExt, TryStreamExt as _, future::OptionFuture, stream,
-};
+use futures::{StreamExt, TryStreamExt as _, future::OptionFuture, stream};
 use reqwest::StatusCode;
-use snafu::{ResultExt as _, Snafu};
-use sqlx::{PgPool, Row as _};
+use snafu::Snafu;
+use sqlx::Row as _;
 use textwrap_macros::unfill;
 use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
@@ -33,7 +31,7 @@ use crate::{
 pub enum GetError {
     #[snafu(transparent)]
     SqlError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     BadGateway {
@@ -77,7 +75,7 @@ impl IntoResponses for GetError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -122,7 +120,7 @@ async fn solve_song(
     params(GetQueryParams, QueuePathParams)
 )]
 pub async fn get(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
@@ -141,23 +139,8 @@ pub async fn get(
     let current_client = client.clone();
     let current_services = services.clone();
 
-    let queue = sqlx::query_as(
-        unfill!(
-            "
-            SELECT 
-                code, 
-                current_song, current_song_position, current_song_start_at, player_state_id, 
-                created, updated 
-            FROM queue WHERE id = $1
-            "
-        )
-        .trim_ascii(),
-    )
-    .bind(id)
-    .fetch_one(&db)
-    .map(|r| r.context(SQLSnafu).map_err(GetError::from))
-    .and_then(
-        |(
+    let (code, current, created, updated) = {
+        let (
             code,
             current_song,
             current_song_position,
@@ -165,38 +148,53 @@ pub async fn get(
             player_state_id,
             created,
             updated,
-        )| async move {
-            let current_song = OptionFuture::from(Option::map(current_song, |current: Uuid| {
-                solve_song(
-                    current_client,
-                    current_services,
-                    current,
-                    return_songs_source,
-                )
-            }))
-            .await
-            .transpose()?;
+        ) = sqlx::query_as(
+            unfill!(
+                "
+            SELECT 
+                code, 
+                current_song, current_song_position, current_song_start_at, player_state_id, 
+                created, updated 
+            FROM queue WHERE id = $1
+            "
+            )
+            .trim_ascii(),
+        )
+        .bind(id)
+        .fetch_one(&mut tx)
+        .await
+        .map_err(SqlError::from)?;
 
-            let current_song_position = Option::map(current_song_position, Duration::seconds);
+        let current_song = OptionFuture::from(Option::map(current_song, |current: Uuid| {
+            solve_song(
+                current_client,
+                current_services,
+                current,
+                return_songs_source,
+            )
+        }))
+        .await
+        .transpose()?;
 
-            let current = match (current_song, current_song_position, current_song_start_at) {
-                (Some(song), Some(position), None) => {
-                    Some(Current::stopped(song, player_state_id, position))
-                }
-                (Some(song), None, Some(starts_at)) => {
-                    Some(Current::playing(song, player_state_id, starts_at))
-                }
-                (None, None, None) => None,
-                _ => panic!(
-                    "Invalid database state: the check on the table should have avoided this state"
-                ),
-            };
+        let current_song_position = Option::map(current_song_position, Duration::seconds);
 
-            Ok((code, current, created, updated))
-        },
-    );
+        let current = match (current_song, current_song_position, current_song_start_at) {
+            (Some(song), Some(position), None) => {
+                Some(Current::stopped(song, player_state_id, position))
+            }
+            (Some(song), None, Some(starts_at)) => {
+                Some(Current::playing(song, player_state_id, starts_at))
+            }
+            (None, None, None) => None,
+            _ => panic!(
+                "Invalid database state: the check on the table should have avoided this state"
+            ),
+        };
 
-    let songs = sqlx::query(
+        (code, current, created, updated)
+    };
+
+    let queue = sqlx::query(
         unfill!(
             "
             SELECT
@@ -254,11 +252,11 @@ pub async fn get(
             },
         )
     })
-    .fetch(&db)
-    .map(|r| r.context(SQLSnafu).map_err(GetError::from));
+    .fetch(&mut tx)
+    .map(|r| r.map_err(SqlError::from).map_err(GetError::from));
 
-    let songs = if return_songs {
-        songs
+    let queue = if return_songs {
+        queue
             .map(|r| {
                 let client = client.clone();
                 let services = services.clone();
@@ -269,17 +267,15 @@ pub async fn get(
                         solve_song(client, services, id, return_songs_source)
                     })
                     .await?;
-                    Ok(r)
+                    Ok::<_, GetError>(r)
                 }))
             })
             .flatten_unordered(None)
             .try_collect()
-            .left_future()
+            .await?
     } else {
-        songs.try_collect().right_future()
+        queue.try_collect().await?
     };
-
-    let ((code, current, created, updated), queue) = tokio::try_join!(queue, songs)?;
 
     Ok(Json(Queue {
         id,

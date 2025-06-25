@@ -5,7 +5,7 @@ use std::{
 
 use apelle_common::{
     AuthHeaders, Reporter,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use argon2::{
     Argon2, PasswordVerifier as _,
@@ -22,7 +22,7 @@ use axum_extra::{
     headers::{Authorization, authorization::Basic},
     typed_header::TypedHeaderRejection,
 };
-use futures::{FutureExt, TryStreamExt};
+use futures::TryStreamExt;
 use route_recognizer::Router;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
@@ -124,7 +124,7 @@ type AuthExtractor = TypedHeader<Authorization<Basic>>;
 pub enum AuthError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     UsernameNotFound,
     BadDatabasePasswordHash {
@@ -198,7 +198,7 @@ impl IntoResponses for AuthError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -217,7 +217,7 @@ impl IntoResponses for AuthError {
 /// Otherwise, it will return a 204, and decorate the response with the auth headers
 /// representing the user data
 pub async fn get(
-    State(db): State<PgPool>,
+    tx: SqlTx,
     State(password_hasher): State<Argon2<'static>>,
     State(login_sender): State<tokio::sync::mpsc::Sender<Uuid>>,
     OriginHeaders { uri, method }: OriginHeaders,
@@ -232,7 +232,7 @@ pub async fn get(
         // Auth is required and was provided
         // Authenticating
         (EndpointAuthConfig::Authenticated { needed_roles }, Ok(auth)) => {
-            let auth = authenticate(db, password_hasher, login_sender, auth, needed_roles).await?;
+            let auth = authenticate(tx, password_hasher, login_sender, auth, needed_roles).await?;
             Ok((Some(auth), NoContent))
         }
         // Auth is required but was not provided
@@ -241,7 +241,7 @@ pub async fn get(
         // Auth is not required but was provided
         // Trying to authenticate, but not failing if they are invalid
         (EndpointAuthConfig::Unauthenticated, Ok(auth)) => {
-            let auth = authenticate(db, password_hasher, login_sender, auth, &[])
+            let auth = authenticate(tx, password_hasher, login_sender, auth, &[])
                 .await
                 .ok();
             Ok((auth, NoContent))
@@ -253,7 +253,7 @@ pub async fn get(
 }
 
 async fn authenticate(
-    db: PgPool,
+    mut tx: SqlTx,
     password_hasher: Argon2<'static>,
     login_sender: tokio::sync::mpsc::Sender<Uuid>,
     auth: AuthExtractor,
@@ -262,40 +262,36 @@ async fn authenticate(
     let TypedHeader(auth) = auth;
 
     // Auth workflow
-    let id = async {
-        let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
-            .bind(auth.username())
-            .fetch_optional(&db)
-            .await
-            .context(SQLSnafu)?
-            .context(UsernameNotFoundSnafu)?;
+    let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
+        .bind(auth.username())
+        .fetch_optional(&mut tx)
+        .await
+        .map_err(SqlError::from)?
+        .context(UsernameNotFoundSnafu)?;
 
-        let password_hash =
-            password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
+    let password_hash =
+        password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
 
-        password_hasher
-            .verify_password(auth.password().as_bytes(), &password_hash)
-            .context(BadPasswordSnafu)?;
+    password_hasher
+        .verify_password(auth.password().as_bytes(), &password_hash)
+        .context(BadPasswordSnafu)?;
 
-        // Passed!
+    // Passed!
 
-        let id = row.get(0);
-        tracing::info!(%id, "User logged in");
-        login_sender.try_send(id).unwrap_or_else(|err| match err {
-            tokio::sync::mpsc::error::TrySendError::Full(id) => {
-                tracing::warn!(%id ,"Login queue is full, last login may become inaccurate");
-            }
-            tokio::sync::mpsc::error::TrySendError::Closed(id) => {
-                // This is more severe, as the worker should never stop
-                tracing::error!(%id, "Login queue is closed, id discarded");
-            }
-        });
-
-        Ok(id)
-    };
+    let id = row.get(0);
+    tracing::info!(%id, "User logged in");
+    login_sender.try_send(id).unwrap_or_else(|err| match err {
+        tokio::sync::mpsc::error::TrySendError::Full(id) => {
+            tracing::warn!(%id ,"Login queue is full, last login may become inaccurate");
+        }
+        tokio::sync::mpsc::error::TrySendError::Closed(id) => {
+            // This is more severe, as the worker should never stop
+            tracing::error!(%id, "Login queue is closed, id discarded");
+        }
+    });
 
     // Fetching the roles
-    let roles = sqlx::query_scalar::<_, String>(
+    let roles: HashSet<_> = sqlx::query_scalar::<_, String>(
         unfill!(
             "
                 SELECT gr.name 
@@ -308,35 +304,21 @@ async fn authenticate(
         .trim_ascii(),
     )
     .bind(auth.username())
-    .fetch(&db)
+    .fetch(&mut tx)
     .try_collect()
-    .map(|r| {
-        let r: HashSet<String> = r.context(SQLSnafu)?;
+    .await
+    .map_err(SqlError::from)?;
 
-        for role in needed_roles {
-            if !r.contains(*role) {
-                tracing::debug!(
-                    role,
-                    user = auth.username(),
-                    "User does not have the needed role"
-                );
-                return Err(AuthError::Forbidden);
-            }
+    for role in needed_roles {
+        if !roles.contains(*role) {
+            tracing::debug!(
+                role,
+                user = auth.username(),
+                "User does not have the needed role"
+            );
+            return Err(AuthError::Forbidden);
         }
-
-        Ok(r)
-    })
-    .map(|r| match r {
-        Ok(r) => Ok(Ok(r)),
-        Err(AuthError::Forbidden) => Err(AuthError::Forbidden),
-        Err(e) => Ok(Err(e)),
-    });
-
-    // Joining, failing fast on auth errors (bad password, or missing roles)
-    let (id, roles) = tokio::try_join!(id, roles)?;
-
-    // Failing later on database errors (we want the 401, not the 500 in that case)
-    let roles = roles?;
+    }
 
     AuthHeaders::new(id, auth.username(), &roles).context(BadDatabaseNameOrRolesSnafu)
 }

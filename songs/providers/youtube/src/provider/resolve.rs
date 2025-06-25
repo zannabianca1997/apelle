@@ -2,7 +2,7 @@ use std::{num::TryFromIntError, sync::Arc};
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use apelle_songs_dtos::provider::{ResolveQueryParams, ResolveResponse};
 use axum::{
@@ -15,7 +15,7 @@ use futures::{FutureExt, TryFutureExt, future::OptionFuture};
 use reqwest::{Response, StatusCode};
 use serde::Serialize;
 use snafu::{ResultExt as _, Snafu};
-use sqlx::{PgPool, query_scalar};
+use sqlx::query_scalar;
 use url::Url;
 
 use super::dtos::{
@@ -35,7 +35,7 @@ struct YoutubeQueryParams<'a> {
 pub enum ResolveError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     RequestError {
@@ -84,7 +84,7 @@ impl IntoResponse for ResolveError {
 
 #[debug_handler(state=crate::App)]
 pub async fn resolve(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(youtube_api): State<Arc<YoutubeApi>>,
     client: ServicesClient,
     Query(ResolveQueryParams { public }): Query<ResolveQueryParams>,
@@ -93,9 +93,9 @@ pub async fn resolve(
     // Checking if the song is already registered
     let know_id = query_scalar("SELECT id FROM youtube_song WHERE video_id = $1")
         .bind(&video_id)
-        .fetch_optional(&db)
+        .fetch_optional(&mut tx)
         .await
-        .context(SQLSnafu)?;
+        .map_err(SqlError::from)?;
 
     if let Some(id) = know_id {
         tracing::info!(%id, video_id, "Song already registered");
@@ -105,9 +105,9 @@ pub async fn resolve(
                 "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
             )
             .bind(id)
-            .fetch_all(&db)
+            .fetch_all(&mut tx)
             .await
-            .context(SQLSnafu)?
+            .map_err(SqlError::from)?
             .into_iter()
             .map(|(height, width, url): (i32, i32, String)| {
                 Ok::<_, ResolveError>(dtos::Thumbnail {

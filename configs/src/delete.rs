@@ -1,12 +1,11 @@
-use apelle_common::common_errors::{SQLError, SQLSnafu};
+use apelle_common::db::{SqlError, SqlTx};
 use axum::{
     debug_handler,
-    extract::{Path, State},
+    extract::Path,
     http::StatusCode,
     response::{IntoResponse, NoContent},
 };
-use snafu::{ResultExt as _, Snafu};
-use sqlx::PgPool;
+use snafu::Snafu;
 use utoipa::{
     IntoResponses,
     openapi::{self, RefOr},
@@ -17,7 +16,7 @@ use uuid::Uuid;
 pub enum DeleteError {
     #[snafu(transparent)]
     SqlError {
-        source: SQLError,
+        source: SqlError,
     },
     NotFound,
     CannotDeleteDefaultConfig,
@@ -51,7 +50,7 @@ impl IntoResponses for DeleteError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -59,20 +58,15 @@ impl IntoResponses for DeleteError {
 #[debug_handler(state=crate::App)]
 #[utoipa::path(delete, path = "/queues/{id}", responses((status = StatusCode::OK, description = "Queue config deleted"), DeleteError))]
 /// Delete a queue config
-///
-///
-pub async fn delete(
-    Path(id): Path<Uuid>,
-    State(db): State<PgPool>,
-) -> Result<NoContent, DeleteError> {
+pub async fn delete(Path(id): Path<Uuid>, mut tx: SqlTx) -> Result<NoContent, DeleteError> {
     if id.is_nil() {
         return Err(DeleteError::CannotDeleteDefaultConfig);
     }
     let rows = sqlx::query("DELETE FROM queue_config WHERE id = $1")
         .bind(id)
-        .execute(&db)
+        .execute(&mut tx)
         .await
-        .context(SQLSnafu)?
+        .map_err(SqlError::from)?
         .rows_affected();
     if rows == 0 {
         return Err(DeleteError::NotFound);

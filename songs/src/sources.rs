@@ -1,16 +1,10 @@
 use apelle_common::{
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
     paginated::{PageInfo, Paginated, PaginationParams},
 };
 use apelle_songs_dtos::source::{Source, SourceRegister};
-use axum::{
-    Json, debug_handler,
-    extract::{Query, State},
-    response::NoContent,
-};
-use futures::FutureExt;
-use snafu::ResultExt;
-use sqlx::{PgPool, Row, postgres::PgRow};
+use axum::{Json, debug_handler, extract::Query, response::NoContent};
+use sqlx::{Row, postgres::PgRow};
 
 /// Register a new source
 ///
@@ -22,21 +16,20 @@ use sqlx::{PgPool, Row, postgres::PgRow};
     path = "/sources",
     responses(
         (status = StatusCode::NO_CONTENT, description = "Source registered"),
-        SQLError
+        SqlError
     )
 )]
 pub async fn register(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     Json(SourceRegister { urn, name }): Json<SourceRegister>,
-) -> Result<NoContent, SQLError> {
+) -> Result<NoContent, SqlError> {
     tracing::info!(urn, name, "Registering source");
 
     let rows = sqlx::query("INSERT INTO source (urn, name) VALUES ($1, $2) ON CONFLICT DO NOTHING")
         .bind(&urn)
         .bind(&name)
-        .execute(&db)
-        .await
-        .context(SQLSnafu)?
+        .execute(&mut tx)
+        .await?
         .rows_affected();
 
     if rows == 0 {
@@ -57,14 +50,14 @@ pub async fn register(
     path = "/sources",
     responses(
         (status = StatusCode::OK, description = "List of sources", body = Paginated<Source>),
-        SQLError
+        SqlError
     ),
     params(PaginationParams)
 )]
 pub async fn list(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     Query(PaginationParams { page, page_size }): Query<PaginationParams>,
-) -> Result<Json<Paginated<Source>>, SQLError> {
+) -> Result<Json<Paginated<Source>>, SqlError> {
     let page = page.unwrap_or(0);
 
     // Using LIMIT OFFSET, as there are few sources (probably less than a single
@@ -80,14 +73,12 @@ pub async fn list(
         created: row.get(2),
         last_heard: row.get(3),
     })
-    .fetch_all(&db)
-    .map(|r| r.context(SQLSnafu));
+    .fetch_all(&mut tx)
+    .await?;
 
-    let total = sqlx::query_scalar("SELECT COUNT(*) FROM source")
-        .fetch_one(&db)
-        .map(|r| r.context(SQLSnafu));
-
-    let (items, total): (_, i64) = tokio::try_join!(items, total)?;
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM source")
+        .fetch_one(&mut tx)
+        .await?;
 
     let total = total as u32;
     let size = items.len() as u32;

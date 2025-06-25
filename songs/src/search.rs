@@ -5,7 +5,8 @@ use std::{
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{CacheError, CacheSnafu, SQLError},
+    common_errors::{CacheError, CacheSnafu},
+    db::{SqlError, SqlTx},
     normalize_query,
     paginated::{PageInfo, Paginated, PaginationParams},
 };
@@ -24,7 +25,6 @@ use reqwest::{Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use snafu::{ResultExt, Snafu};
-use sqlx::PgPool;
 use url::Url;
 
 use apelle_songs_dtos::{
@@ -44,7 +44,7 @@ const CACHE_NAMESPACE: &str = concatcp!(crate::CACHE_NAMESPACE, "search:");
 pub enum SearchError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     CacheError {
@@ -127,7 +127,7 @@ impl IntoResponses for SearchError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .chain(CacheError::responses())
         .collect()
     }
@@ -175,7 +175,7 @@ struct SearchState {
 )]
 pub async fn search(
     State(mut cache): State<ConnectionManager>,
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(ProvidersConfig {
         cache_expiration, ..
     }): State<ProvidersConfig>,
@@ -203,12 +203,12 @@ pub async fn search(
         let mut missing: HashSet<&str> = sources.iter().map(String::as_str).collect();
         let providers = qb
             .build_query_scalar::<String>()
-            .fetch(&db)
+            .fetch(&mut tx)
             // Keep track of the seen sources
             .inspect_ok(|s| {
                 missing.remove(s.as_str());
             })
-            .map_err(|source| SearchError::from(SQLError { source }))
+            .map_err(|source| SearchError::from(SqlError::from(source)))
             // Find a provider for each source
             .map_ok(|urn| {
                 provider_for_urn(cache.clone(), urn.clone())

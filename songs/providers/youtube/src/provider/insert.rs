@@ -1,15 +1,14 @@
-use apelle_common::common_errors::{SQLError, SQLSnafu};
+use apelle_common::db::{SqlError, SqlTx};
 use apelle_songs_dtos::provider::SongsPathParams;
 
 use axum::{
     Json, debug_handler,
-    extract::{Path, State},
+    extract::Path,
     response::{IntoResponse, NoContent},
 };
-use futures::FutureExt;
 use reqwest::StatusCode;
-use snafu::{ResultExt as _, Snafu};
-use sqlx::{Executor as _, PgPool, Row as _};
+use snafu::Snafu;
+use sqlx::{Executor as _, Row as _};
 use textwrap_macros::unfill;
 
 use crate::provider::dtos::youtube::Thumbnail;
@@ -20,7 +19,7 @@ use super::YoutubeSongData;
 pub enum InsertError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     Conflict,
 }
@@ -36,7 +35,7 @@ impl IntoResponse for InsertError {
 
 #[debug_handler(state=crate::App)]
 pub async fn insert(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     Path(SongsPathParams { id }): Path<SongsPathParams>,
     Json(YoutubeSongData {
         video_id,
@@ -92,22 +91,21 @@ pub async fn insert(
     .bind(&urls)
     .bind(&sizes);
 
-    let mut tr = db.begin().await.context(SQLSnafu)?;
-
-    let found = match tr.fetch_one(song_insert_sql).await {
+    let found = match tx.fetch_one(song_insert_sql).await {
         Ok(r) => r.get::<bool, _>(0),
         Err(sqlx::Error::Database(e)) if e.constraint() == Some("youtube_song_video_id") => {
-            tr.rollback().await.context(SQLSnafu)?;
             return Err(InsertError::Conflict);
         }
-        Err(source) => return Err(SQLError { source }.into()),
+        Err(source) => {
+            return Err(InsertError::SQLError {
+                source: source.into(),
+            });
+        }
     };
 
-    tr.execute(thumbs_insert_sql)
-        .map(|r| r.context(SQLSnafu))
-        .await?;
-
-    tr.commit().await.context(SQLSnafu)?;
+    tx.execute(thumbs_insert_sql)
+        .await
+        .map_err(SqlError::from)?;
 
     Ok((
         if found {

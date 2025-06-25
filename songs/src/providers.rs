@@ -2,7 +2,8 @@ use std::borrow::{Borrow, BorrowMut};
 
 use apelle_common::{
     ServicesClient,
-    common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
+    common_errors::{CacheError, CacheSnafu},
+    db::{SqlError, SqlTx},
 };
 use apelle_songs_dtos::provider::{
     ProviderRegistration, ProviderRegistrationError as ProviderRegistrationErrorDto,
@@ -18,7 +19,6 @@ use futures::FutureExt;
 use redis::{AsyncCommands as _, aio::ConnectionManager};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
-use sqlx::PgPool;
 use textwrap_macros::unfill;
 use url::Url;
 use uuid::Uuid;
@@ -41,7 +41,7 @@ pub fn providers_set_cache_key(mut urn: &str) -> String {
 pub enum ProviderRegistrationError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     CacheError {
@@ -92,7 +92,7 @@ impl IntoResponse for ProviderRegistrationError {
     )
 )]
 pub async fn register(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     client: ServicesClient,
     State(mut cache): State<redis::aio::ConnectionManager>,
     State(ProvidersConfig {
@@ -110,11 +110,11 @@ pub async fn register(
     // and that the webhook is reachable
     if honor_fast_handshake && fast_handshake {
         // Only check that the urn is known
-        check_urn_presence(&db, &source_urn).await?;
+        check_urn_presence(&mut tx, &source_urn).await?;
     } else {
         // Full handshake
         tokio::try_join!(
-            check_urn_presence(&db, &source_urn),
+            check_urn_presence(&mut tx, &source_urn),
             check_webhook(&client, &url)
         )?;
     }
@@ -133,7 +133,7 @@ pub async fn register(
 }
 
 /// Check that the source is registered
-async fn check_urn_presence(db: &PgPool, urn: &str) -> Result<(), ProviderRegistrationError> {
+async fn check_urn_presence(db: &mut SqlTx, urn: &str) -> Result<(), ProviderRegistrationError> {
     let exist: bool = sqlx::query_scalar(
         unfill!(
             "
@@ -149,7 +149,7 @@ async fn check_urn_presence(db: &PgPool, urn: &str) -> Result<(), ProviderRegist
     .bind(urn)
     .fetch_one(db)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     if !exist {
         return Err(ProviderRegistrationError::UnknownSource {

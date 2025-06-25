@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use apelle_common::{ServicesClient, cache_pubsub};
+use apelle_common::{
+    ServicesClient, cache_pubsub,
+    db::{SqlState, db_state_and_layer},
+};
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
     source::SourceRegisterRef,
@@ -10,7 +13,6 @@ use config::Config;
 use futures::{FutureExt, TryFutureExt};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
-use sqlx::PgPool;
 use tracing::{Instrument, info_span};
 use url::Url;
 use utoipa_axum::router::OpenApiRouter;
@@ -52,7 +54,7 @@ pub enum MainError {
 
 #[derive(Clone, FromRef)]
 struct App {
-    db: PgPool,
+    db: SqlState,
     songs_client: reqwest::Client,
     cache: redis::aio::ConnectionManager,
     youtube: Arc<YoutubeApi>,
@@ -91,7 +93,7 @@ pub async fn app(
     }: Config,
 ) -> Result<(OpenApiRouter, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
     tracing::info!("Connecting to database");
-    let db = PgPool::connect(db_url.as_str())
+    let db = db_state_and_layer(db_url)
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
@@ -140,7 +142,7 @@ pub async fn app(
         Ok(())
     };
 
-    let (db, cache, _) = tokio::try_join!(db, cache, handshake)?;
+    let ((db, tx_layer), cache, _) = tokio::try_join!(db, cache, handshake)?;
 
     let youtube = {
         let YoutubeConfig {
@@ -193,6 +195,7 @@ pub async fn app(
     Ok((
         OpenApiRouter::new()
             .nest("/provider", provider::provider())
+            .route_layer(tx_layer)
             .with_state(App {
                 db,
                 songs_client: client.client().clone(),

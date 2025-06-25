@@ -2,7 +2,8 @@ use std::{convert::identity, mem};
 
 use apelle_common::{
     AuthHeaders, Reporter, ServicesClient,
-    common_errors::{CacheError, SQLError, SQLSnafu},
+    common_errors::CacheError,
+    db::{SqlError, SqlTx},
 };
 use apelle_songs_dtos::{provider::ResolveResponse, public::ResolveSongRequest};
 use axum::{
@@ -31,7 +32,7 @@ use crate::{
 pub enum ResolveSongError {
     #[snafu(transparent)]
     Sql {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     Cache {
@@ -90,7 +91,7 @@ impl IntoResponses for ResolveSongError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .chain(CacheError::responses())
         .collect()
     }
@@ -113,7 +114,8 @@ impl IntoResponses for ResolveSongError {
     ), ResolveSongError)
 )]
 pub async fn resolve(
-    State(db): State<PgPool>,
+    State(pool): State<PgPool>,
+    mut tx: SqlTx,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
     client: ServicesClient,
@@ -183,9 +185,11 @@ pub async fn resolve(
     .bind(duration.num_seconds() as i32)
     .bind(title)
     .bind(user.id())
-    .fetch_one(&db)
+    .fetch_one(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
+
+    tx.commit().await.map_err(SqlError::from)?;
 
     // Telling the provider that we added the song, enabling it to save the data
 
@@ -213,7 +217,7 @@ pub async fn resolve(
             tracing::error!(%provider, "Error from provider, reverting creation of song");
             let deletion_result = sqlx::query("DELETE FROM song WHERE id = $1")
                 .bind(id)
-                .execute(&db)
+                .execute(&pool)
                 .await;
 
             // If the deletion failed, log it
