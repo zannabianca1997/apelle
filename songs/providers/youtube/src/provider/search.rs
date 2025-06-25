@@ -264,7 +264,7 @@ pub async fn search(
                         SearchResponseItemState::Known { id }
                     } else {
                         SearchResponseItemState::New {
-                            resolve: ResolveRequest { video_id },
+                            data: ResolveRequest { video_id },
                         }
                     },
                 })

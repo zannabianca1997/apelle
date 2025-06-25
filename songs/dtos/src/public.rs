@@ -42,10 +42,10 @@ fn default_true() -> bool {
     true
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, ToSchema, Serialize)]
 pub struct ResolveSongRequest {
     /// URN of the song source
-    pub source_urn: String,
+    pub source: String,
     /// Data that the user used to define the song
     ///
     /// e.g. the video id for youtube
@@ -73,7 +73,7 @@ pub enum SearchResponseItemState<R = Value> {
     /// Need to be resolved
     New {
         #[schema(value_type = Object)]
-        resolve: R,
+        data: R,
     },
     /// Is a known song
     Known { id: Uuid },

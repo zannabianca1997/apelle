@@ -37,7 +37,6 @@ pub enum GetError {
     BadGateway {
         source: reqwest::Error,
     },
-    QueueNotFound,
     Forbidden,
 }
 
@@ -49,7 +48,6 @@ impl IntoResponse for GetError {
                 tracing::error!("Bad gateway: {}", Reporter(source));
                 StatusCode::BAD_GATEWAY.into_response()
             }
-            GetError::QueueNotFound => StatusCode::NOT_FOUND.into_response(),
             GetError::Forbidden => StatusCode::FORBIDDEN.into_response(),
         }
     }
@@ -61,10 +59,6 @@ impl IntoResponses for GetError {
         utoipa::openapi::RefOr<utoipa::openapi::response::Response>,
     > {
         [
-            (
-                StatusCode::NOT_FOUND.as_str().to_string(),
-                openapi::Response::new("Queue not found").into(),
-            ),
             (
                 StatusCode::FORBIDDEN.as_str().to_string(),
                 openapi::Response::new("User is not allowed to read the queue data").into(),

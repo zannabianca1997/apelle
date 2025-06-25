@@ -5,12 +5,15 @@ use apelle_common::{
     common_errors::CacheError,
     db::{SqlError, SqlTx},
 };
-use apelle_songs_dtos::{provider::ResolveResponse, public::ResolveSongRequest};
+use apelle_songs_dtos::{
+    provider::ResolveResponse,
+    public::{ResolveSongRequest, SolvedQueryParams},
+};
 use axum::{
     Json,
     body::Body,
     debug_handler,
-    extract::State,
+    extract::{Query, State},
     response::{IntoResponse, Redirect},
 };
 use futures::TryFutureExt;
@@ -111,7 +114,8 @@ impl IntoResponses for ResolveSongError {
     responses((
         status = StatusCode::SEE_OTHER,
         description = "Song resolved"
-    ), ResolveSongError)
+    ), ResolveSongError),
+    params(SolvedQueryParams)
 )]
 pub async fn resolve(
     State(pool): State<PgPool>,
@@ -120,9 +124,10 @@ pub async fn resolve(
     State(seen_sources): State<SeenSourcesWorker>,
     client: ServicesClient,
     user: AuthHeaders,
-    Json(ResolveSongRequest { source_urn, data }): Json<ResolveSongRequest>,
+    Query(solved_params): Query<SolvedQueryParams>,
+    Json(ResolveSongRequest { source, data }): Json<ResolveSongRequest>,
 ) -> Result<Redirect, ResolveSongError> {
-    let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
+    let provider = provider_for_urn(&mut cache, source.as_str()).await?;
 
     let resp = client
         .post(resolve_endpoint(&provider))
@@ -162,9 +167,9 @@ pub async fn resolve(
             callback,
         } => (title, duration, callback),
         ResolveResponse::Existing { id, public: _ } => {
-            seen_sources.seen_urn(source_urn).await;
+            seen_sources.seen_urn(source).await;
 
-            return Ok(redirect(id));
+            return Ok(redirect(id, solved_params));
         }
     };
 
@@ -181,7 +186,7 @@ pub async fn resolve(
         RETURNING id
         "
     ))
-    .bind(&source_urn)
+    .bind(&source)
     .bind(duration.num_seconds() as i32)
     .bind(title)
     .bind(user.id())
@@ -240,10 +245,10 @@ pub async fn resolve(
         }
     }
 
-    seen_sources.seen_urn(source_urn).await;
-    Ok(redirect(id))
+    seen_sources.seen_urn(source).await;
+    Ok(redirect(id, solved_params))
 }
 
-fn redirect(id: Uuid) -> Redirect {
-    Redirect::to(&format!("solved/{id}"))
+fn redirect(id: Uuid, SolvedQueryParams { source_data }: SolvedQueryParams) -> Redirect {
+    Redirect::to(&format!("solved/{id}?source_data={source_data}"))
 }
