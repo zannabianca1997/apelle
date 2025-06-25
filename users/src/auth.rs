@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::LazyLock};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::LazyLock,
+};
 
 use apelle_common::{
     AuthHeaders, Reporter,
@@ -19,7 +22,7 @@ use axum_extra::{
     headers::{Authorization, authorization::Basic},
     typed_header::TypedHeaderRejection,
 };
-use futures::FutureExt;
+use futures::{FutureExt, TryStreamExt};
 use route_recognizer::Router;
 use snafu::{OptionExt, ResultExt, Snafu};
 use sqlx::{PgPool, Row};
@@ -32,9 +35,16 @@ use crate::{App, auth::origins_headers::OriginHeaders};
 
 mod origins_headers;
 
-struct EndpointAuthConfig {
-    needs_auth: bool,
-    // TODO: needed profiles?
+#[derive(Clone, Copy, Debug)]
+enum EndpointAuthConfig {
+    /// Does not require authentication
+    Unauthenticated,
+
+    /// Requires authentication
+    Authenticated {
+        /// Roles required to access this endpoint
+        needed_roles: &'static [&'static str],
+    },
 }
 
 struct AuthConfig {
@@ -52,16 +62,60 @@ impl AuthConfig {
     }
 }
 
+fn all_methods(config: EndpointAuthConfig) -> HashMap<Method, EndpointAuthConfig> {
+    let mut map = HashMap::new();
+    map.insert(Method::GET, config);
+    map.insert(Method::POST, config);
+    map.insert(Method::PUT, config);
+    map.insert(Method::PATCH, config);
+    map.insert(Method::HEAD, config);
+    map.insert(Method::OPTIONS, config);
+    map.insert(Method::TRACE, config);
+    map.insert(Method::CONNECT, config);
+    map.insert(Method::DELETE, config);
+    map
+}
+
 static AUTH_ROUTER: LazyLock<AuthConfig> = LazyLock::new(|| AuthConfig {
     router: {
         let mut router = Router::new();
+
+        // User creation is open to everyone
         router.add(
             "/api/users",
-            HashMap::from([(Method::POST, EndpointAuthConfig { needs_auth: false })]),
+            HashMap::from([(Method::POST, EndpointAuthConfig::Unauthenticated)]),
         );
+
+        // Swagger UI and API docs is open only to developers
+        router.add(
+            "/api-docs/",
+            all_methods(EndpointAuthConfig::Authenticated {
+                needed_roles: &["admin"],
+            }),
+        );
+        router.add(
+            "/api-docs/*",
+            all_methods(EndpointAuthConfig::Authenticated {
+                needed_roles: &["admin"],
+            }),
+        );
+        router.add(
+            "/swagger-ui/",
+            all_methods(EndpointAuthConfig::Authenticated {
+                needed_roles: &["admin"],
+            }),
+        );
+        router.add(
+            "/swagger-ui/*",
+            all_methods(EndpointAuthConfig::Authenticated {
+                needed_roles: &["admin"],
+            }),
+        );
+
         router
     },
-    default: EndpointAuthConfig { needs_auth: true },
+    // All other endpoints require authentication, but no global role is required
+    default: EndpointAuthConfig::Authenticated { needed_roles: &[] },
 });
 
 type AuthExtractor = TypedHeader<Authorization<Basic>>;
@@ -85,13 +139,15 @@ pub enum AuthError {
     MissingHeader {
         source: TypedHeaderRejection,
     },
+
+    Forbidden,
 }
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            Self::SQLError { source } => source.into_response(),
-            Self::BadDatabasePasswordHash { source } => {
+            AuthError::SQLError { source } => source.into_response(),
+            AuthError::BadDatabasePasswordHash { source } => {
                 tracing::error!("Bad password hash: {}", Reporter(source));
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
@@ -109,6 +165,7 @@ impl IntoResponse for AuthError {
                 );
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
             }
+            AuthError::Forbidden => StatusCode::FORBIDDEN.into_response(),
         }
     }
 }
@@ -168,30 +225,30 @@ pub async fn get(
 ) -> Result<(Option<AuthHeaders>, NoContent), AuthError> {
     tracing::debug!(%uri, %method, "Authenticating request");
 
-    let needs_auth = AUTH_ROUTER.get(&uri, &method).needs_auth;
+    let needs_auth = AUTH_ROUTER.get(&uri, &method);
     let provided_auth = auth.context(MissingHeaderSnafu);
 
     match (needs_auth, provided_auth) {
         // Auth is required and was provided
         // Authenticating
-        (true, Ok(auth)) => {
-            let auth = authenticate(db, password_hasher, login_sender, auth).await?;
+        (EndpointAuthConfig::Authenticated { needed_roles }, Ok(auth)) => {
+            let auth = authenticate(db, password_hasher, login_sender, auth, needed_roles).await?;
             Ok((Some(auth), NoContent))
         }
         // Auth is required but was not provided
         // Failing
-        (true, Err(err)) => Err(err),
+        (EndpointAuthConfig::Authenticated { .. }, Err(err)) => Err(err),
         // Auth is not required but was provided
         // Trying to authenticate, but not failing if they are invalid
-        (false, Ok(auth)) => {
-            let auth = authenticate(db, password_hasher, login_sender, auth)
+        (EndpointAuthConfig::Unauthenticated, Ok(auth)) => {
+            let auth = authenticate(db, password_hasher, login_sender, auth, &[])
                 .await
                 .ok();
             Ok((auth, NoContent))
         }
         // Auth is not required and was not provided
         // Passing
-        (false, Err(_)) => Ok((None, NoContent)),
+        (EndpointAuthConfig::Unauthenticated, Err(_)) => Ok((None, NoContent)),
     }
 }
 
@@ -200,6 +257,7 @@ async fn authenticate(
     password_hasher: Argon2<'static>,
     login_sender: tokio::sync::mpsc::Sender<Uuid>,
     auth: AuthExtractor,
+    needed_roles: &[&str],
 ) -> Result<AuthHeaders, AuthError> {
     let TypedHeader(auth) = auth;
 
@@ -237,29 +295,47 @@ async fn authenticate(
     };
 
     // Fetching the roles
-    let roles = async {
-        sqlx::query_scalar::<_, String>(
-            unfill!(
-                "
+    let roles = sqlx::query_scalar::<_, String>(
+        unfill!(
+            "
                 SELECT gr.name 
                 FROM apelle_global_role gr
                 JOIN apelle_user_global_role ugr ON ugr.global_role_id = gr.id
                 JOIN apelle_user u ON u.id = ugr.user_id
                 WHERE u.name = $1
                 "
-            )
-            .trim_ascii(),
         )
-        .bind(auth.username())
-        .fetch_all(&db)
-        .await
-        .context(SQLSnafu)
-    }
-    .map(Ok::<_, AuthError>);
+        .trim_ascii(),
+    )
+    .bind(auth.username())
+    .fetch(&db)
+    .try_collect()
+    .map(|r| {
+        let r: HashSet<String> = r.context(SQLSnafu)?;
 
+        for role in needed_roles {
+            if !r.contains(*role) {
+                tracing::debug!(
+                    role,
+                    user = auth.username(),
+                    "User does not have the needed role"
+                );
+                return Err(AuthError::Forbidden);
+            }
+        }
+
+        Ok(r)
+    })
+    .map(|r| match r {
+        Ok(r) => Ok(Ok(r)),
+        Err(AuthError::Forbidden) => Err(AuthError::Forbidden),
+        Err(e) => Ok(Err(e)),
+    });
+
+    // Joining, failing fast on auth errors (bad password, or missing roles)
     let (id, roles) = tokio::try_join!(id, roles)?;
-    // Unwrapping this after, so a failing role fetch do not stop early the auth
-    // process (we want to report the 401, not the 500)
+
+    // Failing later on database errors (we want the 401, not the 500 in that case)
     let roles = roles?;
 
     AuthHeaders::new(id, auth.username(), &roles).context(BadDatabaseNameOrRolesSnafu)
