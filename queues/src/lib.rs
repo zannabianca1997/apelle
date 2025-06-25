@@ -31,6 +31,7 @@ mod middleware {
 }
 
 mod create;
+mod enqueue;
 mod get;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
@@ -116,6 +117,7 @@ pub async fn app(
                 "/{id}",
                 OpenApiRouter::new()
                     .routes(routes!(get::get))
+                    .routes(routes!(enqueue::enqueue))
                     .route_layer(
                         tower::ServiceBuilder::new()
                             .layer(from_fn_with_state(app.clone(), extract_queue_config))

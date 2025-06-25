@@ -84,12 +84,12 @@ pub async fn app(
         .routes(routes!(sources::register, sources::list))
         .routes(routes!(providers::register))
         .routes(routes!(solved::get, solved::delete))
+        .routes(routes!(resolve::resolve))
         .nest(
             "/public",
             OpenApiRouter::new()
                 .routes(routes!(sources::list))
                 .routes(routes!(search::search))
-                .routes(routes!(resolve::resolve))
                 .routes(routes!(solved::get)),
         )
         .route_layer(tx_layer)

@@ -14,6 +14,17 @@ This endpoint can be used to register new sources.
 This endpoint can be user to register itself as a provider for a group of
 sources.
 
+### `POST /resolve`
+Request for resolving a song. Arbitrary data are included as provided from
+`/search`. Should redirect to the `/solved` endpoint for the song with a 303
+status code.
+
+### `GET /solved/{id}?[source_data={true|false}]`
+Obtain a song that has been resolved by the service.
+
+### `DELETE /solved/{id}`
+Ask the service to delete the data associated to a song
+
 ## Public endpoints
 
 ### `GET /sources?[page_size={int}]&[page={string}]`
@@ -27,16 +38,9 @@ If `page` is specified, then it should come from a previous query `next` or
 If `source` is specified, then only that source will be used. Can be specified
 several times to search in multiple sources.
 
-### `POST /resolve`
-Request for resolving a song. Arbitrary data are included as provided from
-`/search`. Should redirect to the `/solved` endpoint for the song with a 303
-status code.
-
 ### `GET /solved/{id}?[source_data={true|false}]`
 Obtain a song that has been resolved by the service.
 
-### `DELETE /solved/{id}`
-Ask the service to delete the data associated to a song
 
 
 
