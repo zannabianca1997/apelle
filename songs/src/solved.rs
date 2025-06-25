@@ -1,6 +1,7 @@
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{CacheError, SQLError, SQLSnafu},
+    common_errors::CacheError,
+    db::{SqlError, SqlTx},
 };
 use apelle_songs_dtos::public::{SolvedQueryParams, Song};
 use axum::{
@@ -17,7 +18,6 @@ use futures::TryFutureExt;
 use redis::aio::ConnectionManager;
 use reqwest::StatusCode;
 use snafu::{ResultExt as _, Snafu};
-use sqlx::PgPool;
 use textwrap_macros::unfill;
 use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
@@ -32,7 +32,7 @@ pub enum Error {
     NotFound,
     #[snafu(transparent)]
     Sql {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     Cache {
@@ -68,7 +68,7 @@ impl IntoResponses for Error {
             openapi::Response::new("Error returned from provider").into(),
         )]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .chain(CacheError::responses())
         .collect()
     }
@@ -88,7 +88,7 @@ impl IntoResponses for Error {
     params(SolvedQueryParams),
 )]
 pub async fn get(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
     client: ServicesClient,
@@ -107,9 +107,9 @@ pub async fn get(
             "
         ))
         .bind(id)
-        .fetch_optional(&db)
+        .fetch_optional(&mut tx)
         .await
-        .context(SQLSnafu)?
+        .map_err(SqlError::from)?
         .ok_or(Error::NotFound)?;
 
     // The song data in the database won't be updated
@@ -176,7 +176,7 @@ pub async fn get(
     )
 )]
 pub async fn delete(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(mut cache): State<ConnectionManager>,
     State(seen_sources): State<SeenSourcesWorker>,
     client: ServicesClient,
@@ -197,9 +197,9 @@ pub async fn delete(
         "
     ))
     .bind(id)
-    .fetch_optional(&db)
+    .fetch_optional(&mut tx)
     .await
-    .context(SQLSnafu)?
+    .map_err(SqlError::from)?
     .ok_or(Error::NotFound)?;
 
     let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;

@@ -2,7 +2,7 @@ use std::{num::TryFromIntError, sync::Arc};
 
 use apelle_common::{
     Reporter,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use apelle_songs_dtos::provider::SongsPathParams;
 use axum::{
@@ -10,10 +10,8 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
 };
-use futures::FutureExt as _;
 use reqwest::StatusCode;
-use snafu::{ResultExt as _, Snafu};
-use sqlx::PgPool;
+use snafu::{OptionExt, ResultExt as _, Snafu};
 use url::Url;
 
 use super::dtos::{self, PublicSongData};
@@ -24,7 +22,7 @@ use crate::YoutubeApi;
 pub enum GetError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     NotFound,
     DBInvalidThumbUrl {
@@ -54,23 +52,25 @@ impl IntoResponse for GetError {
 
 #[debug_handler(state=crate::App)]
 pub async fn get(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(youtube_api): State<Arc<YoutubeApi>>,
     Path(SongsPathParams { id }): Path<SongsPathParams>,
 ) -> Result<Json<PublicSongData>, GetError> {
     tracing::info!(%id, "Retrieving song data");
 
-    let video_id = sqlx::query_scalar("SELECT video_id FROM youtube_song WHERE id = $1")
+    let video_id: String = sqlx::query_scalar("SELECT video_id FROM youtube_song WHERE id = $1")
         .bind(id)
-        .fetch_optional(&db)
-        .map(|r| r.context(SQLSnafu)?.ok_or(GetError::NotFound));
+        .fetch_optional(&mut tx)
+        .await
+        .map_err(SqlError::from)?
+        .context(NotFoundSnafu)?;
 
-    let thumbs = async {
+    let thumbs =
         sqlx::query_as("SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1")
             .bind(id)
-            .fetch_all(&db)
+            .fetch_all(&mut tx)
             .await
-            .context(SQLSnafu)?
+            .map_err(SqlError::from)?
             .into_iter()
             .map(|(height, width, url): (i32, i32, String)| {
                 Ok::<_, GetError>(dtos::Thumbnail {
@@ -79,13 +79,10 @@ pub async fn get(
                     url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
                 })
             })
-            .collect::<Result<_, _>>()
-    };
-
-    let (video_id, thumbs): (String, _) = tokio::try_join!(video_id, thumbs)?;
+            .collect::<Result<_, _>>()?;
 
     Ok(Json(PublicSongData {
-        url: video_url(&youtube_api.public_url, &video_id),
+        url: video_url(&youtube_api.public_url, &*video_id),
         video_id,
         thumbs,
     }))

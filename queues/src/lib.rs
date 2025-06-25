@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
-use apelle_common::cache_pubsub;
+use apelle_common::{
+    cache_pubsub,
+    db::{SqlState, db_state_and_layer},
+};
 use axum::{extract::FromRef, middleware::from_fn_with_state};
 use config::Config;
 use futures::FutureExt as _;
 use serde::{Deserialize, Serialize};
 use snafu::{ResultExt as _, Snafu};
-use sqlx::PgPool;
 use tracing::{Instrument as _, info_span};
 use url::Url;
 use utoipa::{IntoParams, OpenApi};
@@ -51,7 +53,7 @@ pub enum MainError {
 
 #[derive(Clone, FromRef)]
 pub struct App {
-    db: PgPool,
+    db: SqlState,
     cache: redis::aio::ConnectionManager,
     client: reqwest::Client,
     services: Arc<Services>,
@@ -84,7 +86,7 @@ pub async fn app(
 
     tracing::info!("Connecting to database and cache");
 
-    let db = PgPool::connect(db_url.as_str())
+    let db = db_state_and_layer(db_url)
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
@@ -92,7 +94,7 @@ pub async fn app(
         .map(|r| r.context(CacheConnectionSnafu))
         .instrument(info_span!("Connecting to cache"));
 
-    let (db, cache) = tokio::try_join!(db, cache)?;
+    let ((db, tx_layer), cache) = tokio::try_join!(db, cache)?;
 
     let client = reqwest::Client::new();
 
@@ -107,18 +109,20 @@ pub async fn app(
         code: Arc::new(code),
     };
 
-    let queue_routes = OpenApiRouter::new().routes(routes!(get::get)).route_layer(
-        tower::ServiceBuilder::new()
-            .layer(from_fn_with_state(app.clone(), extract_queue_config))
-            .layer(from_fn_with_state(app.clone(), extract_queue_user)),
-    );
-
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .nest(
             "/public",
-            OpenApiRouter::new()
-                .routes(routes!(create::create))
-                .nest("/{id}", queue_routes),
+            OpenApiRouter::new().routes(routes!(create::create)).nest(
+                "/{id}",
+                OpenApiRouter::new()
+                    .routes(routes!(get::get))
+                    .route_layer(
+                        tower::ServiceBuilder::new()
+                            .layer(from_fn_with_state(app.clone(), extract_queue_config))
+                            .layer(from_fn_with_state(app.clone(), extract_queue_user)),
+                    ),
+            ),
         )
+        .route_layer(tx_layer)
         .with_state(app))
 }

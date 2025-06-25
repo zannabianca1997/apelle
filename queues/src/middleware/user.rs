@@ -2,17 +2,16 @@ use std::sync::Arc;
 
 use apelle_common::{
     AuthHeaders,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserRole};
 use axum::{
     Extension, debug_middleware,
-    extract::{Path, Request, State},
+    extract::{Path, Request},
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use snafu::{ResultExt, Snafu};
-use sqlx::PgPool;
+use snafu::Snafu;
 use textwrap_macros::unfill;
 use uuid::Uuid;
 
@@ -46,7 +45,7 @@ impl QueueUser {
 #[derive(Debug, Snafu)]
 pub enum ExtractQueueUserError {
     #[snafu(transparent)]
-    SqlError { source: SQLError },
+    SqlError { source: SqlError },
 }
 
 impl IntoResponse for ExtractQueueUserError {
@@ -66,7 +65,7 @@ impl IntoResponse for ExtractQueueUserError {
 /// The resulting data are added to the request as extensions.
 #[debug_middleware(state = crate::App)]
 pub async fn extract_queue_user(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     Extension(config): Extension<Arc<QueueConfig>>,
     user: AuthHeaders,
     Path(QueuePathParams { id: queue_id }): Path<QueuePathParams>,
@@ -88,9 +87,9 @@ pub async fn extract_queue_user(
     .bind(queue_id)
     .bind(user.id())
     .bind(default_role_id)
-    .fetch_one(&db)
+    .fetch_one(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     let user = QueueUser {
         user,
@@ -104,6 +103,8 @@ pub async fn extract_queue_user(
     };
 
     request.extensions_mut().insert(Arc::new(user));
+
+    drop(tx);
 
     Ok(next.run(request).await)
 }

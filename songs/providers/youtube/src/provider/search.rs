@@ -2,7 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{CacheError, CacheSnafu, SQLError, SQLSnafu},
+    common_errors::{CacheError, CacheSnafu},
+    db::{SqlError, SqlTx},
     normalize_query,
     paginated::{PageInfo, Paginated, PaginationParams},
 };
@@ -17,7 +18,7 @@ use redis::{AsyncCommands, aio::ConnectionManager};
 use reqwest::StatusCode;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
-use sqlx::{PgPool, Row as _};
+use sqlx::Row as _;
 use uuid::Uuid;
 
 use crate::{
@@ -36,7 +37,7 @@ const CACHE_NAMESPACE: &str = concatcp!(crate::CACHE_NAMESPACE, "search:");
 pub enum SearchError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     CacheError {
@@ -104,7 +105,7 @@ use cursor::Cursor;
 #[debug_handler(state=crate::App)]
 pub async fn search(
     State(mut cache): State<ConnectionManager>,
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     client: ServicesClient,
     State(youtube_api): State<Arc<YoutubeApi>>,
     Query(SearchQueryParams { query }): Query<SearchQueryParams>,
@@ -232,9 +233,9 @@ pub async fn search(
         sqlx::query("SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)")
             .bind(&video_ids)
             .map(|row| (row.get(0), row.get(1)))
-            .fetch_all(&db)
+            .fetch_all(&mut tx)
             .await
-            .context(SQLSnafu)?
+            .map_err(SqlError::from)?
             .into_iter()
             .collect();
 

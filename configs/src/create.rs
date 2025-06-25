@@ -1,15 +1,12 @@
 use std::collections::HashMap;
 
-use apelle_common::common_errors::{SQLError, SQLSnafu};
+use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{
     QueueConfig, QueueConfigCreate, QueueUserAction, QueueUserRole, QueueUserRoleCreate,
 };
-use axum::{Json, debug_handler, extract::State, http::StatusCode, response::IntoResponse};
-use snafu::{ResultExt as _, Snafu};
-use sqlx::{
-    PgPool,
-    types::chrono::{DateTime, FixedOffset},
-};
+use axum::{Json, debug_handler, http::StatusCode, response::IntoResponse};
+use snafu::Snafu;
+use sqlx::types::chrono::{DateTime, FixedOffset};
 use textwrap_macros::unfill;
 use utoipa::{
     IntoResponses,
@@ -22,7 +19,7 @@ use crate::config_processing::{ValidateError, validate};
 #[derive(Debug, Snafu)]
 pub enum CreateError {
     #[snafu(transparent)]
-    SqlError { source: SQLError },
+    SqlError { source: SqlError },
     #[snafu(transparent)]
     ValidationError { source: ValidateError },
 }
@@ -57,7 +54,7 @@ impl IntoResponses for CreateError {
             ),
         )]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -68,7 +65,7 @@ impl IntoResponses for CreateError {
 ///
 /// The created confing will be assigned a random uuid, that will be return in the response.
 pub async fn create(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     Json(config): Json<QueueConfigCreate>,
 ) -> Result<(StatusCode, Json<QueueConfig>), CreateError> {
     // Validate (ensure all named roles exist)
@@ -80,13 +77,10 @@ pub async fn create(
         autolike,
     } = validate(config)?;
 
-    // Init transaction
-    let mut tx = db.begin().await.context(SQLSnafu)?;
-
     sqlx::query("SET CONSTRAINTS queue_user_role_config_id_is_valid DEFERRED")
-        .execute(&mut *tx)
+        .execute(&mut tx)
         .await
-        .context(SQLSnafu)?;
+        .map_err(SqlError::from)?;
 
     // Choose a queue id
     let config_id = uuid::Uuid::new_v4();
@@ -109,9 +103,9 @@ pub async fn create(
     .bind(config_id)
     .bind(&names)
     .bind(max_likes)
-    .fetch_all(&mut *tx)
+    .fetch_all(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     let name_mapping: HashMap<String, Uuid> = names
         .into_iter()
@@ -140,9 +134,9 @@ pub async fn create(
     )
     .bind(role_ids)
     .bind(permissions)
-    .execute(&mut *tx)
+    .execute(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     // Insert granted roles
     let (role_ids, can_grant): (Vec<Uuid>, Vec<Uuid>) = roles
@@ -165,9 +159,9 @@ pub async fn create(
     )
     .bind(role_ids)
     .bind(can_grant)
-    .execute(&mut *tx)
+    .execute(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     // Insert removed roles
     let (role_ids, can_revoke): (Vec<Uuid>, Vec<Uuid>) = roles
@@ -190,9 +184,9 @@ pub async fn create(
     )
     .bind(role_ids)
     .bind(can_revoke)
-    .execute(&mut *tx)
+    .execute(&mut tx)
     .await
-    .context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     // Insert config
     let (created, updated): (DateTime<FixedOffset>, DateTime<FixedOffset>) = sqlx::query_as(
@@ -210,12 +204,9 @@ pub async fn create(
     .bind(name_mapping[default_role.as_str()])
     .bind(name_mapping[banned_role.as_str()])
     .bind(autolike)
-    .fetch_one(&mut *tx)
+    .fetch_one(&mut tx)
     .await
-    .context(SQLSnafu)?;
-
-    // Commit
-    tx.commit().await.context(SQLSnafu)?;
+    .map_err(SqlError::from)?;
 
     Ok((
         StatusCode::CREATED,

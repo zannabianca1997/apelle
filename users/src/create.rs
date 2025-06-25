@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use apelle_common::common_errors::{SQLError, SQLSnafu};
+use apelle_common::db::{SqlError, SqlTx};
 use argon2::{
     Argon2, PasswordHasher as _,
     password_hash::{SaltString, rand_core::OsRng},
@@ -11,8 +11,7 @@ use axum::{
     http::{HeaderValue, StatusCode},
     response::IntoResponse,
 };
-use snafu::{ResultExt, Snafu};
-use sqlx::PgPool;
+use snafu::Snafu;
 use textwrap_macros::unfill;
 use utoipa::{IntoResponses, openapi};
 
@@ -22,7 +21,7 @@ use crate::dtos::{UserCreateDto, UserDto};
 pub enum CreateError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
 
     Conflict {
@@ -60,7 +59,7 @@ impl IntoResponses for CreateError {
             ),
         ]
         .into_iter()
-        .chain(SQLError::responses())
+        .chain(SqlError::responses())
         .collect()
     }
 }
@@ -80,7 +79,7 @@ impl IntoResponses for CreateError {
 /// assigned. Name must be unique, not empty, not containing trailing or leading
 /// spaces and control characters. It must also fit in a http header.
 pub async fn create(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(password_hasher): State<Argon2<'static>>,
     Json(UserCreateDto { name, password }): Json<UserCreateDto>,
 ) -> Result<(StatusCode, Json<UserDto>), CreateError> {
@@ -104,9 +103,9 @@ pub async fn create(
     ))
     .bind(&name)
     .bind(password.to_string())
-    .fetch_optional(&db)
+    .fetch_optional(&mut tx)
     .await
-    .context(SQLSnafu)?
+    .map_err(SqlError::from)?
     else {
         return Err(CreateError::Conflict { name });
     };

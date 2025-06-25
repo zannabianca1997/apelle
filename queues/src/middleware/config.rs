@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use apelle_configs_dtos::QueueConfig;
 use axum::{
@@ -12,8 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use reqwest::StatusCode;
-use snafu::{OptionExt, ResultExt, Snafu};
-use sqlx::PgPool;
+use snafu::{OptionExt, Snafu};
 use uuid::Uuid;
 
 use crate::{QueuePathParams, Services};
@@ -22,7 +21,7 @@ use crate::{QueuePathParams, Services};
 pub enum FetchConfigError {
     #[snafu(transparent)]
     SqlError {
-        source: SQLError,
+        source: SqlError,
     },
     #[snafu(transparent)]
     ConnectionError {
@@ -51,7 +50,7 @@ impl IntoResponse for FetchConfigError {
 /// to the reques as an extension
 #[debug_middleware(state = crate::App)]
 pub async fn extract_queue_config(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(services): State<Arc<Services>>,
     client: ServicesClient,
     Path(QueuePathParams { id: queue_id }): Path<QueuePathParams>,
@@ -61,9 +60,9 @@ pub async fn extract_queue_config(
     // Get the queue config id
     let config_id: Uuid = sqlx::query_scalar("SELECT config_id FROM queue WHERE id = $1")
         .bind(queue_id)
-        .fetch_optional(&db)
+        .fetch_optional(&mut tx)
         .await
-        .context(SQLSnafu)?
+        .map_err(SqlError::from)?
         .context(QueueNotFoundSnafu)?;
 
     // Get the config from the config service
@@ -76,6 +75,8 @@ pub async fn extract_queue_config(
         .await?;
 
     request.extensions_mut().insert(Arc::new(config));
+
+    drop(tx);
 
     Ok(next.run(request).await)
 }

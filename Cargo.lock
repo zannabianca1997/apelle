@@ -123,6 +123,7 @@ dependencies = [
  "atty",
  "axum",
  "axum-extra",
+ "axum-sqlx-tx",
  "chrono",
  "clap",
  "derive_more",
@@ -145,6 +146,7 @@ dependencies = [
  "tracing-appender",
  "tracing-futures",
  "tracing-subscriber",
+ "url",
  "utoipa",
  "utoipa-axum",
  "uuid",
@@ -462,6 +464,24 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
+]
+
+[[package]]
+name = "axum-sqlx-tx"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a36c1aff9437192db13898fd768d31bf3f4a72cdf260fa16f098d48db493c112"
+dependencies = [
+ "axum-core",
+ "bytes 1.10.1",
+ "futures-core",
+ "http",
+ "http-body",
+ "parking_lot 0.12.4",
+ "sqlx",
+ "thiserror 1.0.69",
+ "tower-layer",
+ "tower-service",
 ]
 
 [[package]]
@@ -2293,7 +2313,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

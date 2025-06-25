@@ -1,6 +1,6 @@
 use apelle_common::{
     AuthHeaders,
-    common_errors::{SQLError, SQLSnafu},
+    db::{SqlError, SqlTx},
 };
 use argon2::{
     Argon2, PasswordHasher as _,
@@ -12,8 +12,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, NoContent},
 };
-use snafu::{OptionExt, ResultExt, Snafu};
-use sqlx::PgPool;
+use snafu::{OptionExt, Snafu};
 use utoipa::IntoResponses;
 
 use crate::{
@@ -26,17 +25,16 @@ use crate::{
     status=StatusCode::OK,
     description="Data about the user",
     body=UserDto
-),SQLError))]
+),SqlError))]
 /// Current user data
 ///
 /// Get data about the user the credentials used refer to.
-pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<UserDto>, SQLError> {
+pub async fn get(mut tx: SqlTx, auth: AuthHeaders) -> Result<Json<UserDto>, SqlError> {
     let (created, updated, last_login) =
         sqlx::query_as("SELECT created, updated, last_login FROM apelle_user WHERE id = $1")
             .bind(auth.id())
-            .fetch_one(&db)
-            .await
-            .context(SQLSnafu)?;
+            .fetch_one(&mut tx)
+            .await?;
 
     Ok(Json(UserDto {
         id: auth.id(),
@@ -52,7 +50,7 @@ pub async fn get(State(db): State<PgPool>, auth: AuthHeaders) -> Result<Json<Use
 pub enum UpdateError {
     #[snafu(transparent)]
     SQLError {
-        source: SQLError,
+        source: SqlError,
     },
     Conflict {
         name: String,
@@ -93,7 +91,7 @@ impl IntoResponses for UpdateError {
 ///
 /// See the creation endpoint for the constraints.
 pub async fn patch(
-    State(db): State<PgPool>,
+    mut tx: SqlTx,
     State(password_hasher): State<Argon2<'static>>,
     auth: AuthHeaders,
     Json(UserUpdateDto { name, password }): Json<UserUpdateDto>,
@@ -136,12 +134,12 @@ pub async fn patch(
 
     let (created, updated, last_login) = if let Some(name) = &name {
         query
-            .fetch_optional(&db)
+            .fetch_optional(&mut tx)
             .await
-            .context(SQLSnafu)?
+            .map_err(SqlError::from)?
             .context(ConflictSnafu { name })?
     } else {
-        query.fetch_one(&db).await.context(SQLSnafu)?
+        query.fetch_one(&mut tx).await.map_err(SqlError::from)?
     };
 
     Ok(Json(UserDto {
@@ -158,15 +156,14 @@ pub async fn patch(
 #[utoipa::path(delete, path = "/me", responses((
     status=StatusCode::NO_CONTENT,
     description="User deleted"
-),SQLError))]
+),SqlError))]
 /// Delete current user
 ///
 /// Delete the user the credentials used refer to.
-pub async fn delete(State(db): State<PgPool>, auth: AuthHeaders) -> Result<NoContent, SQLError> {
+pub async fn delete(mut tx: SqlTx, auth: AuthHeaders) -> Result<NoContent, SqlError> {
     sqlx::query("DELETE FROM apelle_user WHERE id = $1")
         .bind(auth.id())
-        .execute(&db)
-        .await
-        .context(SQLSnafu)?;
+        .execute(&mut tx)
+        .await?;
     Ok(NoContent)
 }

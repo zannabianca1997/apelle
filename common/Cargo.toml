@@ -37,3 +37,5 @@ utoipa-axum.workspace = true
 serde_json.workspace = true
 axum-extra = { workspace = true, features = ["typed-header"] }
 derive_more = { workspace = true, features = ["try_unwrap", "unwrap", "is_variant"] }
+axum-sqlx-tx = "0.10.0"
+url.workspace = true
