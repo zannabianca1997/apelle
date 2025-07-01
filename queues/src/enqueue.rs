@@ -34,6 +34,15 @@ pub enum EnqueueError {
         source: reqwest::Error,
     },
     Forbidden,
+    Conflict,
+}
+
+impl From<sqlx::Error> for EnqueueError {
+    fn from(value: sqlx::Error) -> Self {
+        EnqueueError::SqlError {
+            source: value.into(),
+        }
+    }
 }
 
 impl IntoResponse for EnqueueError {
@@ -45,6 +54,7 @@ impl IntoResponse for EnqueueError {
                 StatusCode::BAD_GATEWAY.into_response()
             }
             EnqueueError::Forbidden => StatusCode::FORBIDDEN.into_response(),
+            EnqueueError::Conflict => StatusCode::CONFLICT.into_response(),
         }
     }
 }
@@ -57,11 +67,15 @@ impl IntoResponses for EnqueueError {
         [
             (
                 StatusCode::FORBIDDEN.as_str().to_string(),
-                openapi::Response::new("User is not allowed to read the queue data").into(),
+                openapi::Response::new("User is not allowed to enqueue songs").into(),
             ),
             (
                 StatusCode::BAD_GATEWAY.as_str().to_string(),
                 openapi::Response::new("Error returned from songs service").into(),
+            ),
+            (
+                StatusCode::CONFLICT.as_str().to_string(),
+                openapi::Response::new("The song is already in the queue").into(),
             ),
         ]
         .into_iter()
@@ -136,7 +150,7 @@ pub async fn enqueue(
     .await?;
 
     // Insert the song in the database queue
-    let (queued_at, _player_state_id) = async {
+    let (queued_at, _player_state_id, user_likes) = async {
         // Add the song to the queue
         let queued_at = sqlx::query_scalar(
             unfill!(
@@ -152,7 +166,17 @@ pub async fn enqueue(
         .bind(song.id)
         .bind(user.id())
         .fetch_one(&mut tx)
-        .await?;
+        .await
+        .map_err(|err| {
+            if err
+                .as_database_error()
+                .is_some_and(|err| err.constraint() == Some("pk_queued_song"))
+            {
+                EnqueueError::Conflict
+            } else {
+                err.into()
+            }
+        })?;
 
         // Update the queue id, as the song might be the first one and influence
         // the next id
@@ -173,16 +197,19 @@ pub async fn enqueue(
 
         // If auto-like is enabled and the user has likes available, give them
         // one
-        if user.auto_like() && user.likes() < user.role().max_likes {
+        let user_likes = if user.auto_like() && user.likes() < user.role().max_likes {
             sqlx::query("INSERT INTO likes (queue_id, song_id, user_id) VALUES ($1, $2, $3)")
                 .bind(id)
                 .bind(song.id)
                 .bind(user.id())
                 .execute(&mut tx)
                 .await?;
-        }
+            1
+        } else {
+            0
+        };
 
-        Ok::<_, SqlError>((queued_at, player_state_id))
+        Ok::<_, EnqueueError>((queued_at, player_state_id, user_likes))
     }
     .await?;
 
@@ -193,7 +220,7 @@ pub async fn enqueue(
             IdOrRep::Id(song.id)
         },
         queued_at,
-        likes: 0,
-        user_likes: 0,
+        likes: user_likes,
+        user_likes,
     }))
 }

@@ -100,6 +100,7 @@ CREATE TABLE queued_song (
         REFERENCES song
         ON UPDATE CASCADE
         ON DELETE CASCADE,
+    CONSTRAINT pk_queued_song 
     PRIMARY KEY (queue_id, song_id),
 
     queued_at 
