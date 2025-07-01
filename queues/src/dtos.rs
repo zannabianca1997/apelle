@@ -3,7 +3,7 @@ use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Deserialize, Clone, Debug, ToSchema)]
+#[derive(Deserialize, Clone, Debug, ToSchema, Default)]
 pub struct QueueCreate {
     #[serde(default)]
     pub code: Option<String>,

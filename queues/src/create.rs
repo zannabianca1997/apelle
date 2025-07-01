@@ -107,9 +107,10 @@ pub async fn create(
     Query(CreatePathParams {
         config: return_config,
     }): Query<CreatePathParams>,
-    Json(QueueCreate { code, config }): Json<QueueCreate>,
+    queue_create: Option<Json<Option<QueueCreate>>>,
 ) -> Result<(StatusCode, Json<Queue>), CreateError> {
     let Services { configs_url, .. } = &*services;
+    let QueueCreate { code, config } = queue_create.unwrap_or_default().0.unwrap_or_default();
 
     let code = code
         .map(|c| ready(Ok(c)).left_future())
