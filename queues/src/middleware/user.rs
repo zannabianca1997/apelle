@@ -13,6 +13,7 @@ use axum::{
 };
 use snafu::Snafu;
 use textwrap_macros::unfill;
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::QueuePathParams;
@@ -74,6 +75,9 @@ impl IntoResponse for ExtractQueueUserError {
 ///
 /// The resulting data are added to the request as extensions.
 #[debug_middleware(state = crate::App)]
+#[instrument(skip_all, fields(
+    %queue_id, user_id =% user.id()
+))]
 pub async fn extract_queue_user(
     mut tx: SqlTx,
     Extension(config): Extension<Arc<QueueConfig>>,
@@ -97,7 +101,7 @@ pub async fn extract_queue_user(
         SELECT
             u.role_id,
             u.autolike,
-            COALESCE(SUM(l.count), 0) AS total_likes
+            COALESCE(SUM(l.count)::smallint, 0::smallint) AS total_likes
         FROM
             upsert_queue_user u
         LEFT JOIN

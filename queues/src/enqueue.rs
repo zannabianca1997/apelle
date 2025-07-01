@@ -90,7 +90,7 @@ pub struct SearchResponseItem {
 
 /// Read the queue data
 #[debug_handler(state = crate::App)]
-#[utoipa::path(get, path = "/enqueue",
+#[utoipa::path(post, path = "/enqueue",
 responses(
     (status = StatusCode::OK, description = "Song enqueued", content_type = "application/json", body = QueuedSong),
     EnqueueError
@@ -161,7 +161,7 @@ pub async fn enqueue(
                 "
                 UPDATE queue
                 SET player_state_id = gen_random_uuid()
-                WHERE id = $2
+                WHERE id = $1
                 RETURNING player_state_id
                 "
             )

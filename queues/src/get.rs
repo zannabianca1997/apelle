@@ -194,15 +194,15 @@ pub async fn get(
             SELECT
                 qs.song_id,
                 qs.queued_at,
-                COALESCE(tl.likes_count, 0) AS likes,
-                COALESCE(ul.user_likes_count, 0) AS user_likes
+                COALESCE(tl.likes_count, 0::smallint) AS likes,
+                COALESCE(ul.user_likes_count, 0::smallint) AS user_likes
             FROM
                 queued_song qs
             LEFT JOIN LATERAL (
                 SELECT
                     l.queue_id,
                     l.song_id,
-                    SUM(l.count) AS likes_count
+                    SUM(l.count)::smallint AS likes_count
                 FROM
                     likes l
                 WHERE
@@ -215,7 +215,7 @@ pub async fn get(
                 SELECT
                     l.queue_id,
                     l.song_id,
-                    SUM(l.count) AS user_likes_count
+                    SUM(l.count)::smallint AS user_likes_count
                 FROM
                     likes l
                 WHERE
