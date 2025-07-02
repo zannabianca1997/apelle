@@ -3,12 +3,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-songs-youtube
     restart: always
     environment:
-      APELLE__SELF_URL: ${SELF_URL?"The self url must be set"}
-      APELLE__SONGS_URL: ${SONGS_URL?"The songs service url must be set"}
-      APELLE__YOUTUBE__API_URL: ${YOUTUBE_API_URL?"The youtube api url must be set"}
       APELLE__YOUTUBE__API_KEY: ${YOUTUBE_API_KEY?"The youtube api key must be set"}
-      APELLE__DB_URL: ${DB_URL?"The database url must be set"}
-      APELLE__CACHE_URL: ${CACHE_URL?"The cache url must be set"}
     depends_on:
       db:
         condition: service_started

@@ -73,7 +73,7 @@ COPY --from=builder /app/bin ./bin
 # Copy the runtime setup
 ARG CONFIG_FILE
 ARG SERVICE
-COPY ${CONFIG_FILE} ./Apelle-${SERVICE}.toml
+COPY ${CONFIG_FILE} ./Apelle.toml
 
 # Set the user
 ARG USER

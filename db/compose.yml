@@ -4,9 +4,9 @@ services:
     image: postgres:17-alpine
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER:?}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
-      POSTGRES_DB: ${DB_NAME:-${DB_USER}}
+      POSTGRES_USER: ${DB_USER:-apelle}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-apelle}
+      POSTGRES_DB: ${DB_NAME:-${DB_USER:-apelle}}
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -15,9 +15,9 @@ services:
     image: flyway/flyway:11-alpine
     restart: no
     environment:
-      FLYWAY_URL: jdbc:postgresql://db:5432/${DB_NAME:-${DB_USER}}
-      FLYWAY_USER: ${DB_USER}
-      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_URL: jdbc:postgresql://db:5432/${DB_NAME:-${DB_USER:-apelle}}
+      FLYWAY_USER: ${DB_USER:-apelle}
+      FLYWAY_PASSWORD: ${DB_PASSWORD:-apelle}
       FLYWAY_CONNECT_RETRIES: 60
     command: migrate
     volumes:

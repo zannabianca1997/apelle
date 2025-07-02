@@ -123,7 +123,7 @@ pub async fn create(
                 tracing::debug!(?uuid, "Using existing queue config");
 
                 let response = client
-                    .get(configs_url.join(&uuid.to_string()).unwrap())
+                    .get(configs_url.join(&format!("queues/{uuid}")).unwrap())
                     .send()
                     .await?;
                 if response.status() == StatusCode::NOT_FOUND {

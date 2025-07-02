@@ -2,8 +2,6 @@ services:
   configs:
     container_name: ${COMPOSE_PROJECT_NAME}-configs
     restart: always
-    environment:
-      APELLE__DB_URL: ${DB_URL?"The database url must be set"}
     depends_on:
       db:
         condition: service_started

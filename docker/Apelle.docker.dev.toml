@@ -1,7 +1,19 @@
 # Configuration for a dockerized Apelle service, in development mode
 
-[serve]
-socket = "0.0.0.0:8080"
+[default]
+serve.socket = "0.0.0.0:8080"
+logging.file.root_dir = "./logs"
 
-[logging.file]
-root_dir = "./logs"
+db_url = "postgres://apelle:apelle@db:5432/apelle"
+cache_url = "redis://cache-pubsub:6379/?protocol=resp3"
+pubsub_url = "redis://cache-pubsub:6379/?protocol=resp3"
+
+songs_url = "http://songs:8080/"
+configs_url = "http://configs:8080/"
+
+[songs-youtube]
+self_url = "http://songs-youtube:8080/"
+youtube.api_url = "http://gateway:8080/googleapis/youtube/v3/"
+
+[queues-events]
+queues.url = "http://queues:8080/"

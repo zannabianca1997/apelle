@@ -67,7 +67,12 @@ pub async fn extract_queue_config(
 
     // Get the config from the config service
     let config: QueueConfig = client
-        .get(services.configs_url.join(&config_id.to_string()).unwrap())
+        .get(
+            services
+                .configs_url
+                .join(&format!("queues/{config_id}"))
+                .unwrap(),
+        )
         .send()
         .await?
         .error_for_status()?

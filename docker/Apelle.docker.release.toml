@@ -1,7 +1,28 @@
 # Configuration for a dockerized Apelle service, in production mode
 
-[serve]
-socket = "0.0.0.0:8080"
+[default]
+serve.socket = "0.0.0.0:8080"
+logging.file = false
 
-[logging]
-file = false
+db_url = "postgres://apelle:apelle@db:5432/apelle"
+cache_url = "redis://cache-pubsub:6379/?protocol=resp3"
+pubsub_url = "redis://cache-pubsub:6379/?protocol=resp3"
+
+songs_url = "http://songs:8080/"
+configs_url = "http://configs:8080/"
+
+[api-docs.services]
+users = { url = "http://users:8080/", public = "/api/users" }
+songs = { url = "http://songs:8080/", public = "/api/songs" }
+queues = { url = "http://queues:8080/", public = "/api/queues" }
+configs = { url = "http://configs:8080/", public = "/api/configs" }
+queues-events.url = "http://queues-events:8080/"
+api-docs = { url = "http://api-docs:8080/", public = "/api-docs" }
+songs-youtube.url = "http://songs-youtube:8080/"
+
+[songs-youtube]
+self_url = "http://songs-youtube:8080/"
+youtube.api_url = "http://gateway:8080/googleapis/youtube/v3/"
+
+[queues-events]
+queues.url = "http://queues:8080/"
