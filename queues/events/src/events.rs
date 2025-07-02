@@ -10,7 +10,7 @@ const CHANNEL_PATTERN: &str = "apelle:queues:events:*";
 
 pub use builder::BuildPatchEvent;
 pub use publisher::Publisher;
-pub use subscriber::SubscribedClient;
+pub use subscriber::{Config as SubscribedClientConfig, PatchesLost, SubscribedClient};
 
 #[derive(Debug, Clone)]
 pub struct Event {

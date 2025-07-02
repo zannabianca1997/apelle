@@ -48,11 +48,11 @@ impl UserEventBuilder {
     }
 
     /// Create a sync event
-    pub fn sync(self, value: Value) -> Event {
+    pub fn sync(self, value: impl Serialize) -> Event {
         Event {
             queue: self.queue,
             user: Some(self.user),
-            content: EventContent::Sync(value),
+            content: EventContent::Sync(serde_json::to_value(value).unwrap()),
         }
     }
 }

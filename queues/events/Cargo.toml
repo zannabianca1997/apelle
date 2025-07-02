@@ -8,6 +8,7 @@ license.workspace = true
 [dependencies]
 apelle-common = { version = "0.1.0", path = "../../common" }
 axum.workspace = true
+chrono.workspace = true
 derive_more.workspace = true
 futures.workspace = true
 json-patch.workspace = true

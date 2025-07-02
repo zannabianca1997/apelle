@@ -26,15 +26,6 @@ pub struct Config {
     pub pub_sub: redis::aio::ConnectionManagerConfig,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            capacity: 1024,
-            pub_sub: Default::default(),
-        }
-    }
-}
-
 impl SubscribedClient {
     pub async fn new(
         client: redis::Client,
