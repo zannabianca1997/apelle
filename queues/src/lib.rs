@@ -69,8 +69,6 @@ pub struct Services {
     pub songs_url: Url,
     /// Url of the `configs` service
     pub configs_url: Url,
-    /// Url of the `queues-events` service
-    pub events_url: Url,
 }
 
 #[derive(OpenApi)]
@@ -82,7 +80,6 @@ pub async fn app(
         cache_url,
         songs_url,
         configs_url,
-        events_url,
         code,
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
@@ -111,7 +108,6 @@ pub async fn app(
         services: Arc::new(Services {
             songs_url,
             configs_url,
-            events_url,
         }),
         code: Arc::new(code),
     };

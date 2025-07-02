@@ -17,6 +17,3 @@ youtube.api_url = "http://gateway:8080/googleapis/youtube/v3/"
 
 [queues-events]
 queues.url = "http://queues:8080/"
-
-[queues]
-events_url = "http://queues-events:8080/"

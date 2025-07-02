@@ -4,7 +4,10 @@ use apelle_common::{AuthHeaders, ServicesClient};
 use axum::{
     debug_handler,
     extract::{Path, State},
-    response::{IntoResponse, Sse, sse},
+    response::{
+        IntoResponse, Sse,
+        sse::{self, KeepAlive},
+    },
 };
 use futures::{FutureExt, StreamExt, future::Either, future::Ready};
 use reqwest::{Response, StatusCode};
@@ -90,7 +93,8 @@ pub async fn events(
                 .filter_map(async |x| x)
                 .map(|event| sse::Event::default().json_data(event).unwrap())
                 .map(Ok::<_, Infallible>),
-        ),
+        )
+        .keep_alive(KeepAlive::new()),
     ))
 }
 

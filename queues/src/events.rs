@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use crate::{QueuePathParams, Services, middleware::user::QueueUser};
+use crate::{QueuePathParams, middleware::user::QueueUser};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionQueue};
 use axum::{
     Extension, debug_handler,
-    extract::{Path, State},
+    extract::Path,
     response::{IntoResponse, Redirect},
 };
 use reqwest::StatusCode;
@@ -44,7 +44,6 @@ impl IntoResponses for Forbidden {
     params(QueuePathParams)
 )]
 pub async fn events(
-    State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<Redirect, Forbidden> {
@@ -52,11 +51,5 @@ pub async fn events(
         return Err(Forbidden);
     }
 
-    Ok(Redirect::temporary(
-        services
-            .events_url
-            .join(&format!("events/{id}"))
-            .unwrap()
-            .as_str(),
-    ))
+    Ok(Redirect::temporary(&format!("/events/{id}")))
 }
