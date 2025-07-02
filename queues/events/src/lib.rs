@@ -7,9 +7,10 @@ use utoipa::OpenApi;
 
 mod config;
 pub mod events;
+mod handler;
 
 use config::Config;
-use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::{router::OpenApiRouter, routes};
 
 /// Main fatal error
 #[derive(Debug, Snafu)]
@@ -49,11 +50,11 @@ pub async fn app(
     )
     .await?;
 
-    Ok(
-        OpenApiRouter::with_openapi(AppApi::openapi()).with_state(App {
+    Ok(OpenApiRouter::with_openapi(AppApi::openapi())
+        .routes(routes!(handler::events))
+        .with_state(App {
             client: reqwest::Client::new(),
             subscriber,
             queues_url: QueuesUrl(queues_url),
-        }),
-    )
+        }))
 }

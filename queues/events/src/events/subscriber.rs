@@ -59,8 +59,13 @@ impl SubscribedClient {
         Ok(Self { pub_sub, sender })
     }
 
-    pub fn events(&self, queue: Uuid, user: Uuid) -> impl Stream<Item = Result<Event, EventsLost>> {
+    pub fn events(
+        &self,
+        queue: Uuid,
+        user: Uuid,
+    ) -> impl Stream<Item = Result<json_patch::Patch, PatchesLost>> + use<> {
         BroadcastStream::new(self.sender.inner.subscribe())
+            // Creating lagging lost events
             .map(move |r| {
                 r.map_err(|err| match err {
                     tokio_stream::wrappers::errors::BroadcastStreamRecvError::Lagged(n) => {
@@ -72,6 +77,7 @@ impl SubscribedClient {
                     }
                 })?
             })
+            // Filtering events for the queue and user requested
             .filter(move |event| {
                 let (target_queue, target_user) = match event {
                     Ok(e) => (e.queue, e.user),
@@ -80,13 +86,15 @@ impl SubscribedClient {
                 };
                 target_queue == queue && target_user.is_none_or(|u| u == user)
             })
-            .map_err(|PartialEventsLost { target:_, count }| EventsLost { count })
+            // Converting events to patches
+            .map_ok(|Event { content, .. }| content)
+            .map_err(|PartialEventsLost { target:_, count }| PatchesLost { count })
     }
 }
 
 #[derive(Debug, Clone, Copy, Snafu)]
-pub struct EventsLost {
-    /// If known, the number of lost events
+pub struct PatchesLost {
+    /// If known, the number of lost patches
     pub count: Option<u64>,
 }
 
