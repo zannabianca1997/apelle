@@ -18,6 +18,9 @@ pub struct Config {
 
     /// Configuration for the code generator
     pub code: CodeConfig,
+
+    /// Url of the `queues-events` service
+    pub events_url: Url,
 }
 
 impl ProvideDefaults for Config {

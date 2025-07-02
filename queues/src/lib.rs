@@ -34,6 +34,7 @@ mod create;
 mod enqueue;
 mod events;
 mod get;
+mod push_sync_event;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
 struct QueuePathParams {
@@ -68,6 +69,8 @@ pub struct Services {
     pub songs_url: Url,
     /// Url of the `configs` service
     pub configs_url: Url,
+    /// Url of the `queues-events` service
+    pub events_url: Url,
 }
 
 #[derive(OpenApi)]
@@ -79,6 +82,7 @@ pub async fn app(
         cache_url,
         songs_url,
         configs_url,
+        events_url,
         code,
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
@@ -107,6 +111,7 @@ pub async fn app(
         services: Arc::new(Services {
             songs_url,
             configs_url,
+            events_url,
         }),
         code: Arc::new(code),
     };
@@ -119,7 +124,7 @@ pub async fn app(
         .nest(
             "/queues/{id}",
             OpenApiRouter::new()
-                .routes(routes!(events::push_sync_event))
+                .routes(routes!(push_sync_event::push_sync_event))
                 .route_layer(middleware.clone()),
         )
         .nest(
@@ -128,6 +133,7 @@ pub async fn app(
                 "/{id}",
                 OpenApiRouter::new()
                     .routes(routes!(get::get))
+                    .routes(routes!(events::events))
                     .routes(routes!(enqueue::enqueue))
                     .route_layer(middleware),
             ),
