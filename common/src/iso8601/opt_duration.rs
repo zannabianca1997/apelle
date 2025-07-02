@@ -5,21 +5,25 @@ use serde::{Deserialize as _, Deserializer, Serialize as _, Serializer, de::Erro
 use chrono::Duration as ChronoDuration;
 use iso8601::Duration as IsoDuration;
 
-pub fn serialize<S>(duration: &ChronoDuration, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(duration: &Option<ChronoDuration>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    duration.to_string().serialize(serializer)
+    duration.map(|d| d.to_string()).serialize(serializer)
 }
 
-pub fn deserialize<'de, D, Dur>(deserializer: D) -> Result<Dur, D::Error>
+pub fn deserialize<'de, D, Dur>(deserializer: D) -> Result<Option<Dur>, D::Error>
 where
     D: Deserializer<'de>,
     Dur: super::DurationExt,
 {
-    let d = IsoDuration::deserialize(deserializer)?;
+    let d = Option::<IsoDuration>::deserialize(deserializer)?;
 
-    Ok(match d {
+    let Some(d) = d else {
+        return Ok(None);
+    };
+
+    Ok(Some(match d {
         IsoDuration::YMDHMS {
             year,
             month,
@@ -41,5 +45,5 @@ where
                 + Dur::milliseconds(millisecond)
         }
         IsoDuration::Weeks(w) => Dur::weeks(w),
-    })
+    }))
 }

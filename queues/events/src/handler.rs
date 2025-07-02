@@ -9,7 +9,11 @@ use axum::{
         sse::{self, KeepAlive},
     },
 };
-use futures::{FutureExt, StreamExt, future::Either, future::Ready};
+use futures::{
+    FutureExt, StreamExt as _,
+    future::{Either, Ready},
+};
+use itertools::Itertools;
 use reqwest::{Response, StatusCode};
 use snafu::{ResultExt, Snafu};
 use tokio::time::Instant;
@@ -19,6 +23,7 @@ use uuid::Uuid;
 
 use crate::{
     QueuesService,
+    config::SseConfig,
     events::{EventContent, PatchesLost, SubscribedClient},
 };
 
@@ -58,6 +63,11 @@ impl IntoResponses for GetEventsError {
     responses((status = StatusCode::OK, content_type = "text/event-stream")))]
 pub async fn events(
     State(subscriber): State<SubscribedClient>,
+    State(SseConfig {
+        chunk_size,
+        throttle,
+        keep_alive,
+    }): State<SseConfig>,
     user: AuthHeaders,
     client: ServicesClient,
     Path(id): Path<Uuid>,
@@ -79,22 +89,39 @@ pub async fn events(
     // Ask the queues service to provide an initial state
     state_machine.clone().ask_sync_event().await?;
 
+    // When some events are lost, ask for a sync event and wait it
+    let events = events
+        .scan(
+            StreamState::DroppingUntilSync {
+                timeout: Instant::now() + sync_timeout,
+            },
+            move |state, r| state_machine.run(state, r),
+        )
+        .filter_map(async |x| x);
+
+    // Coalesce events that are sent in quick succession
+    let events = events
+        .ready_chunks(chunk_size)
+        .flat_map(|chunk| tokio_stream::iter(chunk.into_iter().coalesce(EventContent::coalesce)));
+
+    // Throttle the stream, to not send too many events in quick succession
+    let events = tokio_stream::StreamExt::throttle(events, throttle);
+
+    // Convert events to sse ones
+    let events = events
+        .map(|event| sse::Event::default().json_data(event).unwrap())
+        .map(Ok::<_, Infallible>);
+
+    // Create the sse, and optionally add a keep-alive message
+    let mut sse = Sse::new(events);
+    if let Some(keep_alive) = keep_alive {
+        sse = sse.keep_alive(KeepAlive::new().interval(keep_alive));
+    }
+
     Ok((
         // Disable nginx buffering
         [("X-Accel-Buffering", "no")],
-        Sse::new(
-            events
-                .scan(
-                    StreamState::DroppingUntilSync {
-                        timeout: Instant::now() + sync_timeout,
-                    },
-                    move |state, r| state_machine.run(state, r),
-                )
-                .filter_map(async |x| x)
-                .map(|event| sse::Event::default().json_data(event).unwrap())
-                .map(Ok::<_, Infallible>),
-        )
-        .keep_alive(KeepAlive::new()),
+        sse,
     ))
 }
 

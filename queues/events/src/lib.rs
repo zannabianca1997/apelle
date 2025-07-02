@@ -32,6 +32,7 @@ struct App {
     client: reqwest::Client,
     subscriber: events::SubscribedClient,
     queues: QueuesService,
+    sse: config::SseConfig,
 }
 
 #[derive(Clone, Deserialize, Debug)]
@@ -49,6 +50,7 @@ pub async fn app(
         pubsub_url,
         queues,
         inner_queue_capacity,
+        sse,
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to pubsub");
@@ -67,5 +69,6 @@ pub async fn app(
             client: reqwest::Client::new(),
             subscriber,
             queues,
+            sse,
         }))
 }

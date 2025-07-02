@@ -227,6 +227,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "futures 0.3.31",
+ "itertools",
  "json-patch",
  "redis",
  "reqwest",

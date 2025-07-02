@@ -11,6 +11,7 @@ axum.workspace = true
 chrono.workspace = true
 derive_more.workspace = true
 futures.workspace = true
+itertools.workspace = true
 json-patch.workspace = true
 redis.workspace = true
 reqwest.workspace = true
