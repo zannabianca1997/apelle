@@ -7,7 +7,7 @@ use apelle_common::{
     id_or_rep::{HasId as _, IdOrRep},
 };
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{Event, Publisher};
+use apelle_queues_events::events::{BuildPatchEvent as _, Event, Publisher};
 use apelle_songs_dtos::public::{
     ResolveSongRequest, SearchResponseItemState, SolvedQueryParams, Song,
 };
@@ -16,7 +16,6 @@ use axum::{
     extract::{Path, Query, State},
     response::IntoResponse,
 };
-use json_patch::{AddOperation, PatchOperation, ReplaceOperation};
 use reqwest::StatusCode;
 use serde::Deserialize;
 use snafu::Snafu;
@@ -236,30 +235,24 @@ pub async fn enqueue(
     };
 
     Event::queue(id)
-        .operation(PatchOperation::Add(AddOperation {
-            path: format!("/queue/{}", queued_song.song.id()).parse().unwrap(),
-            value: serde_json::to_value(QueuedSong {
+        .add(
+            format!("/queue/{}", queued_song.song.id()),
+            QueuedSong {
                 song: IdOrRep::Id(queued_song.song.id()),
                 user_likes: 0,
                 ..queued_song.clone()
-            })
-            .unwrap(),
-        }))
-        .operation(PatchOperation::Replace(ReplaceOperation {
-            path: "/player_state_id".parse().unwrap(),
-            value: serde_json::to_value(player_state_id).unwrap(),
-        }))
+            },
+        )
+        .replace("/player_state_id", player_state_id)
         .build()
         .publish(&mut publisher)
         .await?;
 
     Event::user(id, user.id())
-        .operation(PatchOperation::Replace(ReplaceOperation {
-            path: format!("/queue/{}/user_likes", queued_song.song.id())
-                .parse()
-                .unwrap(),
-            value: serde_json::to_value(user_likes).unwrap(),
-        }))
+        .replace(
+            format!("/queue/{}/user_likes", queued_song.song.id()),
+            user_likes,
+        )
         .build()
         .publish(&mut publisher)
         .await?;

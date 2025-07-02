@@ -7,7 +7,7 @@ use snafu::{ResultExt, Snafu};
 use tokio_stream::{Stream, StreamExt, wrappers::BroadcastStream};
 use uuid::Uuid;
 
-use crate::events::{CHANNEL_PATTERN, CHANNEL_PREFIX, Event};
+use crate::events::{CHANNEL_PATTERN, CHANNEL_PREFIX, Event, EventContent};
 
 #[derive(Clone, AsRef, AsMut, Deref, DerefMut)]
 pub struct SubscribedClient {
@@ -63,7 +63,7 @@ impl SubscribedClient {
         &self,
         queue: Uuid,
         user: Uuid,
-    ) -> impl Stream<Item = Result<json_patch::Patch, PatchesLost>> + use<> {
+    ) -> impl Stream<Item = Result<EventContent, PatchesLost>> + use<> {
         BroadcastStream::new(self.sender.inner.subscribe())
             // Creating lagging lost events
             .map(move |r| {
