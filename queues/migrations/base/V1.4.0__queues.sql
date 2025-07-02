@@ -147,3 +147,72 @@ CREATE TABLE likes (
         DEFAULT 1,
     CHECK (count > 0)
 );
+
+-- Find the oldest like given by a user in a queue,
+-- except on a specific song, and remove it.
+
+CREATE OR REPLACE FUNCTION remove_oldest_like(
+    p_queue_id UUID, p_user_id UUID, p_excluded_song_id UUID
+)
+RETURNS UUID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _target_queue_id UUID;
+    _target_song_id UUID;
+    _target_user_id UUID;
+    _target_given_at TIMESTAMP WITH TIME ZONE;
+    _current_count SMALLINT;
+BEGIN
+    -- Find the oldest like not on the excluded song
+    SELECT
+        queue_id,
+        song_id,
+        user_id,
+        given_at,
+        count
+    INTO
+        _target_queue_id,
+        _target_song_id,
+        _target_user_id,
+        _target_given_at,
+        _current_count
+    FROM
+        likes
+    WHERE
+        queue_id = p_queue_id AND
+        user_id = p_user_id AND
+        song_id != p_excluded_song_id
+    ORDER BY
+        given_at ASC
+    LIMIT 1;
+
+    -- Check if a row was actually found by the SELECT statement
+    IF FOUND THEN
+        -- Remove the row if it was a single like, otherwise decrement the count
+        IF _current_count = 1 THEN
+            DELETE FROM likes
+            WHERE
+                queue_id = _target_queue_id AND
+                song_id = _target_song_id AND
+                user_id = _target_user_id AND
+                given_at = _target_given_at;
+        ELSE
+            UPDATE likes
+            SET count = count - 1
+            WHERE
+                queue_id = _target_queue_id AND
+                song_id = _target_song_id AND
+                user_id = _target_user_id AND
+                given_at = _target_given_at;
+        END IF;
+
+        -- If a like was found and processed (either deleted or count
+        -- decremented), return the song_id.
+        RETURN _target_song_id;
+    ELSE
+        -- If no like was found, return NULL.
+        RETURN NULL;
+    END IF;
+END;
+$$;

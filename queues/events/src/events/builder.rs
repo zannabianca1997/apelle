@@ -8,13 +8,14 @@ use uuid::Uuid;
 
 use super::{Event, EventContent};
 
+#[must_use]
 pub struct QueueEventBuilder {
     queue: Uuid,
 }
 
 impl QueueEventBuilder {
     /// Create an event for a whole queue
-    pub(super) fn new(queue: Uuid) -> Self {
+    pub fn new(queue: Uuid) -> Self {
         Self { queue }
     }
 
@@ -36,6 +37,8 @@ impl QueueEventBuilder {
         }
     }
 }
+
+#[must_use]
 pub struct UserEventBuilder {
     queue: Uuid,
     user: Uuid,
@@ -43,7 +46,7 @@ pub struct UserEventBuilder {
 
 impl UserEventBuilder {
     /// Create an event for a specific user of a queue
-    pub(super) fn new(queue: Uuid, user: Uuid) -> Self {
+    pub fn new(queue: Uuid, user: Uuid) -> Self {
         Self { queue, user }
     }
 
@@ -68,6 +71,7 @@ pub trait BuildPatchEvent {
     fn test(self, path: impl Into<String>, value: impl Serialize) -> Self::Out;
 }
 
+#[must_use]
 pub struct PatchEventBuilder {
     queue: Uuid,
     user: Option<Uuid>,
@@ -75,14 +79,14 @@ pub struct PatchEventBuilder {
 }
 
 impl PatchEventBuilder {
-    fn queue(queue: Uuid) -> Self {
+    pub fn queue(queue: Uuid) -> Self {
         Self {
             queue,
             user: None,
             patch: json_patch::Patch::default(),
         }
     }
-    fn user(queue: Uuid, user: Uuid) -> Self {
+    pub fn user(queue: Uuid, user: Uuid) -> Self {
         Self {
             queue,
             user: Some(user),

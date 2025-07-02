@@ -95,6 +95,9 @@ impl IntoResponses for EnqueueError {
 
 #[derive(serde::Deserialize, IntoParams)]
 pub struct EnqueueQueryParams {
+    /// Override the default behavior of auto-liking
+    #[serde(default)]
+    pub autolike: Option<bool>,
     /// Return the full song data instead of just the UUID
     #[serde(default)]
     pub song: bool,
@@ -127,6 +130,7 @@ pub async fn enqueue(
     State(mut publisher): State<Publisher>,
     Extension(user): Extension<Arc<QueueUser>>,
     Query(EnqueueQueryParams {
+        autolike,
         song: return_song,
         song_source: return_song_source,
     }): Query<EnqueueQueryParams>,
@@ -207,17 +211,18 @@ pub async fn enqueue(
 
         // If auto-like is enabled and the user has likes available, give them
         // one
-        let user_likes = if user.auto_like() && user.likes() < user.role().max_likes {
-            sqlx::query("INSERT INTO likes (queue_id, song_id, user_id) VALUES ($1, $2, $3)")
-                .bind(id)
-                .bind(song.id)
-                .bind(user.id())
-                .execute(&mut tx)
-                .await?;
-            1
-        } else {
-            0
-        };
+        let user_likes =
+            if autolike.unwrap_or(user.auto_like()) && user.likes() < user.role().max_likes {
+                sqlx::query("INSERT INTO likes (queue_id, song_id, user_id) VALUES ($1, $2, $3)")
+                    .bind(id)
+                    .bind(song.id)
+                    .bind(user.id())
+                    .execute(&mut tx)
+                    .await?;
+                1
+            } else {
+                0
+            };
 
         Ok::<_, EnqueueError>((queued_at, player_state_id, user_likes))
     }
@@ -248,14 +253,16 @@ pub async fn enqueue(
         .publish(&mut publisher)
         .await?;
 
-    Event::user(id, user.id())
-        .replace(
-            format!("/queue/{}/user_likes", queued_song.song.id()),
-            user_likes,
-        )
-        .build()
-        .publish(&mut publisher)
-        .await?;
+    if user_likes != 0 {
+        Event::user(id, user.id())
+            .replace(
+                format!("/queue/{}/user_likes", queued_song.song.id()),
+                user_likes,
+            )
+            .build()
+            .publish(&mut publisher)
+            .await?;
+    }
 
     Ok(Json(queued_song))
 }

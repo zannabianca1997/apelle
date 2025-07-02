@@ -34,11 +34,21 @@ mod create;
 mod enqueue;
 mod events;
 mod get;
+mod like;
 mod push_sync_event;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
 struct QueuePathParams {
+    #[serde(rename = "queue_id")]
     pub id: Uuid,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
+struct QueuedSongPathParams {
+    #[serde(rename = "queue_id")]
+    pub queue: Uuid,
+    #[serde(rename = "song_id")]
+    pub song: Uuid,
 }
 
 /// Main fatal error
@@ -118,7 +128,7 @@ pub async fn app(
 
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .nest(
-            "/queues/{id}",
+            "/queues/{queue_id}",
             OpenApiRouter::new()
                 .routes(routes!(push_sync_event::push_sync_event))
                 .route_layer(middleware.clone()),
@@ -126,11 +136,15 @@ pub async fn app(
         .nest(
             "/public",
             OpenApiRouter::new().routes(routes!(create::create)).nest(
-                "/{id}",
+                "/{queue_id}",
                 OpenApiRouter::new()
                     .routes(routes!(get::get))
                     .routes(routes!(events::events))
                     .routes(routes!(enqueue::enqueue))
+                    .nest(
+                        "/queue/{song_id}",
+                        OpenApiRouter::new().routes(routes!(like::like)),
+                    )
                     .route_layer(middleware),
             ),
         )

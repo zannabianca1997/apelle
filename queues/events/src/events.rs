@@ -8,7 +8,7 @@ mod subscriber;
 const CHANNEL_PREFIX: &str = "apelle:queues:events:";
 const CHANNEL_PATTERN: &str = "apelle:queues:events:*";
 
-pub use builder::BuildPatchEvent;
+pub use builder::{BuildPatchEvent, PatchEventBuilder, QueueEventBuilder, UserEventBuilder};
 pub use publisher::Publisher;
 pub use subscriber::{Config as SubscribedClientConfig, PatchesLost, SubscribedClient};
 

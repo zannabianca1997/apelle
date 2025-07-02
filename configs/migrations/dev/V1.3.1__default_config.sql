@@ -37,6 +37,7 @@ BEGIN
       (admin_role_id, 'GET_QUEUE'),
       (admin_role_id, 'DELETE_QUEUE'),
       (admin_role_id, 'CONFIGURE_QUEUE'),
+      (admin_role_id, 'LIKE_SONG'),
       (admin_role_id, 'REMOVE_SONG'),
       (admin_role_id, 'BAN_SONG'),
       (admin_role_id, 'UNBAN_SONG'),
