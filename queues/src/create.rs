@@ -149,9 +149,9 @@ pub async fn create(
     let (code, config): (_, QueueConfig) = tokio::try_join!(code, config)?;
 
     // Create the queue
-    let (id, created, updated): (Uuid, DateTime<FixedOffset>, DateTime<FixedOffset>) =
+    let (id, created, updated,player_state_id): (Uuid, DateTime<FixedOffset>, DateTime<FixedOffset>, Uuid) =
         sqlx::query_as(
-            "INSERT INTO queue (code, config_id) VALUES ($1, $2) RETURNING id, created, updated",
+            "INSERT INTO queue (code, config_id) VALUES ($1, $2) RETURNING id, created, updated, player_state_id",
         )
         .bind(&code)
         .bind(config.id)
@@ -174,6 +174,7 @@ pub async fn create(
             id,
             current: None,
             code,
+            player_state_id,
             config: if return_config {
                 IdOrRep::Rep(config)
             } else {

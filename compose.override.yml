@@ -42,6 +42,14 @@ services:
         PROFILE: dev
     volumes:
       - ./logs/:/app/logs
+  queues-events:
+    ports:
+      - "8085:8080"
+    build:
+      args:
+        PROFILE: dev
+    volumes:
+      - ./logs/:/app/logs
   configs:
     ports:
       - "8084:8080"

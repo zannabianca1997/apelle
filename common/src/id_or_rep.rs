@@ -64,3 +64,40 @@ impl<T> From<Uuid> for IdOrRep<T> {
         Self::Id(id)
     }
 }
+
+pub trait HasId {
+    fn id(&self) -> Uuid;
+}
+
+impl<T: HasId> HasId for IdOrRep<T> {
+    fn id(&self) -> Uuid {
+        match self {
+            IdOrRep::Id(id) => *id,
+            IdOrRep::Rep(t) => t.id(),
+        }
+    }
+}
+
+impl HasId for Uuid {
+    fn id(&self) -> Uuid {
+        *self
+    }
+}
+
+impl<T: HasId> HasId for &T {
+    fn id(&self) -> Uuid {
+        T::id(self)
+    }
+}
+
+impl<T: HasId> HasId for &mut T {
+    fn id(&self) -> Uuid {
+        T::id(self)
+    }
+}
+
+impl<T: HasId> HasId for Box<T> {
+    fn id(&self) -> Uuid {
+        T::id(self)
+    }
+}

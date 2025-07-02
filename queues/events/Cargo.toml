@@ -1,0 +1,25 @@
+[package]
+name = "apelle-queues-events"
+version = "0.1.0"
+edition = "2024"
+
+license.workspace = true
+
+[dependencies]
+apelle-common = { version = "0.1.0", path = "../../common" }
+axum.workspace = true
+derive_more.workspace = true
+futures.workspace = true
+json-patch.workspace = true
+redis.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+snafu.workspace = true
+tokio.workspace = true
+tokio-stream = { version = "0.1.17", features = ["sync"] }
+tracing.workspace = true
+url.workspace = true
+utoipa.workspace = true
+utoipa-axum.workspace = true
+uuid.workspace = true

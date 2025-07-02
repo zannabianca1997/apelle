@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use apelle_common::{
     Reporter, ServicesClient,
+    common_errors::PubSubError,
     db::{SqlError, SqlTx},
-    id_or_rep::IdOrRep,
+    id_or_rep::{HasId as _, IdOrRep},
 };
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
+use apelle_queues_events::events::{Event, Publisher};
 use apelle_songs_dtos::public::{
     ResolveSongRequest, SearchResponseItemState, SolvedQueryParams, Song,
 };
@@ -14,6 +16,7 @@ use axum::{
     extract::{Path, Query, State},
     response::IntoResponse,
 };
+use json_patch::{AddOperation, PatchOperation, ReplaceOperation};
 use reqwest::StatusCode;
 use serde::Deserialize;
 use snafu::Snafu;
@@ -35,6 +38,11 @@ pub enum EnqueueError {
     },
     Forbidden,
     Conflict,
+
+    #[snafu(transparent)]
+    PubSub {
+        source: PubSubError,
+    },
 }
 
 impl From<sqlx::Error> for EnqueueError {
@@ -55,6 +63,7 @@ impl IntoResponse for EnqueueError {
             }
             EnqueueError::Forbidden => StatusCode::FORBIDDEN.into_response(),
             EnqueueError::Conflict => StatusCode::CONFLICT.into_response(),
+            EnqueueError::PubSub { source } => source.into_response(),
         }
     }
 }
@@ -80,6 +89,7 @@ impl IntoResponses for EnqueueError {
         ]
         .into_iter()
         .chain(SqlError::responses())
+        .chain(PubSubError::responses())
         .collect()
     }
 }
@@ -115,6 +125,7 @@ pub async fn enqueue(
     mut tx: SqlTx,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
+    State(mut publisher): State<Publisher>,
     Extension(user): Extension<Arc<QueueUser>>,
     Query(EnqueueQueryParams {
         song: return_song,
@@ -150,7 +161,7 @@ pub async fn enqueue(
     .await?;
 
     // Insert the song in the database queue
-    let (queued_at, _player_state_id, user_likes) = async {
+    let (queued_at, player_state_id, user_likes) = async {
         // Add the song to the queue
         let queued_at = sqlx::query_scalar(
             unfill!(
@@ -213,7 +224,7 @@ pub async fn enqueue(
     }
     .await?;
 
-    Ok(Json(QueuedSong {
+    let queued_song = QueuedSong {
         song: if return_song {
             IdOrRep::Rep(song)
         } else {
@@ -222,5 +233,36 @@ pub async fn enqueue(
         queued_at,
         likes: user_likes,
         user_likes,
-    }))
+    };
+
+    Event::queue(id)
+        .operation(PatchOperation::Add(AddOperation {
+            path: format!("/queue/{}", queued_song.song.id()).parse().unwrap(),
+            value: serde_json::to_value(QueuedSong {
+                song: IdOrRep::Id(queued_song.song.id()),
+                user_likes: 0,
+                ..queued_song.clone()
+            })
+            .unwrap(),
+        }))
+        .operation(PatchOperation::Replace(ReplaceOperation {
+            path: "/player_state_id".parse().unwrap(),
+            value: serde_json::to_value(player_state_id).unwrap(),
+        }))
+        .build()
+        .publish(&mut publisher)
+        .await?;
+
+    Event::user(id, user.id())
+        .operation(PatchOperation::Replace(ReplaceOperation {
+            path: format!("/queue/{}/user_likes", queued_song.song.id())
+                .parse()
+                .unwrap(),
+            value: serde_json::to_value(user_likes).unwrap(),
+        }))
+        .build()
+        .publish(&mut publisher)
+        .await?;
+
+    Ok(Json(queued_song))
 }

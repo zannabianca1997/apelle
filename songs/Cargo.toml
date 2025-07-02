@@ -14,7 +14,7 @@ serde.workspace = true
 url.workspace = true
 snafu.workspace = true
 sqlx.workspace = true
-reqwest = { workspace = true, features = ["stream"] }
+reqwest.workspace = true
 tracing.workspace = true
 tokio.workspace = true
 redis.workspace = true
@@ -23,7 +23,7 @@ const_format.workspace = true
 textwrap-macros.workspace = true
 uuid.workspace = true
 chrono.workspace = true
-derive_more = { workspace = true, features = ["display"] }
+derive_more.workspace = true
 axum-extra.workspace = true
 serde_json.workspace = true
 itertools.workspace = true

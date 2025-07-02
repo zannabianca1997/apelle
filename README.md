@@ -32,6 +32,7 @@ exposes the port it uses, enabling testing of the single service.
 | songs         | 8082 |
 | queues        | 8083 |
 | configs       | 8084 |
+| queues-events | 8085 |
 | songs-youtube | 8091 |
 
 ## Swagger
@@ -145,6 +146,10 @@ currently playing song.
 
 ### `configs`
 Queue configurations service. Keep track of the configuration of each queue.
+
+### `queues-events`
+Queue events service. Receives events from the pub-sub, and trasmits them to the
+frontend as [SSE](https://en.wikipedia.org/wiki/Server-sent_events).
 
 ### `api-docs`
 api-docs API documentation, serving [api-docs

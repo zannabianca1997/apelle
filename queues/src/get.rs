@@ -133,7 +133,7 @@ pub async fn get(
     let current_client = client.clone();
     let current_services = services.clone();
 
-    let (code, current, created, updated) = {
+    let (code, current, created, updated, player_state_id) = {
         let (
             code,
             current_song,
@@ -173,19 +173,15 @@ pub async fn get(
         let current_song_position = Option::map(current_song_position, Duration::seconds);
 
         let current = match (current_song, current_song_position, current_song_start_at) {
-            (Some(song), Some(position), None) => {
-                Some(Current::stopped(song, player_state_id, position))
-            }
-            (Some(song), None, Some(starts_at)) => {
-                Some(Current::playing(song, player_state_id, starts_at))
-            }
+            (Some(song), Some(position), None) => Some(Current::stopped(song, position)),
+            (Some(song), None, Some(starts_at)) => Some(Current::playing(song, starts_at)),
             (None, None, None) => None,
             _ => panic!(
                 "Invalid database state: the check on the table should have avoided this state"
             ),
         };
 
-        (code, current, created, updated)
+        (code, current, created, updated, player_state_id)
     };
 
     let queue = sqlx::query(
@@ -275,6 +271,7 @@ pub async fn get(
         id,
         code,
         current,
+        player_state_id,
         config: if return_config {
             IdOrRep::Rep((*config).clone())
         } else {

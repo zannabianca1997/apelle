@@ -1,3 +1,5 @@
+include:
+  - events/compose.yml
 services:
   queues:
     container_name: ${COMPOSE_PROJECT_NAME}-queues

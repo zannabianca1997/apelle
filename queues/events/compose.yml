@@ -1,0 +1,17 @@
+services:
+  queues-events:
+    container_name: ${COMPOSE_PROJECT_NAME}-queues-events
+    restart: always
+    environment:
+      APELLE__PUBSUB_URL: ${PUBSUB_URL?"The cache url must be set"}
+      APELLE__QUEUES_URL: ${QUEUES_URL?"The queues service url must be set"}
+    depends_on:
+      queues:
+        condition: service_started
+      cache-pubsub:
+        condition: service_started
+    build:
+      context: ../..
+      dockerfile: ./docker/Dockerfile.rust
+      args:
+        SERVICE: queues-events

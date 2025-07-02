@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use apelle_common::id_or_rep::HasId;
 use chrono::{DateTime, Duration, offset::FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
@@ -29,6 +30,12 @@ pub struct Song {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[schema(value_type = Object, nullable, required = false)]
     pub source_data: Option<Value>,
+}
+
+impl HasId for Song {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }
 
 #[derive(Debug, Deserialize, IntoParams, Serialize)]

@@ -13,6 +13,8 @@ pub struct Queue {
     pub id: Uuid,
     pub code: String,
 
+    pub player_state_id: Uuid,
+
     pub current: Option<Current>,
 
     pub config: IdOrRep<QueueConfig>,
@@ -26,7 +28,6 @@ pub struct Queue {
 #[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct Current {
     song: Song,
-    player_state_id: Uuid,
     #[serde(flatten)]
     state: TimeRef,
 }
@@ -39,27 +40,21 @@ enum TimeRef {
 }
 
 impl Current {
-    pub fn playing(song: Song, player_state_id: Uuid, starts_at: DateTime<FixedOffset>) -> Self {
+    pub fn playing(song: Song, starts_at: DateTime<FixedOffset>) -> Self {
         Self {
             song,
-            player_state_id,
             state: TimeRef::Absolute { starts_at },
         }
     }
-    pub fn stopped(song: Song, player_state_id: Uuid, position: Duration) -> Self {
+    pub fn stopped(song: Song, position: Duration) -> Self {
         Self {
             song,
-            player_state_id,
             state: TimeRef::Relative { position },
         }
     }
 
     pub fn song(&self) -> &Song {
         &self.song
-    }
-
-    pub fn player_state_id(&self) -> Uuid {
-        self.player_state_id
     }
 
     /// Current position of the song
@@ -106,30 +101,6 @@ impl Current {
             TimeRef::Relative { .. } => true,
             TimeRef::Absolute { .. } => false,
         }
-    }
-
-    /// Pause the song
-    pub fn pause(&mut self) -> bool {
-        if self.paused() {
-            return false;
-        }
-        self.state = TimeRef::Relative {
-            position: self.position(),
-        };
-        self.player_state_id = Uuid::new_v4();
-        true
-    }
-
-    /// Resume the song
-    pub fn resume(&mut self) -> bool {
-        if !self.paused() {
-            return false;
-        }
-        self.state = TimeRef::Absolute {
-            starts_at: self.starts_at(),
-        };
-        self.player_state_id = Uuid::new_v4();
-        true
     }
 }
 
