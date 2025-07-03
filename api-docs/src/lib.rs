@@ -224,7 +224,7 @@ pub async fn app(Config { services }: Config) -> Result<OpenApiRouter, MainError
         .map(|(name, service)| (name.to_lowercase().replace('_', "-"), service))
         .collect();
 
-    let ui = SwaggerUi::new("/swagger-ui").config(
+    let ui = SwaggerUi::new("/internal-swagger-ui").config(
         SwaggerConfig::new(
             services
                 .keys()
@@ -233,8 +233,8 @@ pub async fn app(Config { services }: Config) -> Result<OpenApiRouter, MainError
         // Disable the try it out button, as the services does not support CORS
         .supported_submit_methods(Vec::<String>::new()),
     );
-    let external_ui = SwaggerUi::new("/external-swagger-ui/")
-        .config(SwaggerConfig::new(vec!["/api-docs/openapi.json"]));
+    let external_ui =
+        SwaggerUi::new("/swagger-ui").config(SwaggerConfig::new(vec!["/api-docs/openapi.json"]));
 
     let swagger_router = Router::new().merge(ui).merge(external_ui);
 
