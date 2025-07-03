@@ -11,9 +11,9 @@ use uuid::Uuid;
 
 use crate::Reporter;
 
-pub const ID_HEADER: HeaderName = HeaderName::from_static("x-apelle-user-id");
-pub const NAME_HEADER: HeaderName = HeaderName::from_static("x-apelle-user-name");
-pub const GLOBAL_ROLES_HEADER: HeaderName = HeaderName::from_static("x-apelle-user-global-roles");
+pub const ID_HEADER: HeaderName = HeaderName::from_static("apelle-user-id");
+pub const NAME_HEADER: HeaderName = HeaderName::from_static("apelle-user-name");
+pub const GLOBAL_ROLES_HEADER: HeaderName = HeaderName::from_static("apelle-user-global-roles");
 
 #[derive(Debug, Snafu)]
 pub enum InvalidHeaders {

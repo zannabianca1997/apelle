@@ -76,7 +76,7 @@ pub enum Error<AppError: std::error::Error + 'static> {
     },
 }
 
-pub const TRACE_ID_HEADER: HeaderName = HeaderName::from_static("x-apelle-trace-id");
+pub const TRACE_ID_HEADER: HeaderName = HeaderName::from_static("apelle-trace-id");
 
 fn service_main_impl<F, AppConfig, AppError, App>(
     service_name: &'static str,
