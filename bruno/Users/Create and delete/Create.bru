@@ -1,0 +1,36 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{endpoint}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "bruno",
+    "password": "password"
+  }
+}
+
+tests {
+  test("should create user", function () {
+    expect(res.getStatus()).to.be.equal(201);
+  });
+  
+  test("should return json", function () {
+    expect(res.getBody())
+      .to.be.an('object')
+      .to.deep.own.include({
+        "name": "bruno",
+        "roles": []
+      })
+      .to.have.all.keys([
+      "created", "updated", "last_login"
+    ]);
+  });
+}

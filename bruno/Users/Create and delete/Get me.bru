@@ -1,0 +1,38 @@
+meta {
+  name: Get me
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{endpoint}}/me
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: bruno
+  password: password
+}
+
+vars:post-response {
+  created_user_id: res.body.id
+}
+
+tests {
+  test("should get user", function () {
+    expect(res.getStatus()).to.be.equal(200);
+  });
+  
+  test("should return json", function () {
+    expect(res.getBody())
+      .to.be.an('object')
+      .to.own.include({
+        "name": "bruno",
+        "roles": []
+      })
+      .to.have.all.keys([
+      "created", "updated", "last_login"
+    ]);
+  });
+}

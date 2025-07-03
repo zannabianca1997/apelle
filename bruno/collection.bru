@@ -1,0 +1,22 @@
+auth {
+  mode: basic
+}
+
+auth:basic {
+  username: user
+  password: password
+}
+
+docs {
+  # Apelle Bruno collections
+  
+  This is a collection for testing the Apelle API with Bruno.
+  
+  The collection is for the external API, while the `bruno` subfolders for each microservice can be found in their directory. 
+  
+  They are ready to run against the develop mode. Launch it by running
+  ```
+  docker compose up [<service name>]
+  ```
+  in the project root after having set the right enviroment files.
+}

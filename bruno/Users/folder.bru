@@ -1,0 +1,20 @@
+meta {
+  name: Users
+  seq: 1
+}
+
+auth {
+  mode: inherit
+}
+
+vars:pre-request {
+  endpoint: {{host}}/users
+}
+
+docs {
+  # Apelle Users
+  
+  Collection for the `users` service.
+  
+  Notice that this collection relies on the default users being present, as set by the dev enviroment migrations.
+}

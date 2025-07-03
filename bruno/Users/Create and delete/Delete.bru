@@ -1,0 +1,22 @@
+meta {
+  name: Delete
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{endpoint}}/me
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: bruno
+  password: password
+}
+
+tests {
+  test("should delete user", function () {
+    expect(res.getStatus()).to.be.equal(204);
+  });
+}
