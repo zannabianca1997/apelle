@@ -37,7 +37,7 @@ impl AuthHeaders {
         roles: impl IntoIterator<Item = &'a (impl AsRef<str> + 'a)>,
     ) -> Result<Self, InvalidHeaders> {
         let roles_joined: String =
-            Itertools::intersperse(roles.into_iter().map(|r| r.as_ref()), ",").collect();
+            Itertools::intersperse(roles.into_iter().map(|r| r.as_ref()), ", ").collect();
         Ok(Self {
             id,
             name: HeaderValue::from_str(name).context(InvalidNameSnafu)?,
@@ -62,6 +62,8 @@ impl AuthHeaders {
             .map(|r| r.to_str().expect("All constructors checks this is valid"))
             .unwrap_or("")
             .split(',')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
     }
 
     pub(crate) fn headers(&self) -> impl IntoIterator<Item = (HeaderName, HeaderValue)> {
