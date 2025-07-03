@@ -4,7 +4,9 @@
 serve.socket = "0.0.0.0:8080"
 logging.file = false
 
-db_url = "postgres://apelle:apelle@db:5432/apelle"
+# These should be set for all containers
+# db_url = "postgres://apelle:apelle@db:5432/apelle"
+
 cache_url = "redis://cache-pubsub:6379/?protocol=resp3"
 pubsub_url = "redis://cache-pubsub:6379/?protocol=resp3"
 
