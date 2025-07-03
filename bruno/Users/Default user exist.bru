@@ -1,0 +1,30 @@
+meta {
+  name: Default user exist
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{endpoint}}/me
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("should exist", function () {
+    expect(res.getStatus()).to.be.equal(200);
+  });
+  
+  
+  test("should return json", function () {
+    expect(res.getBody())
+      .to.be.an('object')
+      .to.deep.own.include({
+        "roles": []
+      });
+  });
+}
+
+docs {
+  Check the default user exists
+}
