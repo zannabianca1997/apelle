@@ -223,6 +223,7 @@ name = "apelle-queues-events"
 version = "0.1.0"
 dependencies = [
  "apelle-common",
+ "arrayvec",
  "axum",
  "chrono",
  "derive_more",
@@ -236,6 +237,8 @@ dependencies = [
  "snafu",
  "tokio 1.45.1",
  "tokio-stream",
+ "tower-layer",
+ "tower-service",
  "tracing",
  "url",
  "utoipa 5.4.0",
@@ -366,6 +369,12 @@ dependencies = [
  "cpufeatures",
  "password-hash",
 ]
+
+[[package]]
+name = "arrayvec"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "atoi"

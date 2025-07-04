@@ -2,12 +2,11 @@ use std::sync::Arc;
 
 use apelle_common::{
     Reporter, ServicesClient,
-    common_errors::PubSubError,
     db::{SqlError, SqlTx},
     id_or_rep::{HasId as _, IdOrRep},
 };
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Event, Publisher};
+use apelle_queues_events::events::{BuildPatchEvent as _, Collector, Event};
 use apelle_songs_dtos::public::{
     ResolveSongRequest, SearchResponseItemState, SolvedQueryParams, Song,
 };
@@ -37,11 +36,6 @@ pub enum EnqueueError {
     },
     Forbidden,
     Conflict,
-
-    #[snafu(transparent)]
-    PubSub {
-        source: PubSubError,
-    },
 }
 
 impl From<sqlx::Error> for EnqueueError {
@@ -62,7 +56,6 @@ impl IntoResponse for EnqueueError {
             }
             EnqueueError::Forbidden => StatusCode::FORBIDDEN.into_response(),
             EnqueueError::Conflict => StatusCode::CONFLICT.into_response(),
-            EnqueueError::PubSub { source } => source.into_response(),
         }
     }
 }
@@ -88,7 +81,6 @@ impl IntoResponses for EnqueueError {
         ]
         .into_iter()
         .chain(SqlError::responses())
-        .chain(PubSubError::responses())
         .collect()
     }
 }
@@ -125,9 +117,9 @@ params(EnqueueQueryParams, QueuePathParams)
 )]
 pub async fn enqueue(
     mut tx: SqlTx,
+    mut collector: Collector<5>,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
-    State(mut publisher): State<Publisher>,
     Extension(user): Extension<Arc<QueueUser>>,
     Query(EnqueueQueryParams {
         autolike,
@@ -250,8 +242,8 @@ pub async fn enqueue(
         )
         .replace("/player_state_id", player_state_id)
         .build()
-        .publish(&mut publisher)
-        .await?;
+        .collect(&mut collector)
+        .await;
 
     if user_likes != 0 {
         Event::user(id, user.id())
@@ -260,8 +252,8 @@ pub async fn enqueue(
                 user_likes,
             )
             .build()
-            .publish(&mut publisher)
-            .await?;
+            .collect(&mut collector)
+            .await;
     }
 
     Ok(Json(queued_song))

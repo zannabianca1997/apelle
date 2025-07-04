@@ -1,14 +1,11 @@
 use std::{iter::once, sync::Arc};
 
-use apelle_common::{
-    common_errors::PubSubError,
-    db::{SqlError, SqlTx},
-};
+use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Event, PatchEventBuilder, Publisher};
+use apelle_queues_events::events::{BuildPatchEvent as _, Collector, Event, PatchEventBuilder};
 use axum::{
     Extension, debug_handler,
-    extract::{Path, State},
+    extract::Path,
     response::{IntoResponse, NoContent},
 };
 use reqwest::StatusCode;
@@ -26,11 +23,6 @@ pub enum LikeError {
         source: SqlError,
     },
     Forbidden,
-
-    #[snafu(transparent)]
-    PubSub {
-        source: PubSubError,
-    },
 }
 
 impl From<sqlx::Error> for LikeError {
@@ -46,7 +38,6 @@ impl IntoResponse for LikeError {
         match self {
             LikeError::SqlError { source } => source.into_response(),
             LikeError::Forbidden => StatusCode::FORBIDDEN.into_response(),
-            LikeError::PubSub { source } => source.into_response(),
         }
     }
 }
@@ -62,7 +53,6 @@ impl IntoResponses for LikeError {
         )]
         .into_iter()
         .chain(SqlError::responses())
-        .chain(PubSubError::responses())
         .collect()
     }
 }
@@ -78,7 +68,7 @@ params(QueuedSongPathParams)
 )]
 pub async fn like(
     mut tx: SqlTx,
-    State(mut publisher): State<Publisher>,
+    collector: Collector<5>,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuedSongPathParams { queue, song }): Path<QueuedSongPathParams>,
 ) -> Result<NoContent, LikeError> {
@@ -200,8 +190,8 @@ pub async fn like(
         );
     }
 
-    publisher.publish(queue_event.build()).await?;
-    publisher.publish(user_event.build()).await?;
+    collector.collect(queue_event.build()).await;
+    collector.collect(user_event.build()).await;
 
     Ok(NoContent)
 }

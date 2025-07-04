@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 apelle-common = { version = "0.1.0", path = "../../common" }
+arrayvec = "0.7.6"
 axum.workspace = true
 chrono.workspace = true
 derive_more.workspace = true
@@ -20,6 +21,8 @@ serde_json.workspace = true
 snafu.workspace = true
 tokio.workspace = true
 tokio-stream = { version = "0.1.17", features = ["sync"] }
+tower-layer = "0.3.3"
+tower-service = "0.3.3"
 tracing.workspace = true
 url.workspace = true
 utoipa.workspace = true

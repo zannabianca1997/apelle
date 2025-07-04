@@ -4,6 +4,7 @@ use apelle_common::{
     cache_pubsub,
     db::{SqlState, db_state_and_layer},
 };
+use apelle_queues_events::events::event_middleware;
 use axum::{extract::FromRef, middleware::from_fn_with_state};
 use config::Config;
 use futures::FutureExt as _;
@@ -149,5 +150,6 @@ pub async fn app(
             ),
         )
         .route_layer(tx_layer)
+        .layer(from_fn_with_state(app.clone(), event_middleware::<5>))
         .with_state(app))
 }

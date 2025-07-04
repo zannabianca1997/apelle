@@ -27,24 +27,52 @@ impl Publisher {
         }: Event,
     ) -> Result<(), PubSubError> {
         let mut buffer = [0u8; CHANNEL_PREFIX.len() + 36 + 1 + 36];
-        let channel = {
-            let mut unwritten = &mut buffer[..];
-
-            write!(unwritten, "{}{}", CHANNEL_PREFIX, queue).unwrap();
-            if let Some(user) = user {
-                write!(unwritten, ":{}", user).unwrap();
-            }
-
-            let unwritten = unwritten.len();
-            let written = buffer.len() - unwritten;
-            str::from_utf8(&buffer[..written]).unwrap()
-        };
+        let channel = channel_name(queue, user, &mut buffer);
 
         self.client
             .publish(channel, serde_json::to_string(&content).unwrap())
             .await
             .context(PubSubSnafu)
     }
+
+    pub async fn publish_all(
+        &mut self,
+        events: impl IntoIterator<Item = Event>,
+    ) -> Result<(), PubSubError> {
+        let mut buffer = [0u8; CHANNEL_PREFIX.len() + 36 + 1 + 36];
+
+        let mut command = redis::pipe();
+        for Event {
+            queue,
+            user,
+            content,
+        } in events
+        {
+            let channel = channel_name(queue, user, &mut buffer);
+
+            command.publish(channel, serde_json::to_string(&content).unwrap());
+        }
+
+        command
+            .exec_async(&mut self.client)
+            .await
+            .context(PubSubSnafu)
+    }
+}
+
+fn channel_name(
+    queue: uuid::Uuid,
+    user: Option<uuid::Uuid>,
+    buffer: &mut [u8; CHANNEL_PREFIX.len() + 36 + 1 + 36],
+) -> &str {
+    let mut unwritten = &mut buffer[..];
+    write!(unwritten, "{}{}", CHANNEL_PREFIX, queue).unwrap();
+    if let Some(user) = user {
+        write!(unwritten, ":{}", user).unwrap();
+    }
+    let unwritten = unwritten.len();
+    let written = buffer.len() - unwritten;
+    str::from_utf8(&buffer[..written]).unwrap()
 }
 
 impl Event {

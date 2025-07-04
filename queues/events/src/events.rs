@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod builder;
+mod collector;
 mod publisher;
 mod subscriber;
 
@@ -9,6 +10,7 @@ const CHANNEL_PREFIX: &str = "apelle:queues:events:";
 const CHANNEL_PATTERN: &str = "apelle:queues:events:*";
 
 pub use builder::{BuildPatchEvent, PatchEventBuilder, QueueEventBuilder, UserEventBuilder};
+pub use collector::{Collector, event_middleware};
 pub use publisher::Publisher;
 pub use subscriber::{Config as SubscribedClientConfig, PatchesLost, SubscribedClient};
 
