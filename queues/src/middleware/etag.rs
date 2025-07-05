@@ -17,7 +17,9 @@ use axum::{
 };
 use axum_extra::{
     TypedHeader,
-    headers::{ETag, IfMatch, IfModifiedSince, IfNoneMatch, IfUnmodifiedSince, LastModified},
+    headers::{
+        ETag, Header, IfMatch, IfModifiedSince, IfNoneMatch, IfUnmodifiedSince, LastModified,
+    },
 };
 use chrono::{DateTime, FixedOffset};
 use reqwest::StatusCode;
@@ -75,6 +77,21 @@ pub async fn etag_middleware(
     ),
     EtagError,
 > {
+    // For some reason, these two headers are returned as present even if they
+    // are missing
+
+    let if_match = request
+        .headers()
+        .contains_key(IfMatch::name())
+        .then_some(if_match)
+        .flatten();
+
+    let if_none_match = request
+        .headers()
+        .contains_key(IfNoneMatch::name())
+        .then_some(if_none_match)
+        .flatten();
+
     let (last_modified, etag) =
         sqlx::query_as("SELECT updated, player_state_id FROM queue WHERE id = $1")
             .bind(id)
