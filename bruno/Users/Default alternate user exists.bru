@@ -1,13 +1,18 @@
 meta {
-  name: Default user exist
+  name: Default alternate user exists
   type: http
-  seq: 3
+  seq: 4
 }
 
 get {
   url: {{endpoint}}/me
   body: none
-  auth: inherit
+  auth: basic
+}
+
+auth:basic {
+  username: user2
+  password: password
 }
 
 tests {

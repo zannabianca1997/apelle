@@ -1,0 +1,27 @@
+meta {
+  name: Fail delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{endpoint}}/{{queue_id}}
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: user2
+  password: password
+}
+
+tests {
+  test("should fail to delete queue", function () {
+    expect(res.getStatus()).to.be.equal(403);
+  });
+  
+}
+
+docs {
+  Triying to delete from another user should fail
+}

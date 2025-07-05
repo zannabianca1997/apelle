@@ -20,9 +20,12 @@ use serde::Deserialize;
 use snafu::Snafu;
 use textwrap_macros::unfill;
 use utoipa::{IntoParams, IntoResponses, ToSchema, openapi};
-use uuid::Uuid;
 
-use crate::{QueuePathParams, Services, middleware::user::QueueUser, model::QueuedSong};
+use crate::{
+    QueuePathParams, Services,
+    middleware::{etag::Changed, user::QueueUser},
+    model::QueuedSong,
+};
 
 #[derive(Debug, Snafu)]
 pub enum EnqueueError {
@@ -128,7 +131,7 @@ pub async fn enqueue(
     }): Query<EnqueueQueryParams>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
     Json(search_response): Json<SearchResponseItem>,
-) -> Result<Json<QueuedSong>, EnqueueError> {
+) -> Result<(Changed, Json<QueuedSong>), EnqueueError> {
     if !user.can(QueueUserAction::Song(QueueUserActionSong::Enqueue)) {
         return Err(EnqueueError::Forbidden);
     }
@@ -156,7 +159,7 @@ pub async fn enqueue(
     .await?;
 
     // Insert the song in the database queue
-    let (queued_at, player_state_id, user_likes) = async {
+    let (queued_at, user_likes) = async {
         // Add the song to the queue
         let queued_at = sqlx::query_scalar(
             unfill!(
@@ -184,23 +187,6 @@ pub async fn enqueue(
             }
         })?;
 
-        // Update the queue id, as the song might be the first one and influence
-        // the next id
-        let player_state_id: Uuid = sqlx::query_scalar(
-            unfill!(
-                "
-                UPDATE queue
-                SET player_state_id = gen_random_uuid()
-                WHERE id = $1
-                RETURNING player_state_id
-                "
-            )
-            .trim_ascii(),
-        )
-        .bind(id)
-        .fetch_one(&mut tx)
-        .await?;
-
         // If auto-like is enabled and the user has likes available, give them
         // one
         let user_likes =
@@ -216,7 +202,7 @@ pub async fn enqueue(
                 0
             };
 
-        Ok::<_, EnqueueError>((queued_at, player_state_id, user_likes))
+        Ok::<_, EnqueueError>((queued_at, user_likes))
     }
     .await?;
 
@@ -240,9 +226,8 @@ pub async fn enqueue(
                 ..queued_song.clone()
             },
         )
-        .replace("/player_state_id", player_state_id)
         .build()
-        .collect(&mut collector)
+        .collect(&collector)
         .await;
 
     if user_likes != 0 {
@@ -256,5 +241,8 @@ pub async fn enqueue(
             .await;
     }
 
-    Ok(Json(queued_song))
+    Ok((
+        Changed::new(&mut tx, &collector, id).await?,
+        Json(queued_song),
+    ))
 }

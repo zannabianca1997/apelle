@@ -5,7 +5,10 @@ use apelle_common::{
     db::{SqlState, db_state_and_layer},
 };
 use apelle_queues_events::events::event_middleware;
-use axum::{extract::FromRef, middleware::from_fn_with_state};
+use axum::{
+    extract::FromRef,
+    middleware::{from_fn_with_state, map_request_with_state},
+};
 use config::Config;
 use futures::FutureExt as _;
 use serde::{Deserialize, Serialize};
@@ -18,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{
     config::CodeConfig,
-    middleware::{config::extract_queue_config, user::extract_queue_user},
+    middleware::{config::extract_queue_config, etag::etag_middleware, user::extract_queue_user},
 };
 
 pub mod config;
@@ -26,8 +29,11 @@ pub mod config;
 mod dtos;
 mod model;
 
+mod common {}
+
 mod middleware {
     pub mod config;
+    pub mod etag;
     pub mod user;
 }
 
@@ -128,8 +134,9 @@ pub async fn app(
     };
 
     let queue_middleware = tower::ServiceBuilder::new()
-        .layer(from_fn_with_state(app.clone(), extract_queue_config))
-        .layer(from_fn_with_state(app.clone(), extract_queue_user));
+        .layer(from_fn_with_state(app.clone(), etag_middleware))
+        .layer(map_request_with_state(app.clone(), extract_queue_config))
+        .layer(map_request_with_state(app.clone(), extract_queue_user));
 
     let common_middleware = tower::ServiceBuilder::new()
         .layer(from_fn_with_state(app.clone(), event_middleware::<5>))

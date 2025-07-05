@@ -2,7 +2,7 @@ use std::{iter::once, sync::Arc};
 
 use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Collector, Event, PatchEventBuilder};
+use apelle_queues_events::events::{BuildPatchEvent as _, Collector, PatchEventBuilder};
 use axum::{
     Extension, debug_handler,
     extract::Path,
@@ -14,7 +14,10 @@ use textwrap_macros::unfill;
 use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
-use crate::{QueuedSongPathParams, middleware::user::QueueUser};
+use crate::{
+    QueuedSongPathParams,
+    middleware::{etag::Changed, user::QueueUser},
+};
 
 #[derive(Debug, Snafu)]
 pub enum LikeError {
@@ -71,7 +74,7 @@ pub async fn like(
     collector: Collector<5>,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuedSongPathParams { queue, song }): Path<QueuedSongPathParams>,
-) -> Result<NoContent, LikeError> {
+) -> Result<(Option<Changed>, NoContent), LikeError> {
     if !user.can(QueueUserAction::Song(QueueUserActionSong::Like)) || user.role().max_likes == 0 {
         return Err(LikeError::Forbidden);
     }
@@ -89,7 +92,7 @@ pub async fn like(
         // If no like was removed, that means that the user liked only this
         // song. Adding and removing a like would be a no-op
         let Some(deleted) = deleted else {
-            return Ok(NoContent);
+            return Ok((None, NoContent));
         };
 
         // Build the dislike events
@@ -113,24 +116,7 @@ pub async fn like(
     .execute(&mut tx)
     .await?;
 
-    // Update the queue id, as the song might now be the first one and influence
-    // the next id
-    let player_state_id: Uuid = sqlx::query_scalar(
-        unfill!(
-            "
-                UPDATE queue
-                SET player_state_id = gen_random_uuid()
-                WHERE id = $1
-                RETURNING player_state_id
-                "
-        )
-        .trim_ascii(),
-    )
-    .bind(queue)
-    .fetch_one(&mut tx)
-    .await?;
-
-    let mut queue_event = Event::queue(queue).replace("/player_state_id", player_state_id);
+    let mut queue_event = PatchEventBuilder::queue(queue);
     let mut user_event = PatchEventBuilder::user(queue, user.id());
 
     // Publish the new like count
@@ -193,5 +179,8 @@ pub async fn like(
     collector.collect(queue_event.build()).await;
     collector.collect(user_event.build()).await;
 
-    Ok(NoContent)
+    Ok((
+        Some(Changed::new(&mut tx, &collector, queue).await?),
+        NoContent,
+    ))
 }

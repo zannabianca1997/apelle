@@ -6,10 +6,8 @@ use apelle_common::{
 };
 use apelle_configs_dtos::QueueConfig;
 use axum::{
-    debug_middleware,
     extract::{Path, Request, State},
-    middleware::Next,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
 use reqwest::StatusCode;
 use snafu::{OptionExt, Snafu};
@@ -48,15 +46,13 @@ impl IntoResponse for FetchConfigError {
 ///
 /// This will contact the config service to get the queue config, and add it
 /// to the reques as an extension
-#[debug_middleware(state = crate::App)]
 pub async fn extract_queue_config(
     mut tx: SqlTx,
     State(services): State<Arc<Services>>,
     client: ServicesClient,
     Path(QueuePathParams { id: queue_id }): Path<QueuePathParams>,
     mut request: Request,
-    next: Next,
-) -> Result<Response, FetchConfigError> {
+) -> Result<Request, FetchConfigError> {
     // Get the queue config id
     let config_id: Uuid = sqlx::query_scalar("SELECT config_id FROM queue WHERE id = $1")
         .bind(queue_id)
@@ -81,7 +77,5 @@ pub async fn extract_queue_config(
 
     request.extensions_mut().insert(Arc::new(config));
 
-    drop(tx);
-
-    Ok(next.run(request).await)
+    Ok(request)
 }

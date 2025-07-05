@@ -8,7 +8,6 @@ use axum::{
     extract::Path,
     response::{IntoResponse, NoContent},
 };
-use futures::{StreamExt, TryStreamExt as _};
 use reqwest::StatusCode;
 use snafu::Snafu;
 use utoipa::{IntoResponses, openapi};

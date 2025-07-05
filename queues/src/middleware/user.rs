@@ -6,10 +6,9 @@ use apelle_common::{
 };
 use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserRole};
 use axum::{
-    Extension, debug_middleware,
+    Extension,
     extract::{Path, Request},
-    middleware::Next,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
 use snafu::Snafu;
 use textwrap_macros::unfill;
@@ -74,7 +73,7 @@ impl IntoResponse for ExtractQueueUserError {
 /// it will also create the user in the database with the default role.
 ///
 /// The resulting data are added to the request as extensions.
-#[debug_middleware(state = crate::App)]
+
 #[instrument(skip_all, fields(
     %queue_id, user_id =% user.id()
 ))]
@@ -84,8 +83,7 @@ pub async fn extract_queue_user(
     user: AuthHeaders,
     Path(QueuePathParams { id: queue_id }): Path<QueuePathParams>,
     mut request: Request,
-    next: Next,
-) -> Result<Response, ExtractQueueUserError> {
+) -> Result<Request, ExtractQueueUserError> {
     let default_role_id: Uuid = config.roles.get(&config.default_role).unwrap().id;
     let autolike_default = config.autolike;
 
@@ -131,7 +129,5 @@ pub async fn extract_queue_user(
 
     request.extensions_mut().insert(Arc::new(user));
 
-    drop(tx);
-
-    Ok(next.run(request).await)
+    Ok(request)
 }
