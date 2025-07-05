@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{ServicesClient, common_errors::PubSubError, db::SqlTx};
 use apelle_configs_dtos::QueueConfig;
-use apelle_queues_events::events::{Event, Publisher};
+use apelle_queues_events::events::{Collector, Event};
 use axum::{
     Extension, Json, debug_handler,
     extract::{Path, Query, State},
@@ -13,7 +13,7 @@ use utoipa::IntoResponses;
 
 use crate::{
     QueuePathParams, Services,
-    get::{GetError, GetQueryParams},
+    handlers::get::{GetError, GetQueryParams, get},
     middleware::user::QueueUser,
 };
 
@@ -54,7 +54,7 @@ impl IntoResponses for PushSyncEventError {
 /// ensuring the user has the correct state of the queue
 pub async fn push_sync_event(
     tx: SqlTx,
-    State(mut publisher): State<Publisher>,
+    collector: Collector<5>,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
@@ -64,7 +64,7 @@ pub async fn push_sync_event(
     let user_id = user.id();
     tracing::info!(queue=%id, user=%user_id, "Pushing sync event");
 
-    let Json(state) = crate::get::get(
+    let Json(state) = get(
         tx,
         client,
         State(services),
@@ -81,8 +81,8 @@ pub async fn push_sync_event(
 
     Event::user(id, user_id)
         .sync(state)
-        .publish(&mut publisher)
-        .await?;
+        .collect(&collector)
+        .await;
 
     Ok(NoContent)
 }

@@ -7,6 +7,13 @@ auth:basic {
   password: password
 }
 
+tests {
+  test("should include trace header", function () {
+    expect(res.getHeaders()).to.have.property('apelle-trace-id');
+  });
+  
+}
+
 docs {
   # Apelle Bruno collections
   

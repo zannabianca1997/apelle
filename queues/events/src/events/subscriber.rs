@@ -112,7 +112,7 @@ impl PushSender {
 impl AsyncPushSender for PushSender {
     #[tracing::instrument(skip(self))]
     fn send(&self, PushInfo { kind, data }: PushInfo) -> Result<(), redis::aio::SendError> {
-        tracing::info!("Received message");
+        tracing::debug!("Received message");
         let event = match kind {
             redis::PushKind::Message
             | redis::PushKind::SMessage

@@ -31,12 +31,16 @@ mod middleware {
     pub mod user;
 }
 
-mod create;
-mod enqueue;
-mod events;
-mod get;
-mod like;
-mod push_sync_event;
+mod handlers {
+    pub mod create;
+    pub mod delete;
+    pub mod enqueue;
+    pub mod events;
+    pub mod get;
+    pub mod like;
+    pub mod push_sync_event;
+}
+use handlers::*;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, IntoParams)]
 struct QueuePathParams {
@@ -123,33 +127,36 @@ pub async fn app(
         code: Arc::new(code),
     };
 
-    let middleware = tower::ServiceBuilder::new()
+    let queue_middleware = tower::ServiceBuilder::new()
         .layer(from_fn_with_state(app.clone(), extract_queue_config))
         .layer(from_fn_with_state(app.clone(), extract_queue_user));
+
+    let common_middleware = tower::ServiceBuilder::new()
+        .layer(from_fn_with_state(app.clone(), event_middleware::<5>))
+        .layer(tx_layer);
 
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
         .nest(
             "/queues/{queue_id}",
             OpenApiRouter::new()
                 .routes(routes!(push_sync_event::push_sync_event))
-                .route_layer(middleware.clone()),
+                .route_layer(queue_middleware.clone()),
         )
         .nest(
             "/public",
             OpenApiRouter::new().routes(routes!(create::create)).nest(
                 "/{queue_id}",
                 OpenApiRouter::new()
-                    .routes(routes!(get::get))
+                    .routes(routes!(get::get, delete::delete))
                     .routes(routes!(events::events))
                     .routes(routes!(enqueue::enqueue))
                     .nest(
                         "/queue/{song_id}",
                         OpenApiRouter::new().routes(routes!(like::like)),
                     )
-                    .route_layer(middleware),
+                    .route_layer(queue_middleware),
             ),
         )
-        .route_layer(tx_layer)
-        .layer(from_fn_with_state(app.clone(), event_middleware::<5>))
+        .route_layer(common_middleware)
         .with_state(app))
 }

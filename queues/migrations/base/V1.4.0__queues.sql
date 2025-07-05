@@ -148,10 +148,40 @@ CREATE TABLE likes (
     CHECK (count > 0)
 );
 
+-- Functions
+
+-- Change the player state id and last modified date of a queue
+
+CREATE TYPE player_state_id_and_updated AS (
+    player_state_id UUID,
+    updated TIMESTAMP WITH TIME ZONE
+);
+
+CREATE FUNCTION update_queue(
+    p_queue_id UUID
+)
+RETURNS player_state_id_and_updated
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _result player_state_id_and_updated;
+BEGIN
+    UPDATE queue
+    SET 
+        updated = NOW(),
+        player_state_id = gen_random_uuid()
+    WHERE id = p_queue_id
+    RETURNING player_state_id, updated 
+    INTO _result;
+
+    RETURN _result;
+END;
+$$;
+
 -- Find the oldest like given by a user in a queue,
 -- except on a specific song, and remove it.
 
-CREATE OR REPLACE FUNCTION remove_oldest_like(
+CREATE FUNCTION remove_oldest_like(
     p_queue_id UUID, p_user_id UUID, p_excluded_song_id UUID
 )
 RETURNS UUID
