@@ -1,0 +1,27 @@
+meta {
+  name: Get
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{endpoint}}/{{queue_id}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("etag is unchanged", function () {
+    expect(res.getHeaders())
+        .to.have.property('etag');
+    
+    expect(res.getHeaders().etag)
+      .to.be.equal(bru.getVar('queue_etag'));
+  });
+  
+  test("last-modified is unchanged", function () {
+    expect(res.getHeaders()['last-modified'])
+      .to.be.equal(bru.getVar('queue_last_modified'));
+  });
+  
+}

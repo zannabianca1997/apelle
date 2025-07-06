@@ -1,0 +1,18 @@
+meta {
+  name: Delete
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{endpoint}}/{{queue_id}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("should delete queue", function () {
+    expect(res.getStatus()).to.be.equal(204);
+  });
+  
+}

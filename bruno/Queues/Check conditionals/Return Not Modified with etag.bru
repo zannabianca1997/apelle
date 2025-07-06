@@ -1,0 +1,22 @@
+meta {
+  name: Return Not Modified with etag
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{endpoint}}/{{queue_id}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  If-None-Match: {{queue_etag}}
+}
+
+tests {
+  test("should return NotModified", function () {
+    expect(res.getStatus())
+      .to.be.equal(304);
+  });
+}

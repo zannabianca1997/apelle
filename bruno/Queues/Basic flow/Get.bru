@@ -1,0 +1,11 @@
+meta {
+  name: Get
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{endpoint}}/{{queue_id}}
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{endpoint}}
+  body: none
+  auth: inherit
+}
+
+vars:post-response {
+  queue_code: res.body.code
+  queue_id: res.body.id
+  queue_etag: res.headers.etag
+  queue_last_modified: res.headers['last-modified']
+}
+
+tests {
+  test("should create queue", function () {
+    expect(res.getStatus()).to.be.equal(201);
+  });
+  
+  test("should return json", function () {
+    expect(res.getBody())
+      .to.be.an('object')
+      .to.deep.own.include({
+        "queue": {},
+        "current": null
+      })
+      .to.have.all.keys([
+      "created", "updated", "config", "code", "id"
+    ]);
+  });
+  
+  test("code should be a string", function () {
+    expect(res.getBody().code)
+      .to.be.a('string')
+  });
+}
