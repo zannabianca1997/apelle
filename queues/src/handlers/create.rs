@@ -22,6 +22,7 @@ use crate::{
     Services,
     config::CodeConfig,
     dtos::{Config, QueueCreate},
+    middleware::etag::ETagInfo,
     model::Queue,
 };
 
@@ -108,7 +109,7 @@ pub async fn create(
         config: return_config,
     }): Query<CreatePathParams>,
     queue_create: Option<Json<Option<QueueCreate>>>,
-) -> Result<(StatusCode, Json<Queue>), CreateError> {
+) -> Result<(StatusCode, ETagInfo, Json<Queue>), CreateError> {
     let Services { configs_url, .. } = &*services;
     let QueueCreate { code, config } = queue_create.unwrap_or_default().0.unwrap_or_default();
 
@@ -170,6 +171,7 @@ pub async fn create(
 
     Ok((
         StatusCode::CREATED,
+        ETagInfo::new(player_state_id, updated),
         Json(Queue {
             id,
             current: None,

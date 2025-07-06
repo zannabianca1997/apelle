@@ -32,9 +32,18 @@ use crate::QueuePathParams;
 /// Extension signaling that the queue has changed and so a new ETag should be
 /// generated
 #[derive(Debug, Clone, Copy)]
-struct ETagInfo {
+pub struct ETagInfo {
     player_state_id: Uuid,
     updated: DateTime<FixedOffset>,
+}
+
+impl ETagInfo {
+    pub fn new(player_state_id: Uuid, updated: DateTime<FixedOffset>) -> Self {
+        Self {
+            player_state_id,
+            updated,
+        }
+    }
 }
 
 #[derive(Debug, Snafu)]
@@ -211,5 +220,17 @@ impl IntoResponseParts for Changed {
         res: axum::response::ResponseParts,
     ) -> Result<axum::response::ResponseParts, Self::Error> {
         Extension(self.info).into_response_parts(res)
+    }
+}
+
+impl IntoResponseParts for ETagInfo {
+    type Error = Infallible;
+    fn into_response_parts(
+        self,
+        res: axum::response::ResponseParts,
+    ) -> Result<axum::response::ResponseParts, Self::Error> {
+        let res = TypedHeader(ETag::from_str(&format!("\"{}\"", self.player_state_id)).unwrap())
+            .into_response_parts(res)?;
+        TypedHeader(LastModified::from(SystemTime::from(self.updated))).into_response_parts(res)
     }
 }
