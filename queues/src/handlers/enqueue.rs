@@ -109,7 +109,17 @@ pub struct SearchResponseItem {
     pub state: SearchResponseItemState,
 }
 
-/// Read the queue data
+/// Add a song to the queue
+///
+/// You can plug an object from the `/search` endpoint straight into this
+/// endpoint. Additional fields will be ignored. If a `state: "New"` song is
+/// given, it will be solved even if already solved somewhere else.
+///
+/// `song` and `song_source` will be reported to the songs service, and the
+/// returned value will be expanded accordingly.
+///
+/// Trying to add a song that is already in the queue, or is the playing one
+/// will result in a `409 Conflict`.
 #[debug_handler(state = crate::App)]
 #[utoipa::path(post, path = "/enqueue",
 responses(

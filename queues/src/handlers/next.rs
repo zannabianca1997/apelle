@@ -108,6 +108,18 @@ pub struct NextQueryParams {
 }
 
 /// Change the current song
+///
+/// Changes the current song to another one, and set the new one as playing.
+///
+/// If no song is given, the one on top of the queue will be used. If the queue
+/// is empty or the given song is not in the queue, a `404 Not Found` error will
+/// be returned.
+///
+/// This endpoint can be accessed through two possible channels. Either one has
+/// the `QUEUE_NEXT` permission, or the `QUEUE_AUTO_NEXT` permission. The second
+/// channel requires additional restrictions to be met:
+/// - The current song must be null, or ended without stopping.
+/// - The song cannot be specified, enabling only moving to the top song.
 #[debug_handler(state = crate::App)]
 #[utoipa::path(post, path = "/next",
 responses(
