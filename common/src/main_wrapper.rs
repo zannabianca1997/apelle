@@ -1,10 +1,13 @@
-use std::{fmt::Debug, io};
+use std::{fmt::Debug, io, str::FromStr};
 
 use axum::{
     Router,
     body::Body,
+    extract::State,
     http::{HeaderName, Request},
+    middleware::map_response_with_state,
 };
+use axum_extra::{TypedHeader, headers};
 use clap::Parser as _;
 use figment::{Provider, providers::Serialized};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -80,6 +83,7 @@ pub const TRACE_ID_HEADER: HeaderName = HeaderName::from_static("apelle-trace-id
 
 fn service_main_impl<F, AppConfig, AppError, App>(
     service_name: &'static str,
+    service_version: &'static str,
     service_default_port: u16,
     app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Error<AppError>>
@@ -95,7 +99,16 @@ where
 
     let log_guards = init_logging(service_name, logging).context(InitLoggingSnafu)?;
 
+    let full_name = format!("{service_name}/{service_version}").into_boxed_str();
+    let server = headers::Server::from_str(&full_name).unwrap();
+
     let middleware = ServiceBuilder::new()
+        .layer(map_response_with_state(
+            server,
+            async move |State(server): State<headers::Server>, res| {
+                (TypedHeader(server.clone()), res)
+            },
+        ))
         .set_request_id(TRACE_ID_HEADER, MakeRequestUuid)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
@@ -166,6 +179,7 @@ pub use service_endpoint::{PUBLIC_TAG, SERVICE_TAG, iter_operations, iter_operat
 
 pub fn service_main<F, AppConfig, AppError, App>(
     service_name: &'static str,
+    service_version: &'static str,
     service_default_port: u16,
     app: impl FnOnce(AppConfig) -> F,
 ) -> Result<(), Reporter<Error<AppError>>>
@@ -175,7 +189,7 @@ where
     AppConfig: ProvideDefaults + DeserializeOwned + Debug,
     AppError: std::error::Error + 'static,
 {
-    service_main_impl(service_name, service_default_port, app).map_err(Reporter)
+    service_main_impl(service_name, service_version, service_default_port, app).map_err(Reporter)
 }
 
 async fn shutdown_signal() {
