@@ -23,7 +23,10 @@ use uuid::Uuid;
 
 use crate::{
     QueuePathParams, Services,
-    middleware::{etag::Changed, user::QueueUser},
+    middleware::{
+        etag::{Changed, HasIfMatch},
+        user::QueueUser,
+    },
     model::{Current, QueuedSong},
 };
 
@@ -40,6 +43,8 @@ pub enum NextError {
     Forbidden,
     Conflict,
     NotFound,
+
+    PreconditionRequired,
 }
 
 impl From<sqlx::Error> for NextError {
@@ -61,6 +66,7 @@ impl IntoResponse for NextError {
             NextError::Forbidden => StatusCode::FORBIDDEN.into_response(),
             NextError::Conflict => StatusCode::CONFLICT.into_response(),
             NextError::NotFound => (StatusCode::NOT_FOUND, "Song not found").into_response(),
+            NextError::PreconditionRequired => StatusCode::PRECONDITION_REQUIRED.into_response(),
         }
     }
 }
@@ -86,6 +92,14 @@ impl IntoResponses for NextError {
             (
                 StatusCode::NOT_FOUND.as_str().to_string(),
                 openapi::Response::new("Song not found: either a id was given of a song that is no in the queue, or the list is empty").into(),
+            ),
+            (
+                StatusCode::PRECONDITION_REQUIRED.as_str().to_string(),
+                openapi::Response::new(
+                    "A request that does not contain a `song` parameter must have an `If-Match` header.
+
+This is needed as `next` requests come in bulk when the song ends, and we must refuse all but one."
+                ).into(),
             ),
         ]
         .into_iter()
@@ -120,6 +134,8 @@ pub struct NextQueryParams {
 /// channel requires additional restrictions to be met:
 /// - The current song must be null, or ended without stopping.
 /// - The song cannot be specified, enabling only moving to the top song.
+///
+/// If a song is not specified, the `If-Match` header is required.
 #[debug_handler(state = crate::App)]
 #[utoipa::path(post, path = "/next",
 responses(
@@ -136,8 +152,13 @@ pub async fn next(
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
     Query(NextQueryParams { auto, song }): Query<NextQueryParams>,
+    has_if_match: Option<Extension<HasIfMatch>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<(Changed, NoContent), NextError> {
+    if song.is_none() && has_if_match.is_none() {
+        return Err(NextError::PreconditionRequired);
+    }
+
     let auto = {
         let is_next_available = user.can(QueueUserAction::Song(QueueUserActionSong::Next));
         let is_auto_available = async {

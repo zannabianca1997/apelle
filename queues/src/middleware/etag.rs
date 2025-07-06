@@ -67,6 +67,9 @@ impl IntoResponse for EtagError {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct HasIfMatch;
+
 #[debug_middleware(state=crate::App)]
 pub async fn etag_middleware(
     mut tx: SqlTx,
@@ -76,7 +79,7 @@ pub async fn etag_middleware(
     if_unmodified_since: Option<TypedHeader<IfUnmodifiedSince>>,
     method: Method,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<
     (
@@ -100,6 +103,10 @@ pub async fn etag_middleware(
         .contains_key(IfNoneMatch::name())
         .then_some(if_none_match)
         .flatten();
+
+    if if_match.is_some() {
+        request.extensions_mut().insert(HasIfMatch);
+    }
 
     let (last_modified, etag) =
         sqlx::query_as("SELECT updated, player_state_id FROM queue WHERE id = $1")
