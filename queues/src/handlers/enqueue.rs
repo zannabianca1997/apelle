@@ -158,6 +158,32 @@ pub async fn enqueue(
     .json()
     .await?;
 
+    if sqlx::query_scalar(unfill!(
+        "
+        SELECT EXISTS (
+            SELECT 1
+            FROM queue
+            WHERE current_song = $1
+            AND id = $2
+
+            UNION ALL
+
+            SELECT 1
+            FROM queued_song
+            WHERE song_id = $1
+            AND queue_id = $2
+        )
+        "
+    ))
+    .bind(song.id)
+    .bind(id)
+    .fetch_one(&mut tx)
+    .await?
+    {
+        tracing::debug!(%song.id, "Song already in queue");
+        return Err(EnqueueError::Conflict);
+    };
+
     // Insert the song in the database queue
     let (queued_at, user_likes) = async {
         // Add the song to the queue
@@ -175,17 +201,7 @@ pub async fn enqueue(
         .bind(song.id)
         .bind(user.id())
         .fetch_one(&mut tx)
-        .await
-        .map_err(|err| {
-            if err
-                .as_database_error()
-                .is_some_and(|err| err.constraint() == Some("pk_queued_song"))
-            {
-                EnqueueError::Conflict
-            } else {
-                err.into()
-            }
-        })?;
+        .await?;
 
         // If auto-like is enabled and the user has likes available, give them
         // one
