@@ -11,8 +11,8 @@
   - [x] Like
   - [ ] Play
   - [ ] Pause
-  - [ ] Next
-    - [ ] AutoNext
+  - [x] Next
+    - [x] AutoNext
   - [ ] Remove
 - [ ] WebUI
   - [ ] Login page

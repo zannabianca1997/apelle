@@ -81,13 +81,12 @@ pub async fn like(
 
     // Remove a like if the user reached his maximum
     let deleted_from = if user.role().max_likes <= user.likes() {
-        let deleted: Option<Uuid> =
-            sqlx::query_scalar(unfill!("SELECT remove_oldest_like($1, $2, $3)"))
-                .bind(queue)
-                .bind(user.id())
-                .bind(song)
-                .fetch_one(&mut tx)
-                .await?;
+        let deleted: Option<Uuid> = sqlx::query_scalar("SELECT remove_oldest_like($1, $2, $3)")
+            .bind(queue)
+            .bind(user.id())
+            .bind(song)
+            .fetch_one(&mut tx)
+            .await?;
 
         // If no like was removed, that means that the user liked only this
         // song. Adding and removing a like would be a no-op

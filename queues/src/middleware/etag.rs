@@ -189,8 +189,8 @@ impl Changed {
             SET 
             player_state_id = gen_random_uuid(), 
             updated = NOW() 
-            RETURNING player_state_id, updated 
             WHERE id = $1
+            RETURNING player_state_id, updated 
             "
         ))
         .bind(queue_id)

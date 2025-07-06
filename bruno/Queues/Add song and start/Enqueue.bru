@@ -1,0 +1,23 @@
+meta {
+  name: Enqueue
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{endpoint}}/{{queue_id}}/enqueue
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "source": "urn:apelle:sources/youtube",
+    "state": {
+      "state": "New",
+      "data": {
+        "video_id": "JPNXPNYAXnY"
+      }
+    }
+  }
+}

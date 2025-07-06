@@ -22,6 +22,10 @@ CREATE TABLE queue (
     current_song_start_at 
         TIMESTAMP WITH TIME ZONE 
         DEFAULT NULL,
+
+    -- Who queued the current song
+    current_song_queued_by UUID
+        DEFAULT NULL,
     
     -- Either no current song, or it is either started or stopped
     CONSTRAINT song_is_either_started_or_stopped CHECK ( 
@@ -30,6 +34,7 @@ CREATE TABLE queue (
             (current_song IS NULL)
             AND (current_song_start_at IS NULL)
             AND (current_song_position IS NULL)
+            AND (current_song_queued_by IS NULL)
         )
         OR (
             -- Only one of the time reference is filled in
@@ -37,6 +42,7 @@ CREATE TABLE queue (
             AND (
                 (current_song_start_at IS NULL) <> (current_song_position IS NULL)
             )
+            AND (current_song_queued_by IS NOT NULL)
         )
     ),
 

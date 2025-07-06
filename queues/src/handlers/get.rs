@@ -173,8 +173,12 @@ pub async fn get(
         let current_song_position = Option::map(current_song_position, Duration::seconds);
 
         let current = match (current_song, current_song_position, current_song_start_at) {
-            (Some(song), Some(position), None) => Some(Current::stopped(song, position)),
-            (Some(song), None, Some(starts_at)) => Some(Current::playing(song, starts_at)),
+            (Some(song), Some(position), None) => {
+                Some(Current::stopped(IdOrRep::Rep(song), position))
+            }
+            (Some(song), None, Some(starts_at)) => {
+                Some(Current::playing(IdOrRep::Rep(song), starts_at))
+            }
             (None, None, None) => None,
             _ => panic!(
                 "Invalid database state: the check on the table should have avoided this state"
