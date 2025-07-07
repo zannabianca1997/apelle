@@ -87,30 +87,14 @@ static AUTH_ROUTER: LazyLock<AuthConfig> = LazyLock::new(|| AuthConfig {
         );
 
         // Swagger UI and API docs is open only to developers
-        router.add(
-            "/api-docs/",
-            all_methods(EndpointAuthConfig::Authenticated {
-                needed_roles: &["admin"],
-            }),
-        );
-        router.add(
-            "/api-docs/*",
-            all_methods(EndpointAuthConfig::Authenticated {
-                needed_roles: &["admin"],
-            }),
-        );
-        router.add(
-            "/swagger-ui/",
-            all_methods(EndpointAuthConfig::Authenticated {
-                needed_roles: &["admin"],
-            }),
-        );
-        router.add(
-            "/swagger-ui/*",
-            all_methods(EndpointAuthConfig::Authenticated {
-                needed_roles: &["admin"],
-            }),
-        );
+        for endpoint in &["/api-docs/", "/api-docs/*", "/swagger-ui/", "/swagger-ui/*"] {
+            router.add(
+                endpoint,
+                all_methods(EndpointAuthConfig::Authenticated {
+                    needed_roles: &["admin"],
+                }),
+            );
+        }
 
         router
     },
