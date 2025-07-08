@@ -24,6 +24,7 @@ exposes the port it uses, enabling testing of the single service.
 
 | Service       | Port |
 |---------------|------|
+| front         | 3000 |
 | db            | 5432 |
 | cache-pubsub  | 6379 |
 | api-docs      | 8079 |
@@ -161,7 +162,7 @@ the services, and an aggregate for the public api served by nginx.
 The docker compose is already configured to deploy the services in prod-like
 mode, by using a different compose override file:
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+docker compose -f compose.yml -f compose.prod.yml up --build -d
 ```
 
 This will compile the services in release mode, and setup them with no file

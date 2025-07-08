@@ -1,4 +1,3 @@
-name: ${COMPOSE_PROJECT_NAME:-apelle}
 include:
   - db/compose.yml
   - cache-pubsub/compose.yml
@@ -7,3 +6,5 @@ include:
   - queues/compose.yml
   - configs/compose.yml
   - gateway/compose.yml
+  - web-ui/compose.yml
+  - api-docs/compose.yml

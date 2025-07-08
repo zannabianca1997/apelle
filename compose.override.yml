@@ -1,5 +1,4 @@
-include:
-  - api-docs/compose.yml
+name: ${COMPOSE_PROJECT_NAME:-apelle-dev}
 services:
   db:
     ports:
@@ -61,3 +60,11 @@ services:
   gateway:
     ports:
       - "8080:8080"
+  front:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web-ui/src:/app/src:ro
+      - ./web-ui/static:/app/static:ro
+    build:
+      target: dev

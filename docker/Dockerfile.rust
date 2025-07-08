@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
 
+# Dockerfile for the rust services
+
 # The name of the service (e.g. `users`)
 ARG SERVICE
 ARG BIN=apelle-${SERVICE?"Service name needed"}

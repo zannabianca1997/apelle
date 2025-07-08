@@ -25,5 +25,8 @@ db/
 # Gateway
 gateway/
 
+# Web UI (dockerized aside)
+web-ui/
+
 # Documentation
 **/*.md
