@@ -16,7 +16,7 @@ VOLUME [ "/app/src" ]
 VOLUME [ "/app/static" ]
 
 ENTRYPOINT ["npm", "run"]
-CMD [ "dev", "--", "--port", "3000", "--host", "0.0.0.0" ]
+CMD [ "dev", "--", "--host", "0.0.0.0" ]
 
 FROM base as build
 COPY . .

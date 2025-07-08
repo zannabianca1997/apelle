@@ -1,7 +1,12 @@
 <script lang="ts">
 	import '../app.css';
 
-	let { children } = $props();
+	import { isLoading } from 'svelte-i18n';
+	import type { Snippet } from 'svelte';
+
+	let { children }: { children: Snippet } = $props();
 </script>
 
-{@render children()}
+{#if !$isLoading}
+	{@render children()}
+{/if}
