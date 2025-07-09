@@ -11,7 +11,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint": "prettier --check . && eslint .",
+		"orval": "orval"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -21,26 +22,27 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/vite": "^4.0.0",
+		"axios": "^1.10.0",
+		"dayjs": "^1.11.13",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
 		"globals": "^16.0.0",
+		"openapi3-ts": "^4.5.0",
+		"orval": "^7.10.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
+		"sass": "^1.86.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
+		"svelte-i18n": "^4.0.1",
 		"sveltekit-sse": "^0.13.16",
-		"sass": "^1.86.0",
 		"tailwindcss": "^4.0.0",
+		"ts-deepmerge": "^7.0.3",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
 		"unplugin-icons": "^22.1.0",
-		"vite": "^6.2.6",
-		"@types/youtube": "^0.1.0",
-		"axios": "^1.8.4",
-		"dayjs": "^1.11.13",
-		"svelte-i18n": "^4.0.1",
-		"ts-deepmerge": "^7.0.3"
+		"vite": "^6.2.6"
 	}
 }
