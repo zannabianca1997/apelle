@@ -6,6 +6,7 @@ FROM node:24.3-alpine3.21 as base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
+RUN npx svelte-kit sync
 
 FROM base as dev
 EXPOSE 3000
