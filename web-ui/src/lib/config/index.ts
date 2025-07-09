@@ -19,13 +19,24 @@ export interface Player {
 }
 
 /**
+ * Configuration for the authentication
+ */
+export interface Auth {
+	/** The key for the localstorage */
+	localStorageKey: string;
+}
+
+/**
  * Profile based configuration
  */
 export interface Config {
 	log: LogConfig;
 	player: Player;
+	auth: Auth;
 }
 
 export const config = (
 	import.meta.env.DEV ? merge(defaults, dev) : merge(defaults, prod)
 ) satisfies Config;
+
+export default config;

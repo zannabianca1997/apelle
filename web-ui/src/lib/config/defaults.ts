@@ -5,5 +5,8 @@ export default {
 	log: {
 		'': 'none',
 		auth: 'warn'
+	},
+	auth: {
+		localStorageKey: 'apelleUser'
 	}
 } as const;
