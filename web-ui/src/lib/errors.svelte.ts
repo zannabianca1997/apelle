@@ -1,10 +1,16 @@
+import type Snackbar from './components/Snackbar.svelte';
+
 export type Success<T> = Result<T, never>;
 export type Failure<E extends ErrorType> = Result<never, E>;
 
-export type ErrorType = {
+export interface ErrorType {
 	_tag: string;
+	msg?: string;
+
 	[key: string]: any;
-};
+
+	display?(): string;
+}
 
 type MatchCases<T, E extends ErrorType, U> = {
 	Success: (data: T) => U;
@@ -22,8 +28,8 @@ export class Result<T, E extends ErrorType> {
 		return new Result('Success', data) as Success<T>;
 	}
 
-	static fail<E extends ErrorType>(tag: E['_tag'], error: Omit<E, '_tag'>): Failure<E> {
-		return new Result('Failure', { _tag: tag, ...error }) as Failure<E>;
+	static fail<E extends ErrorType>(error: E): Failure<E> {
+		return new Result('Failure', error) as Failure<E>;
 	}
 
 	isSuccess(): this is Success<T> {
@@ -48,7 +54,7 @@ export class Result<T, E extends ErrorType> {
 		return this.isSuccess() ? Result.succeed(f(this.data)) : (this as unknown as Result<U, E>);
 	}
 
-	flatMap<U>(f: (value: T) => Result<U, E>): Result<U, E> {
+	flatMap<U, E2 extends ErrorType>(f: (value: T) => Result<U, E2>): Result<U, E | E2> {
 		return this.isSuccess() ? f(this.data) : (this as unknown as Result<U, E>);
 	}
 
@@ -77,5 +83,24 @@ export class Result<T, E extends ErrorType> {
 			}
 			throw new Error(`Unhandled error type: ${result.error._tag}`);
 		}
+	}
+}
+
+export const global: { snackbar?: Snackbar } = $state({});
+
+export function error(error: ErrorType) {
+	let msg: string;
+	if (error.display) {
+		msg = error.display();
+	} else if (error.msg) {
+		msg = error.msg;
+	} else {
+		msg = JSON.stringify(error);
+	}
+
+	if (global.snackbar) {
+		global.snackbar.error(msg);
+	} else {
+		console.error(msg);
 	}
 }

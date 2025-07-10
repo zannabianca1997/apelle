@@ -6,7 +6,8 @@
 			"submit": "Signin",
 			"errors": {
 				"usernameRequired": "The username is required",
-				"passwordRequired": "The password is required"
+				"passwordRequired": "The password is required",
+				"badCredentials": "Invalid credentials: user {username} does not exist, or the password is incorrect"
 			}
 		},
 		"signupForm": {
@@ -17,7 +18,8 @@
 			"errors": {
 				"usernameRequired": "The username is required",
 				"passwordRequired": "The password is required",
-				"passwordDoesNotMatch": "The password does not match"
+				"passwordDoesNotMatch": "The passwords does not match",
+				"userExists": "User {username} already exists"
 			}
 		}
 	},

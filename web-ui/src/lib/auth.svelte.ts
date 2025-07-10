@@ -4,20 +4,28 @@ import { usersGet, usersCreate, type UserDto } from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
 
 import config from '$lib/config';
-import { Result } from './errors';
+import { Result } from '$lib/errors.svelte';
 
 const logger = new Logger('lib.auth');
 
 const localStorageKey = config.auth.localStorageKey;
 
-type BadCredentials = {
-	_tag: 'badCredentials';
+class BadCredentials {
+	_tag: 'badCredentials' = 'badCredentials';
 	username: string;
+
+	constructor(username: string) {
+		this.username = username;
+	}
 };
 
-type UserExists = {
-	_tag: 'userExists';
+class UserExists {
+	_tag: 'userExists' = 'userExists';
 	username: string;
+
+	constructor(username: string) {
+		this.username = username;
+	}
 };
 
 type UserData = {
@@ -86,7 +94,7 @@ class AuthService {
 		} catch (e) {
 			if (e instanceof AxiosError) {
 				if (e?.response?.status == 401) {
-					return Result.fail('badCredentials', { username: auth.username });
+					return Result.fail(new BadCredentials(auth.username));
 				}
 			}
 			throw e;
@@ -119,7 +127,7 @@ class AuthService {
 		} catch (e) {
 			if (e instanceof AxiosError) {
 				if (e?.response?.status == 409) {
-					return Result.fail('userExists', { username: auth.username });
+					return Result.fail(new UserExists(auth.username));
 				}
 			}
 			throw e;

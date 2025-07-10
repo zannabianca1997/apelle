@@ -8,5 +8,8 @@ export default {
 	},
 	auth: {
 		localStorageKey: 'apelleUser'
+	},
+	notifications: {
+		timeout: 3000
 	}
 } as const;
