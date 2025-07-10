@@ -1,10 +1,9 @@
 import axios, { AxiosError, type AxiosBasicCredentials } from 'axios';
-
-import { usersGet, usersCreate, type UserDto } from '$lib/apis/apelle';
+import { usersGet, usersCreate, type UserDto, type UserCreateDto } from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
-
 import config from '$lib/config';
 import { Result } from '$lib/errors.svelte';
+import { goto } from '$app/navigation';
 
 const logger = new Logger('lib.auth');
 
@@ -67,8 +66,8 @@ class AuthService {
 
 	private set userData(data: UserData | null) {
 		this._userData = data;
-		if (this.userData) {
-			localStorage.setItem(localStorageKey, JSON.stringify(this.userData));
+		if (this._userData) {
+			localStorage.setItem(localStorageKey, JSON.stringify(this._userData));
 		} else {
 			localStorage.removeItem(localStorageKey);
 		}
@@ -120,10 +119,10 @@ class AuthService {
 	 * @param auth the credentials to signup with
 	 * @return {Promise<Result<void, UserExists>>} Signup successfully, or an error if the user already exists
 	 */
-	public async signup(auth: AxiosBasicCredentials): Promise<Result<void, UserExists>> {
+	public async signup(auth: UserCreateDto): Promise<Result<void, UserExists>> {
 		let userQueryDto;
 		try {
-			userQueryDto = await usersCreate({ name: auth.username, password: auth.password });
+			userQueryDto = await usersCreate(auth);
 		} catch (e) {
 			if (e instanceof AxiosError) {
 				if (e?.response?.status == 409) {
@@ -135,8 +134,11 @@ class AuthService {
 		if (userQueryDto.status != 201) {
 			throw new Error('Unexpected server response from `/me`.');
 		}
-		logger.debug(`Signing up as ${auth.username}`);
-		this.userData = { data: userQueryDto.data, auth };
+		logger.debug(`Signing up as ${auth.name}`);
+		this.userData = {
+			data: userQueryDto.data,
+			auth: { username: auth.name, password: auth.password }
+		};
 		return Result.succeed(undefined);
 	}
 
@@ -149,7 +151,7 @@ class AuthService {
 	 * @return {Promise<void>} Signout successfully
 	 */
 	public async signout(): Promise<void> {
-		logger.debug(`Signing out from ${this.userData?.data.name}`);
+		logger.debug(`Signing out from ${this.user?.name}`);
 		this.userData = null;
 	}
 
@@ -159,9 +161,17 @@ class AuthService {
 	 * @return {boolean} true if the user is authenticated, false otherwise
 	 */
 	public authenticated(): boolean {
-		return this.userData != null;
+		return this.auth != null;
 	}
 }
 
 const authService = $state(new AuthService());
 export default authService;
+
+export async function routeToAuth(url: URL) {
+	logger.debug('User is not authenticated, rerouting to auth endpoint');
+
+	const authUrl = new URL('/auth', url);
+	authUrl.searchParams.set('original', url.toString());
+	await goto(authUrl);
+}

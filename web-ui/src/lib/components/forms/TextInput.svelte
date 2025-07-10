@@ -1,11 +1,13 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
+	import type { ChangeEventHandler, HTMLInputAttributes } from 'svelte/elements';
 
 	interface CapturedProps {
 		label: string;
 
 		password?: boolean;
 		error?: string | null;
+
+		onchange?: ChangeEventHandler<HTMLInputElement> | undefined | null;
 	}
 
 	type Props = CapturedProps &
@@ -16,12 +18,23 @@
 		label,
 
 		password = false,
-		error = null,
+		error: errorTxt = $bindable(null),
 
 		value = $bindable(),
 
-		...inputProps
+		onchange: onchangeInner,
+
+		...inputAttributes
 	}: Props = $props();
+
+	let dirty: boolean = $state(false);
+
+	function onchange(...args: Parameters<NonNullable<typeof onchangeInner>>) {
+		dirty = true;
+		onchangeInner?.(...args);
+	}
+
+	let error: string | null = $derived((dirty && errorTxt) || null);
 </script>
 
 <div class="flex flex-col gap-1.5">
@@ -33,7 +46,8 @@
 		type={password ? 'password' : 'text'}
 		class="w-full rounded-md border border-[#122a42] p-3 text-base leading-[150%] font-light tracking-[1%] text-black placeholder-[#122a4282]"
 		bind:value
-		{...inputProps}
+		{onchange}
+		{...inputAttributes}
 	/>
 	<div
 		class={[

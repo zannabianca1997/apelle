@@ -1,4 +1,4 @@
-import type Snackbar from './components/Snackbar.svelte';
+import type Snackbar from '$lib/components/Snackbar.svelte';
 
 export type Success<T> = Result<T, never>;
 export type Failure<E extends ErrorType> = Result<never, E>;
@@ -8,8 +8,6 @@ export interface ErrorType {
 	msg?: string;
 
 	[key: string]: any;
-
-	display?(): string;
 }
 
 type MatchCases<T, E extends ErrorType, U> = {
@@ -22,7 +20,7 @@ export class Result<T, E extends ErrorType> {
 	protected constructor(
 		readonly _tag: 'Success' | 'Failure',
 		protected readonly value: T | E
-	) {}
+	) { }
 
 	static succeed<T>(data: T): Success<T> {
 		return new Result('Success', data) as Success<T>;
