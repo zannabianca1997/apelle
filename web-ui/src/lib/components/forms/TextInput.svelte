@@ -18,7 +18,7 @@
 		password = false,
 		error = null,
 
-        value = $bindable(),
+		value = $bindable(),
 
 		...inputProps
 	}: Props = $props();
@@ -33,10 +33,15 @@
 		type={password ? 'password' : 'text'}
 		class="w-full rounded-md border border-[#122a42] p-3 text-base leading-[150%] font-light tracking-[1%] text-black placeholder-[#122a4282]"
 		bind:value
-        {...inputProps}
+		{...inputProps}
 	/>
-    <div
-        class={["mt-auto w-full h-[20px]", !!error && "rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500"]}
-        >{error}</div
-    >
+	<div
+		class={[
+			'mt-auto h-[20px] w-full',
+			!!error &&
+				'rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500'
+		]}
+	>
+		{error}
+	</div>
 </div>

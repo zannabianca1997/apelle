@@ -1,7 +1,7 @@
 import 'unplugin-icons/types/svelte';
 
 declare global {
-	namespace App { }
+	namespace App {}
 }
 
-export { };
+export {};

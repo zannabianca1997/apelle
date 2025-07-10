@@ -1,10 +1,16 @@
+import type Snackbar from './components/Snackbar.svelte';
+
 export type Success<T> = Result<T, never>;
 export type Failure<E extends ErrorType> = Result<never, E>;
 
-export type ErrorType = {
+export interface ErrorType {
 	_tag: string;
+	msg?: string;
+
 	[key: string]: any;
-};
+
+	display?(): string;
+}
 
 type MatchCases<T, E extends ErrorType, U> = {
 	Success: (data: T) => U;
@@ -77,5 +83,24 @@ export class Result<T, E extends ErrorType> {
 			}
 			throw new Error(`Unhandled error type: ${result.error._tag}`);
 		}
+	}
+}
+
+export const global: { snackbar?: Snackbar } = $state({});
+
+export function error(error: ErrorType) {
+	let msg: string;
+	if (error.display) {
+		msg = error.display();
+	} else if (error.msg) {
+		msg = error.msg;
+	} else {
+		msg = JSON.stringify(error);
+	}
+
+	if (global.snackbar) {
+		global.snackbar.error(msg);
+	} else {
+		console.error(msg);
 	}
 }

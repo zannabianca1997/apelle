@@ -4,7 +4,7 @@ import { usersGet, usersCreate, type UserDto } from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
 
 import config from '$lib/config';
-import { Result } from './errors';
+import { Result } from '$lib/errors.svelte';
 
 const logger = new Logger('lib.auth');
 

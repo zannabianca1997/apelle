@@ -2,8 +2,8 @@
 @plugin '@tailwindcss/forms';
 
 @theme {
-    --color-backgroundtop: #0A0A0A;
-    --color-backgroundbottom: #2B2B2B;
+	--color-backgroundtop: #0a0a0a;
+	--color-backgroundbottom: #2b2b2b;
 
-    --color-text: #FFFFFF;
+	--color-text: #ffffff;
 }

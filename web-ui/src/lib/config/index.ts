@@ -27,12 +27,21 @@ export interface Auth {
 }
 
 /**
+ * Configuration for the notifications
+ */
+export interface Notifications {
+	/** For how much each notification is shown */
+	timeout: number;
+}
+
+/**
  * Profile based configuration
  */
 export interface Config {
 	log: LogConfig;
 	player: Player;
 	auth: Auth;
+	notifications: Notifications;
 }
 
 export const config = (
