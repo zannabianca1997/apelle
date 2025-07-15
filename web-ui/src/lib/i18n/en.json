@@ -31,7 +31,7 @@
 		"volume": "Volume",
 		"dropdown": "Menu"
 	},
-	"frontoffice": {
+	"landing": {
 		"title": "Welcome to Apelle",
 		"subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
 		"choices": {

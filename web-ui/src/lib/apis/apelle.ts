@@ -543,6 +543,13 @@ export interface UserUpdateDto {
 	password?: UserUpdateDtoPassword;
 }
 
+export type QueuesFindParams = {
+	/**
+	 * The code of the searched queue
+	 */
+	code: string;
+};
+
 export type QueuesCreateParams = {
 	/**
  * Return the full queue config instead of just the UUID
@@ -656,6 +663,19 @@ export const configsGet = <TData = AxiosResponse<QueueConfig>>(
 	options?: AxiosRequestConfig
 ): Promise<TData> => {
 	return axios.get(`/api/configs/queues/${id}`, options);
+};
+
+/**
+ * @summary Read the queue data
+ */
+export const queuesFind = <TData = AxiosResponse<string>>(
+	params: QueuesFindParams,
+	options?: AxiosRequestConfig
+): Promise<TData> => {
+	return axios.get(`/api/queues`, {
+		...options,
+		params: { ...params, ...options?.params }
+	});
 };
 
 /**
@@ -879,6 +899,7 @@ export const usersPatch = <TData = AxiosResponse<UserDto>>(
 
 export type ApiDocsPublicResult = AxiosResponse<unknown>;
 export type ConfigsGetResult = AxiosResponse<QueueConfig>;
+export type QueuesFindResult = AxiosResponse<string>;
 export type QueuesCreateResult = AxiosResponse<Queue>;
 export type QueuesGetResult = AxiosResponse<Queue>;
 export type QueuesDeleteResult = AxiosResponse<void>;

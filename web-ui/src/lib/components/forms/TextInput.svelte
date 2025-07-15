@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChangeEventHandler, HTMLInputAttributes } from 'svelte/elements';
+	import type { ChangeEventHandler, ClassValue, HTMLInputAttributes } from 'svelte/elements';
 
 	interface CapturedProps {
 		label: string;
@@ -7,11 +7,12 @@
 		password?: boolean;
 		error?: string | null;
 
+		class?: ClassValue | null;
+
 		onchange?: ChangeEventHandler<HTMLInputElement> | undefined | null;
 	}
 
-	type Props = CapturedProps &
-		Omit<HTMLInputAttributes, keyof CapturedProps | 'type' | 'id' | 'class'>;
+	type Props = CapturedProps & Omit<HTMLInputAttributes, keyof CapturedProps | 'type' | 'id'>;
 
 	const id = $props.id();
 	let {
@@ -23,6 +24,8 @@
 		value = $bindable(),
 
 		onchange: onchangeInner,
+
+		class: clazz,
 
 		...inputAttributes
 	}: Props = $props();
@@ -37,14 +40,14 @@
 	let error: string | null = $derived((dirty && errorTxt) || null);
 </script>
 
-<div class="flex flex-col gap-1.5">
-	<label for="input-{id}" class="w-full text-base leading-[150%] font-light tracking-[1%]"
+<div class={['flex flex-col gap-1.5', clazz]}>
+	<label for="input-{id}" class="w-full text-base font-light leading-[150%] tracking-[1%]"
 		>{label}</label
 	>
 	<input
 		id="input-{id}"
 		type={password ? 'password' : 'text'}
-		class="w-full rounded-md border border-[#122a42] p-3 text-base leading-[150%] font-light tracking-[1%] text-black placeholder-[#122a4282]"
+		class="w-full rounded-md border border-[#122a42] p-3 text-base font-light leading-[150%] tracking-[1%] text-black placeholder-[#122a4282]"
 		bind:value
 		{onchange}
 		{...inputAttributes}
@@ -53,7 +56,7 @@
 		class={[
 			'mt-auto h-[20px] w-full',
 			!!error &&
-				'rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500'
+				'rounded-sm border border-red-500 text-center text-xs font-light leading-[150%] tracking-[1%] text-red-500'
 		]}
 	>
 		{error}

@@ -42,6 +42,7 @@ mod handlers {
     pub mod delete;
     pub mod enqueue;
     pub mod events;
+    pub mod find;
     pub mod get;
     pub mod like;
     pub mod next;
@@ -152,19 +153,21 @@ pub async fn app(
         )
         .nest(
             "/public",
-            OpenApiRouter::new().routes(routes!(create::create)).nest(
-                "/{queue_id}",
-                OpenApiRouter::new()
-                    .routes(routes!(get::get, delete::delete))
-                    .routes(routes!(events::events))
-                    .routes(routes!(enqueue::enqueue))
-                    .routes(routes!(next::next))
-                    .nest(
-                        "/queue/{song_id}",
-                        OpenApiRouter::new().routes(routes!(like::like)),
-                    )
-                    .route_layer(queue_middleware),
-            ),
+            OpenApiRouter::new()
+                .routes(routes!(create::create, find::find))
+                .nest(
+                    "/{queue_id}",
+                    OpenApiRouter::new()
+                        .routes(routes!(get::get, delete::delete))
+                        .routes(routes!(events::events))
+                        .routes(routes!(enqueue::enqueue))
+                        .routes(routes!(next::next))
+                        .nest(
+                            "/queue/{song_id}",
+                            OpenApiRouter::new().routes(routes!(like::like)),
+                        )
+                        .route_layer(queue_middleware),
+                ),
         )
         .route_layer(common_middleware)
         .with_state(app))
