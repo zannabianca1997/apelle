@@ -9,6 +9,7 @@
 	import type { AxiosBasicCredentials } from 'axios';
 	import authService from '$lib/auth.svelte';
 	import type { UserCreateDto } from '$lib/apis/apelle';
+	import type { Snapshot } from './$types';
 
 	const logger = new Logger('routes.auth');
 
@@ -95,6 +96,20 @@
 
 		await onsuccess();
 	}
+
+	export const snapshot: Snapshot<{
+		signinData: AxiosBasicCredentials;
+		signupData: UserCreateDto & { checkPassword: string };
+	}> = {
+		capture: () => ({
+			signinData,
+			signupData
+		}),
+		restore: (value) => {
+			signinData = value.signinData;
+			signupData = value.signupData;
+		}
+	};
 </script>
 
 <main class="flex flex-col gap-9 sm:flex-row">
