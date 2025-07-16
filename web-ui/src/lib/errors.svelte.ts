@@ -20,7 +20,7 @@ export class Result<T, E extends ErrorType> {
 	protected constructor(
 		readonly _tag: 'Success' | 'Failure',
 		protected readonly value: T | E
-	) {}
+	) { }
 
 	static succeed<T>(data: T): Success<T> {
 		return new Result('Success', data) as Success<T>;

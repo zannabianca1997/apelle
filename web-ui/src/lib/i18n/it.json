@@ -29,11 +29,7 @@
 			"progress": "{position} di {duration}"
 		}
 	},
-	"comingSoon": [
-		"Prossimamente...",
-		"In caricamento!",
-		"Aprimi un PR!"
-	],
+	"comingSoon": ["Prossimamente...", "In caricamento!", "Aprimi un PR!"],
 	"landing": {
 		"choices": {
 			"host": {

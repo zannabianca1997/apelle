@@ -7,11 +7,12 @@
 	import Button from '$lib/components/forms/Button.svelte';
 	import SearchBar from '$lib/components/forms/SearchBar.svelte';
 	import type { Snapshot } from '@sveltejs/kit';
-	import { queuesFind } from '$lib/apis/apelle';
+	import { queuesFind, queuesCreate } from '$lib/apis/apelle';
 	import { AxiosError } from 'axios';
 	import { Logger } from '$lib/logger';
 	import { goto } from '$app/navigation';
-	import type { MouseEventHandler } from 'svelte/elements';
+	import type { EventHandler, MouseEventHandler } from 'svelte/elements';
+	import normalizeCode from '$lib/normalizeCode';
 
 	const logger = new Logger('routes.authed');
 
@@ -31,11 +32,18 @@
 		}
 	};
 
-	function normalizeCode(code: string | null): string | null {
-		return code?.trim().toUpperCase() || null;
-	}
+	const host: EventHandler<SubmitEvent, HTMLFormElement> = async (e) => {
+		e.preventDefault();
 
-	async function join(event: Event) {
+		const createResponse = await queuesCreate({});
+		const { id } = createResponse.data;
+
+		logger.debug('Redirecting to queue', id);
+
+		await goto(`/queues/${id}`);
+	};
+
+	const join: EventHandler<SubmitEvent, HTMLFormElement> = async (event) => {
 		event.preventDefault();
 
 		code = normalizeCode(code);
@@ -63,11 +71,13 @@
 		logger.debug('Redirecting to queue', id);
 
 		await goto(`/queues/${id}`);
-	}
+	};
 
 	const comingSoon: MouseEventHandler<HTMLButtonElement> = (e) => {
 		e.preventDefault();
-		e.currentTarget.textContent = $_('comingSoon')[0];
+		const comingSoonMessages: string[] = $_('comingSoon') as unknown as string[];
+		e.currentTarget.textContent =
+			comingSoonMessages[Math.floor(Math.random() * comingSoonMessages.length)];
 	};
 </script>
 
@@ -84,7 +94,13 @@
 <main class="flex h-64 w-full items-stretch gap-10">
 	<img src={morpheus} alt={$_('landing.images.morpheus')} class="h-64 rounded-md max-md:hidden" />
 	<div class="flex w-[100%] flex-col gap-3">
-		<Panel icon={IconCrown} title={$_('landing.choices.host.text')} bind:activePanel color="red">
+		<Panel
+			icon={IconCrown}
+			title={$_('landing.choices.host.text')}
+			bind:activePanel
+			color="red"
+			onsubmit={host}
+		>
 			<Button class="flex-grow-1">{$_('landing.choices.host.public')}</Button>
 			<Button class="flex-grow-1" onclick={comingSoon}>{$_('landing.choices.host.private')}</Button>
 			<Button class="flex-grow-1" onclick={comingSoon}>{$_('landing.choices.host.custom')}</Button>
