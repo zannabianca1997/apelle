@@ -48,7 +48,7 @@
 		}}>{title}</Button
 	>
 	{#if active}
-		<form class="flex-grow-1 flex items-center justify-stretch gap-2" {onsubmit}>
+		<form class="flex-grow-1 flex flex-wrap items-center justify-stretch gap-2" {onsubmit}>
 			{@render children()}
 		</form>
 	{/if}

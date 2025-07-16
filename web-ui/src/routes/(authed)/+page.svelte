@@ -75,17 +75,13 @@
 		{$_('landing.subtitle')}
 	</h2>
 </header>
-<main class="max-w-400 flex h-64 w-full gap-10">
-	<img src={morpheus} alt={$_('landing.images.morpheus')} class="rounded-md max-md:hidden" />
-	<div class="flex w-full flex-col gap-3">
-		<Panel
-			icon={IconCrown}
-			title={$_('landing.choices.host.text')}
-			bind:activePanel
-			active
-			color="red"
-		>
-			<Button class="flex-grow-1">{$_('landing.choices.host.anything')}</Button>
+<main class="flex h-64 w-full items-stretch gap-10">
+	<img src={morpheus} alt={$_('landing.images.morpheus')} class="h-64 rounded-md max-md:hidden" />
+	<div class="flex w-[100%] flex-col gap-3">
+		<Panel icon={IconCrown} title={$_('landing.choices.host.text')} bind:activePanel color="red">
+			<Button class="flex-grow-1">{$_('landing.choices.host.public')}</Button>
+			<Button class="flex-grow-1">{$_('landing.choices.host.private')}</Button>
+			<Button class="flex-grow-1">{$_('landing.choices.host.custom')}</Button>
 		</Panel>
 		<Panel
 			icon={IconUserCircleOutline}
@@ -93,6 +89,7 @@
 			bind:activePanel
 			color="blue"
 			onsubmit={join}
+			active
 		>
 			<SearchBar
 				label={$_('landing.choices.join.id.label')}

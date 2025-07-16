@@ -37,7 +37,9 @@
 		"choices": {
 			"host": {
 				"text": "Host",
-				"anything": "Anything"
+				"public": "Public",
+				"private": "Private",
+				"custom": "Custom"
 			},
 			"join": {
 				"text": "Join",
