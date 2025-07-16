@@ -1,82 +1,93 @@
 {
-	"login": {
-		"signinForm": {
-			"username": "Nome utente",
-			"password": "Password",
-			"submit": "Accedi",
-			"errors": {
-				"usernameRequired": "Il nome utente è obbligatorio",
-				"passwordRequired": "La password è obbligatoria"
-			}
-		},
-		"signupForm": {
-			"username": "Nome utente",
-			"password": "Password",
-			"passwordCheck": "Ripeti password",
-			"submit": "Registrati",
-			"errors": {
-				"usernameRequired": "Il nome utente è obbligatorio",
-				"passwordRequired": "La password è obbligatoria",
-				"passwordDoesNotMatch": "Le password non coincidono"
-			}
-		}
-	},
-	"navbar": {
-		"title": "Apelle",
-		"logout": "Esci",
-		"autoplay": "Riproduzione automatica",
-		"playFromHere": "Riproduci da questo dispositivo"
-	},
-	"frontoffice": {
-		"title": "Benvenuto in Apelle",
-		"subtitle": "Complimenti per il tuo primo passo. Scegli un'opzione qui sotto e inizia ad aggiungere canzoni.",
-		"choices": {
-			"host": {
-				"text": "Ospita",
-				"anything": "Qualsiasi cosa"
-			},
-			"join": {
-				"text": "Partecipa",
-				"id": {
-					"label": "Codice party",
-					"placeholder": "HASTGA"
-				},
-				"submit": "Entra",
-				"errors": {
-					"queueCodeRequired": "Il codice della coda è obbligatorio",
-					"queueNotFound": "La coda {queueCode} non esiste"
-				}
-			}
-		}
-	},
 	"backoffice": {
-		"partyName": "Nome party: ",
 		"currentSong": {
 			"nothingPlaying": "Nessuna canzone in riproduzione"
 		},
-		"search": {
-			"label": "Ora voglio ascoltare...",
-			"submit": "Cerca",
-			"add": "Aggiungi",
-			"dismiss": "Esci",
-			"pageOnTotal": "{number} di {total}",
-			"unknowPageNumber": "molte",
-			"prev": "Indietro",
-			"next": "Altro"
-		},
+		"partyName": "Nome party: ",
 		"queue": {
-			"title": "Coda",
 			"like": "Spingi in su",
 			"liked": {
 				"pre": "Piaciuta",
 				"unit": "volte"
-			}
+			},
+			"title": "Coda"
+		},
+		"search": {
+			"add": "Aggiungi",
+			"dismiss": "Esci",
+			"label": "Ora voglio ascoltare...",
+			"next": "Altro",
+			"pageOnTotal": "{number} di {total}",
+			"prev": "Indietro",
+			"submit": "Cerca",
+			"unknowPageNumber": "molte"
 		},
 		"song": {
-			"durationFormat": "HH:mm:ss",
 			"duration": "Durata",
-			"progress": "{position} di {duration}",
-			"likes": "Mi piace"
+			"durationFormat": "HH:mm:ss",
+			"likes": "Mi piace",
+			"progress": "{position} di {duration}"
 		}
+	},
+	"comingSoon": [
+		"Prossimamente...",
+		"In caricamento!",
+		"Aprimi un PR!"
+	],
+	"landing": {
+		"choices": {
+			"host": {
+				"custom": "Personalizzato",
+				"private": "Privato",
+				"public": "Pubblico",
+				"text": "Ospita"
+			},
+			"join": {
+				"errors": {
+					"queueCodeRequired": "Il codice della coda è obbligatorio",
+					"queueNotFound": "Il party {queueCode} non esiste"
+				},
+				"id": {
+					"label": "Codice party",
+					"placeholder": "HASTGA"
+				},
+				"submit": "Unisciti",
+				"text": "Unisciti"
+			}
+		},
+		"subtitle": "Complimenti per il tuo primo passo. Scegli un'opzione qui sotto e inizia ad aggiungere canzoni.",
+		"title": "Benvenuto in Apelle"
+	},
+	"login": {
+		"signinForm": {
+			"errors": {
+				"badCredentials": "Username {username} non esiste, o la password non corrisponde",
+				"passwordRequired": "La password è obbligatoria",
+				"usernameRequired": "Il nome utente è obbligatorio"
+			},
+			"password": "Password",
+			"submit": "Accedi",
+			"username": "Nome utente"
+		},
+		"signupForm": {
+			"errors": {
+				"passwordDoesNotMatch": "Le password non coincidono",
+				"passwordRequired": "La password è obbligatoria",
+				"userExists": "",
+				"usernameRequired": "Il nome utente è obbligatorio"
+			},
+			"password": "Password",
+			"passwordCheck": "Ripeti password",
+			"submit": "Registrati",
+			"username": "Nome utente"
+		}
+	},
+	"navbar": {
+		"autoplay": "Riproduzione automatica",
+		"dropdown": "",
+		"logout": "Esci",
+		"playFromHere": "Riproduci da questo dispositivo",
+		"title": "Apelle",
+		"volume": ""
 	}
 }

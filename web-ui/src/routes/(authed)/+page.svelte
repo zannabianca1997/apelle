@@ -11,6 +11,7 @@
 	import { AxiosError } from 'axios';
 	import { Logger } from '$lib/logger';
 	import { goto } from '$app/navigation';
+	import type { MouseEventHandler } from 'svelte/elements';
 
 	const logger = new Logger('routes.authed');
 
@@ -63,14 +64,19 @@
 
 		await goto(`/queues/${id}`);
 	}
+
+	const comingSoon: MouseEventHandler<HTMLButtonElement> = (e) => {
+		e.preventDefault();
+		e.currentTarget.textContent = $_('comingSoon')[0];
+	};
 </script>
 
 <header class="w-full">
-	<h1 class="my-10 text-center text-5xl leading-[1.5] font-extrabold tracking-[0.01em]">
+	<h1 class="my-10 text-center text-5xl font-extrabold leading-[1.5] tracking-[0.01em]">
 		{$_('landing.title')}
 	</h1>
 	<h2
-		class="my-10 text-center text-3xl leading-[1.5] font-extrabold tracking-[0.01em] text-[#e18282]"
+		class="my-10 text-center text-3xl font-extrabold leading-[1.5] tracking-[0.01em] text-[#e18282]"
 	>
 		{$_('landing.subtitle')}
 	</h2>
@@ -80,8 +86,8 @@
 	<div class="flex w-[100%] flex-col gap-3">
 		<Panel icon={IconCrown} title={$_('landing.choices.host.text')} bind:activePanel color="red">
 			<Button class="flex-grow-1">{$_('landing.choices.host.public')}</Button>
-			<Button class="flex-grow-1">{$_('landing.choices.host.private')}</Button>
-			<Button class="flex-grow-1">{$_('landing.choices.host.custom')}</Button>
+			<Button class="flex-grow-1" onclick={comingSoon}>{$_('landing.choices.host.private')}</Button>
+			<Button class="flex-grow-1" onclick={comingSoon}>{$_('landing.choices.host.custom')}</Button>
 		</Panel>
 		<Panel
 			icon={IconUserCircleOutline}
