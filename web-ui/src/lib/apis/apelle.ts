@@ -334,18 +334,11 @@ e.g. the video id for youtube */
 	source: string;
 }
 
-/**
- * Data to pass the frontend describing the song
- */
-export type SearchResponseItemDetails = { [key: string]: unknown };
-
 export interface SearchResponseItem {
-	/** Data to pass the frontend describing the song */
-	details: SearchResponseItemDetails;
 	/** Source that provided this search result */
 	source: string;
 	/** Data to pass the service to resolve the song */
-	state: SearchResponseItemStateValue;
+	state: SearchResponseItemState;
 }
 
 export type SearchResponseItemStateOneOfData = { [key: string]: unknown };

@@ -16,7 +16,7 @@ class BadCredentials {
 	constructor(username: string) {
 		this.username = username;
 	}
-};
+}
 
 class UserExists {
 	_tag: 'userExists' = 'userExists';
@@ -25,7 +25,7 @@ class UserExists {
 	constructor(username: string) {
 		this.username = username;
 	}
-};
+}
 
 type UserData = {
 	data: UserDto;
@@ -126,7 +126,7 @@ class AuthService {
 		} catch (e) {
 			if (e instanceof AxiosError) {
 				if (e?.response?.status == 409) {
-					return Result.fail(new UserExists(auth.username));
+					return Result.fail(new UserExists(auth.name));
 				}
 			}
 			throw e;

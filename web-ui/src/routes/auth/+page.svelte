@@ -42,7 +42,9 @@
 		if (result.isFailure()) {
 			error({
 				...result.error,
-				msg: $_(`login.signinForm.errors.${result.error._tag}`, { values: result.error })
+				msg: $_(`login.signinForm.errors.${result.error._tag}`, {
+					values: { username: result.error.username }
+				})
 			});
 			return;
 		}
@@ -89,7 +91,9 @@
 		if (result.isFailure()) {
 			error({
 				...result.error,
-				msg: $_(`login.signupForm.errors.${result.error._tag}`, { values: result.error })
+				msg: $_(`login.signupForm.errors.${result.error._tag}`, {
+					values: { username: result.error.username }
+				})
 			});
 			return;
 		}
