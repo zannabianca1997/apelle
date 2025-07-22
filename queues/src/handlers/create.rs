@@ -4,6 +4,8 @@ use apelle_common::{
     AuthHeaders, Reporter, ServicesClient, db::SqlError, db::SqlTx, id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::QueueConfig;
+
+use apelle_queues_dtos::{Config, QueueCreate};
 use axum::{
     Json, debug_handler,
     extract::{Query, State},
@@ -18,13 +20,7 @@ use sqlx::PgConnection;
 use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
 
-use crate::{
-    Services,
-    config::CodeConfig,
-    dtos::{Config, QueueCreate},
-    middleware::etag::ETagInfo,
-    model::Queue,
-};
+use crate::{Services, config::CodeConfig, middleware::etag::ETagInfo, model::Queue};
 
 #[derive(Debug, Snafu)]
 pub enum CreateError {

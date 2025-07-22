@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use apelle_common::common_errors::PubSubError;
+use apelle_queues_dtos::events;
 use axum::extract::FromRef;
 use redis::Client;
 use serde::Deserialize;
@@ -9,7 +10,6 @@ use url::Url;
 use utoipa::OpenApi;
 
 mod config;
-pub mod events;
 mod handler;
 
 use config::Config;

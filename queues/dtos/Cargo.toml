@@ -1,0 +1,26 @@
+[package]
+name = "apelle-queues-dtos"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+apelle-common.workspace = true
+apelle-songs-dtos.workspace = true
+apelle-configs-dtos.workspace = true
+
+serde.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+serde_json.workspace = true
+url.workspace = true
+derive_more = { workspace = true, features = ["unwrap"] }
+utoipa.workspace = true
+json-patch.workspace = true
+tracing.workspace = true
+arrayvec = "0.7.6"
+axum.workspace = true
+tokio.workspace = true
+redis.workspace = true
+snafu.workspace = true
+tokio-stream.workspace = true
+futures.workspace = true

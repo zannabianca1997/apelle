@@ -6,7 +6,7 @@ use apelle_common::{
     id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Collector, PatchEventBuilder};
+use apelle_queues_dtos::events::{BuildPatchEvent as _, Collector, PatchEventBuilder};
 use apelle_songs_dtos::public::{SolvedQueryParams, Song};
 use axum::{
     Extension, debug_handler,

@@ -3,10 +3,11 @@ use json_patch::{
     TestOperation, jsonptr::PointerBuf,
 };
 use serde::Serialize;
-use serde_json::Value;
 use uuid::Uuid;
 
-use super::{Event, EventContent};
+use crate::model::Queue;
+
+use super::{Event, EventContent, SyncData};
 
 #[must_use]
 pub struct QueueEventBuilder {
@@ -20,11 +21,11 @@ impl QueueEventBuilder {
     }
 
     /// Create a sync event
-    pub fn sync(self, value: Value) -> Event {
+    pub fn sync(self, value: &Queue) -> Event {
         Event {
             queue: self.queue,
             user: None,
-            content: EventContent::Sync(value),
+            content: EventContent::Sync(SyncData::new(value)),
         }
     }
 
@@ -51,11 +52,11 @@ impl UserEventBuilder {
     }
 
     /// Create a sync event
-    pub fn sync(self, value: impl Serialize) -> Event {
+    pub fn sync(self, value: &Queue) -> Event {
         Event {
             queue: self.queue,
             user: Some(self.user),
-            content: EventContent::Sync(serde_json::to_value(value).unwrap()),
+            content: EventContent::Sync(SyncData::new(value)),
         }
     }
 }

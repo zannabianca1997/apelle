@@ -7,6 +7,7 @@ members = [
     "songs/providers/*",
     "queues",
     "queues/events",
+    "queues/dtos",
     "configs",
     "configs/dtos",
     "api-docs",
@@ -21,11 +22,13 @@ license = "MIT"
 apelle-common = { path = "common" }
 apelle-songs-dtos = { path = "songs/dtos" }
 apelle-configs-dtos = { path = "configs/dtos" }
+apelle-queues-dtos = { path = "queues/dtos" }
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
 axum-extra = { version = "0.10.1", features = ["query", "typed-header"] }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "signal", "sync"] }
+tokio-stream = { version = "0.1.17", features = ["sync"] }
 tower = "0.5.2"
 
 # Database
@@ -99,3 +102,7 @@ features = ["json", "stream"]
 # Reqwest uses tls by default, that we do not have 
 # inside the containers
 default-features = false
+
+[patch.crates-io]
+# Temporary patch waiting for news on [https://github.com/idubrov/json-patch/pull/51]
+json-patch = { git = "https://github.com/qu0b/json-patch.git" }

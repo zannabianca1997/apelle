@@ -6,7 +6,7 @@ use apelle_common::{
     id_or_rep::{HasId as _, IdOrRep},
 };
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Collector, Event};
+use apelle_queues_dtos::events::{BuildPatchEvent as _, Collector, Event};
 use apelle_songs_dtos::public::{
     ResolveSongRequest, SearchResponseItemState, SolvedQueryParams, Song,
 };

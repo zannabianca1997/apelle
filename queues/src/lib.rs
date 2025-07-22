@@ -4,7 +4,7 @@ use apelle_common::{
     cache_pubsub,
     db::{SqlState, db_state_and_layer},
 };
-use apelle_queues_events::events::event_middleware;
+use apelle_queues_dtos::events::event_middleware;
 use axum::{
     extract::FromRef,
     middleware::{from_fn_with_state, map_request_with_state},
@@ -25,9 +25,7 @@ use crate::{
 };
 
 pub mod config;
-
-mod dtos;
-mod model;
+use apelle_queues_dtos::model;
 
 mod common {}
 

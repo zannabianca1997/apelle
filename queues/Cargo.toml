@@ -9,7 +9,7 @@ license.workspace = true
 apelle-common.workspace = true
 apelle-configs-dtos.workspace = true
 apelle-songs-dtos.workspace = true
-apelle-queues-events = { path = "events" }
+apelle-queues-dtos.workspace = true
 
 axum.workspace = true
 serde.workspace = true

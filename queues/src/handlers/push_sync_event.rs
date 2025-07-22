@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{ServicesClient, common_errors::PubSubError, db::SqlTx};
 use apelle_configs_dtos::QueueConfig;
-use apelle_queues_events::events::{Collector, Event};
+use apelle_queues_dtos::events::{Collector, Event};
 use axum::{
     Extension, Json, debug_handler,
     extract::{Path, Query, State},
@@ -80,7 +80,7 @@ pub async fn push_sync_event(
     .await?;
 
     Event::user(id, user_id)
-        .sync(state)
+        .sync(&state)
         .collect(&collector)
         .await;
 

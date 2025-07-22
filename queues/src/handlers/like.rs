@@ -2,7 +2,7 @@ use std::{iter::once, sync::Arc};
 
 use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionSong};
-use apelle_queues_events::events::{BuildPatchEvent as _, Collector, PatchEventBuilder};
+use apelle_queues_dtos::events::{BuildPatchEvent as _, Collector, PatchEventBuilder};
 use axum::{
     Extension, debug_handler,
     extract::Path,

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 mod builder;
@@ -14,6 +15,8 @@ pub use collector::{Collector, event_middleware};
 pub use publisher::Publisher;
 pub use subscriber::{Config as SubscribedClientConfig, PatchesLost, SubscribedClient};
 
+use crate::model::Queue;
+
 #[derive(Debug, Clone)]
 pub struct Event {
     queue: Uuid,
@@ -21,7 +24,17 @@ pub struct Event {
     content: EventContent,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[schema(value_type = Queue)]
+pub struct SyncData(serde_json::Value);
+
+impl SyncData {
+    pub fn new(queue: &Queue) -> Self {
+        Self(serde_json::to_value(queue).unwrap())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(tag = "kind", content = "value")]
 pub enum EventContent {
     /// The queue was deleted
@@ -29,7 +42,7 @@ pub enum EventContent {
     /// A patch to apply to the queue data
     Patch(json_patch::Patch),
     /// The entire value of the queue data
-    Sync(serde_json::Value),
+    Sync(SyncData),
 }
 
 impl Event {
@@ -83,7 +96,7 @@ impl EventContent {
             }
             (_, sync @ Self::Sync(_)) => Ok(sync),
             (Self::Sync(mut doc), Self::Patch(patch)) => {
-                let Ok(()) = json_patch::patch(&mut doc, &patch) else {
+                let Ok(()) = json_patch::patch(&mut doc.0, &patch) else {
                     tracing::warn!(sync =? doc, ?patch, "Patch failed to apply to preceding sync");
                     return Err((Self::Sync(doc), Self::Patch(patch)));
                 };

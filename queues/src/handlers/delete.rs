@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionQueue};
-use apelle_queues_events::events::{Collector, Event};
+use apelle_queues_dtos::events::{Collector, Event};
 use axum::{
     Extension, debug_handler,
     extract::Path,

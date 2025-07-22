@@ -3,6 +3,9 @@ use serde::Deserialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+pub mod events;
+pub mod model;
+
 #[derive(Deserialize, Clone, Debug, ToSchema, Default)]
 pub struct QueueCreate {
     #[serde(default)]

@@ -7,7 +7,7 @@ use apelle_common::{
     ResponseOrNotModified,
     db::{SqlError, SqlTx},
 };
-use apelle_queues_events::events::{BuildPatchEvent, Collector, Event};
+use apelle_queues_dtos::events::{BuildPatchEvent, Collector, Event};
 use axum::{
     Extension, debug_middleware,
     extract::{Path, Request},

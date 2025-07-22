@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::{QueuePathParams, middleware::user::QueueUser};
 use apelle_configs_dtos::{QueueUserAction, QueueUserActionQueue};
+use apelle_queues_dtos::events::EventContent;
 use axum::{
     Extension, debug_handler,
     extract::Path,
@@ -38,7 +39,7 @@ impl IntoResponses for Forbidden {
 #[debug_handler(state = crate::App)]
 #[utoipa::path(get, path = "/events",
     responses(
-        (status = StatusCode::OK, description = "Queue events", content_type = "text/event-stream"),
+        (status = StatusCode::OK, description = "Queue events", content_type = "text/event-stream", body = EventContent),
         Forbidden
     ),
     params(QueuePathParams)

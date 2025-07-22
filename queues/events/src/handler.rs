@@ -21,11 +21,8 @@ use url::Url;
 use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
-use crate::{
-    QueuesService,
-    config::SseConfig,
-    events::{EventContent, PatchesLost, SubscribedClient},
-};
+use crate::{QueuesService, config::SseConfig};
+use apelle_queues_dtos::events::{EventContent, PatchesLost, SubscribedClient};
 
 /// Errors happening starting the event stream
 #[derive(Debug, Snafu)]
@@ -60,7 +57,7 @@ impl IntoResponses for GetEventsError {
 
 #[debug_handler(state=crate::App)]
 #[utoipa::path(get, path = "/events/{id}", 
-    responses((status = StatusCode::OK, content_type = "text/event-stream")))]
+    responses((status = StatusCode::OK, content_type = "text/event-stream", body = EventContent)))]
 pub async fn events(
     State(subscriber): State<SubscribedClient>,
     State(SseConfig {
