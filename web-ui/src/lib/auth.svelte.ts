@@ -64,6 +64,10 @@ class AuthService {
 		return this._userData?.auth ?? null;
 	}
 
+	public get headers(): Record<string, string> {
+		return this.auth ? { Authorization: `Basic ${btoa(`${this.auth.username}:${this.auth.password}`)}` } : {};
+	}
+
 	private set userData(data: UserData | null) {
 		this._userData = data;
 		if (this._userData) {

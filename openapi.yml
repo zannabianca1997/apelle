@@ -1,3 +1,912 @@
+components:
+  schemas:
+    AddOperation:
+      description: JSON Patch 'add' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to add to the target location.
+      required:
+      - path
+      - value
+      type: object
+    Config:
+      oneOf:
+      - format: uuid
+        type: string
+      - $ref: '#/components/schemas/QueueConfigCreate'
+    CopyOperation:
+      description: JSON Patch 'copy' operation representation
+      properties:
+        from:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            to copy value from.'
+          type: string
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - from
+      - path
+      type: object
+    Current:
+      allOf:
+      - $ref: '#/components/schemas/TimeRef'
+      - properties:
+          song:
+            $ref: '#/components/schemas/IdOrRep_Song'
+        required:
+        - song
+        type: object
+    Cursor:
+      type: string
+    EventContent:
+      oneOf:
+      - description: The queue was deleted
+        properties:
+          kind:
+            enum:
+            - Deleted
+            type: string
+        required:
+        - kind
+        type: object
+      - description: A patch to apply to the queue data
+        properties:
+          kind:
+            enum:
+            - Patch
+            type: string
+          value:
+            $ref: '#/components/schemas/Patch'
+            description: A patch to apply to the queue data
+        required:
+        - value
+        - kind
+        type: object
+      - description: The entire value of the queue data
+        properties:
+          kind:
+            enum:
+            - Sync
+            type: string
+          value:
+            $ref: '#/components/schemas/SyncData'
+            description: The entire value of the queue data
+        required:
+        - value
+        - kind
+        type: object
+    IdOrRep_QueueConfig:
+      description: Either an id or a representation of a resource
+      oneOf:
+      - format: uuid
+        type: string
+      - properties:
+          autolike:
+            type: boolean
+          banned_role:
+            type: string
+          created:
+            format: date-time
+            type: string
+          creator_role:
+            type: string
+          default_role:
+            type: string
+          id:
+            format: uuid
+            type: string
+          roles:
+            additionalProperties:
+              $ref: '#/components/schemas/QueueUserRole'
+            propertyNames:
+              type: string
+            type: object
+          updated:
+            format: date-time
+            type: string
+        required:
+        - id
+        - creator_role
+        - default_role
+        - banned_role
+        - roles
+        - autolike
+        - created
+        - updated
+        type: object
+    IdOrRep_Song:
+      description: Either an id or a representation of a resource
+      oneOf:
+      - format: uuid
+        type: string
+      - properties:
+          added_by:
+            description: User that first added the song
+            format: uuid
+            type:
+            - string
+            - 'null'
+          created:
+            description: When the song was added
+            format: date-time
+            type: string
+          duration:
+            description: Duration of the song
+            type: string
+          id:
+            description: Unique id of the song
+            format: uuid
+            type: string
+          source_data:
+            description: 'Additional data from the song source
+
+
+              These contains stuff like thumbnails,
+
+              the artist, an url or any source specific
+
+              data. They are provided on-demand
+
+              as they require querying the source service'
+            type:
+            - object
+            - 'null'
+          title:
+            description: Title of the song
+            type: string
+        required:
+        - id
+        - title
+        - duration
+        - created
+        type: object
+    MoveOperation:
+      description: JSON Patch 'move' operation representation
+      properties:
+        from:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            to move value from.'
+          type: string
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - from
+      - path
+      type: object
+    PageInfo_Cursor:
+      description: Information about a page
+      properties:
+        first:
+          type: string
+        last:
+          type: string
+        next:
+          type: string
+        page:
+          type: string
+        prev:
+          type: string
+        size:
+          description: The size of the page
+          format: int32
+          minimum: 0
+          type: integer
+        total:
+          description: The total number of items
+          format: int32
+          minimum: 0
+          type:
+          - integer
+          - 'null'
+      required:
+      - size
+      - page
+      type: object
+    PageInfo_u32:
+      description: Information about a page
+      properties:
+        first:
+          format: int32
+          minimum: 0
+          type: integer
+        last:
+          format: int32
+          minimum: 0
+          type: integer
+        next:
+          format: int32
+          minimum: 0
+          type: integer
+        page:
+          format: int32
+          minimum: 0
+          type: integer
+        prev:
+          format: int32
+          minimum: 0
+          type: integer
+        size:
+          description: The size of the page
+          format: int32
+          minimum: 0
+          type: integer
+        total:
+          description: The total number of items
+          format: int32
+          minimum: 0
+          type:
+          - integer
+          - 'null'
+      required:
+      - size
+      - page
+      type: object
+    Paginated_SearchResponseItem_Cursor:
+      description: A page of results
+      properties:
+        items:
+          description: The items in the page
+          items:
+            properties:
+              details:
+                description: Data to pass the frontend describing the song
+                type: object
+              source:
+                description: Source that provided this search result
+                type: string
+              state:
+                $ref: '#/components/schemas/SearchResponseItemState_Value'
+                description: Data to pass the service to resolve the song
+            required:
+            - source
+            - details
+            - state
+            type: object
+          type: array
+        page_info:
+          $ref: '#/components/schemas/PageInfo_Cursor'
+          description: Information about the page
+      required:
+      - items
+      - page_info
+      type: object
+    Paginated_Source:
+      description: A page of results
+      properties:
+        items:
+          description: The items in the page
+          items:
+            description: Information about a source registered in the database
+            properties:
+              created:
+                format: date-time
+                type: string
+              last_heard:
+                format: date-time
+                type: string
+              name:
+                type: string
+              urn:
+                type: string
+            required:
+            - urn
+            - name
+            - created
+            - last_heard
+            type: object
+          type: array
+        page_info:
+          $ref: '#/components/schemas/PageInfo_u32'
+          description: Information about the page
+      required:
+      - items
+      - page_info
+      type: object
+    Patch:
+      description: Representation of JSON Patch (list of patch operations)
+      items:
+        $ref: '#/components/schemas/PatchOperation'
+      type: array
+    PatchOperation:
+      description: JSON Patch single patch operation
+      oneOf:
+      - allOf:
+        - $ref: '#/components/schemas/AddOperation'
+          description: '''add'' operation'
+        - properties:
+            op:
+              enum:
+              - add
+              type: string
+          required:
+          - op
+          type: object
+        description: '''add'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/RemoveOperation'
+          description: '''remove'' operation'
+        - properties:
+            op:
+              enum:
+              - remove
+              type: string
+          required:
+          - op
+          type: object
+        description: '''remove'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/ReplaceOperation'
+          description: '''replace'' operation'
+        - properties:
+            op:
+              enum:
+              - replace
+              type: string
+          required:
+          - op
+          type: object
+        description: '''replace'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/MoveOperation'
+          description: '''move'' operation'
+        - properties:
+            op:
+              enum:
+              - move
+              type: string
+          required:
+          - op
+          type: object
+        description: '''move'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/CopyOperation'
+          description: '''copy'' operation'
+        - properties:
+            op:
+              enum:
+              - copy
+              type: string
+          required:
+          - op
+          type: object
+        description: '''copy'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/TestOperation'
+          description: '''test'' operation'
+        - properties:
+            op:
+              enum:
+              - test
+              type: string
+          required:
+          - op
+          type: object
+        description: '''test'' operation'
+    ProviderRegistration:
+      description: Register himself as a provider
+      properties:
+        fast_handshake:
+          description: 'Use fast handshake
+
+
+            This suggest to the `songs` service that the webhook is known to work
+
+            and that checks can be skipped'
+          type: boolean
+        source_urn:
+          description: URN of the source this provider can answer for
+          type: string
+        url:
+          description: Url where this provider is serving the provider API
+          format: uri
+          type: string
+      required:
+      - source_urn
+      - url
+      type: object
+    Queue:
+      properties:
+        code:
+          type: string
+        config:
+          $ref: '#/components/schemas/IdOrRep_QueueConfig'
+        created:
+          format: date-time
+          type: string
+        current:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Current'
+        id:
+          format: uuid
+          type: string
+        player_state_id:
+          format: uuid
+          type: string
+        queue:
+          additionalProperties:
+            $ref: '#/components/schemas/QueuedSong'
+          propertyNames:
+            format: uuid
+            type: string
+          type: object
+        updated:
+          format: date-time
+          type: string
+      required:
+      - id
+      - code
+      - player_state_id
+      - config
+      - queue
+      - created
+      - updated
+      type: object
+    QueueConfig:
+      properties:
+        autolike:
+          type: boolean
+        banned_role:
+          type: string
+        created:
+          format: date-time
+          type: string
+        creator_role:
+          type: string
+        default_role:
+          type: string
+        id:
+          format: uuid
+          type: string
+        roles:
+          additionalProperties:
+            $ref: '#/components/schemas/QueueUserRole'
+          propertyNames:
+            type: string
+          type: object
+        updated:
+          format: date-time
+          type: string
+      required:
+      - id
+      - creator_role
+      - default_role
+      - banned_role
+      - roles
+      - autolike
+      - created
+      - updated
+      type: object
+    QueueConfigCreate:
+      properties:
+        autolike:
+          type: boolean
+        banned_role:
+          type: string
+        creator_role:
+          type: string
+        default_role:
+          type: string
+        roles:
+          additionalProperties:
+            $ref: '#/components/schemas/QueueUserRoleCreate'
+          propertyNames:
+            type: string
+          type: object
+      required:
+      - creator_role
+      - default_role
+      - banned_role
+      - roles
+      type: object
+    QueueCreate:
+      properties:
+        code:
+          type:
+          - string
+          - 'null'
+        config:
+          $ref: '#/components/schemas/Config'
+      type: object
+    QueueUserAction:
+      description: An action a user makes on a queue
+      enum:
+      - GET_QUEUE
+      - DELETE_QUEUE
+      - CONFIGURE_QUEUE
+      - REMOVE_SONG
+      - BAN_SONG
+      - UNBAN_SONG
+      - ENQUEUE_SONG
+      - PLAY_SONG
+      - PAUSE_SONG
+      - NEXT_SONG
+      - AUTO_NEXT_SONG
+      - LIKE_SONG
+      - BAN_USER
+      - UNBAN_USER
+      - REMOVE_USER
+      type: string
+    QueueUserRole:
+      properties:
+        can_grant:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        can_revoke:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        id:
+          format: uuid
+          type: string
+        max_likes:
+          format: int32
+          minimum: 0
+          type: integer
+        permissions:
+          items:
+            $ref: '#/components/schemas/QueueUserAction'
+          type: array
+          uniqueItems: true
+      required:
+      - id
+      - max_likes
+      - permissions
+      - can_grant
+      - can_revoke
+      type: object
+    QueueUserRoleCreate:
+      properties:
+        can_grant:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        can_revoke:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        max_likes:
+          format: int32
+          minimum: 0
+          type: integer
+        permissions:
+          items:
+            $ref: '#/components/schemas/QueueUserAction'
+          type: array
+          uniqueItems: true
+      required:
+      - max_likes
+      - permissions
+      - can_grant
+      - can_revoke
+      type: object
+    QueuedSong:
+      properties:
+        likes:
+          description: Number of likes this song has
+          format: int32
+          minimum: 0
+          type: integer
+        queued_at:
+          description: When the song was queued
+          format: date-time
+          type: string
+        song:
+          $ref: '#/components/schemas/IdOrRep_Song'
+          description: Song that was queued
+        user_likes:
+          description: Number of likes this song has by the current user
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - song
+      - queued_at
+      - likes
+      - user_likes
+      type: object
+    RemoveOperation:
+      description: JSON Patch 'remove' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - path
+      type: object
+    ReplaceOperation:
+      description: JSON Patch 'replace' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to replace with.
+      required:
+      - path
+      - value
+      type: object
+    ResolveSongRequest:
+      properties:
+        data:
+          description: 'Data that the user used to define the song
+
+
+            e.g. the video id for youtube'
+          type: object
+        source:
+          description: URN of the song source
+          type: string
+      required:
+      - source
+      - data
+      type: object
+    SearchResponseItem:
+      properties:
+        source:
+          description: Source that provided this search result
+          type: string
+        state:
+          $ref: '#/components/schemas/SearchResponseItemState'
+          description: Data to pass the service to resolve the song
+      required:
+      - source
+      - state
+      type: object
+    SearchResponseItemState:
+      description: How to resolve this search item
+      oneOf:
+      - description: Need to be resolved
+        properties:
+          data:
+            type: object
+          state:
+            enum:
+            - New
+            type: string
+        required:
+        - data
+        - state
+        type: object
+      - description: Is a known song
+        properties:
+          id:
+            format: uuid
+            type: string
+          state:
+            enum:
+            - Known
+            type: string
+        required:
+        - id
+        - state
+        type: object
+    SearchResponseItemState_Value:
+      description: How to resolve this search item
+      oneOf:
+      - description: Need to be resolved
+        properties:
+          data:
+            type: object
+          state:
+            enum:
+            - New
+            type: string
+        required:
+        - data
+        - state
+        type: object
+      - description: Is a known song
+        properties:
+          id:
+            format: uuid
+            type: string
+          state:
+            enum:
+            - Known
+            type: string
+        required:
+        - id
+        - state
+        type: object
+    Song:
+      properties:
+        added_by:
+          description: User that first added the song
+          format: uuid
+          type:
+          - string
+          - 'null'
+        created:
+          description: When the song was added
+          format: date-time
+          type: string
+        duration:
+          description: Duration of the song
+          type: string
+        id:
+          description: Unique id of the song
+          format: uuid
+          type: string
+        source_data:
+          description: 'Additional data from the song source
+
+
+            These contains stuff like thumbnails,
+
+            the artist, an url or any source specific
+
+            data. They are provided on-demand
+
+            as they require querying the source service'
+          type:
+          - object
+          - 'null'
+        title:
+          description: Title of the song
+          type: string
+      required:
+      - id
+      - title
+      - duration
+      - created
+      type: object
+    Source:
+      description: Information about a source registered in the database
+      properties:
+        created:
+          format: date-time
+          type: string
+        last_heard:
+          format: date-time
+          type: string
+        name:
+          type: string
+        urn:
+          type: string
+      required:
+      - urn
+      - name
+      - created
+      - last_heard
+      type: object
+    SourceRegister:
+      description: 'Create a new source
+
+
+        This is sent from source providers to the songs service
+
+        to signal that a new source is available'
+      properties:
+        name:
+          type: string
+        urn:
+          type: string
+      required:
+      - urn
+      - name
+      type: object
+    SyncData:
+      $ref: '#/components/schemas/Queue'
+    TestOperation:
+      description: JSON Patch 'test' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to test against.
+      required:
+      - path
+      - value
+      type: object
+    TimeRef:
+      oneOf:
+      - properties:
+          position:
+            type: string
+        required:
+        - position
+        type: object
+      - properties:
+          starts_at:
+            format: date-time
+            type: string
+        required:
+        - starts_at
+        type: object
+    UserCreateDto:
+      description: Data to create a new user
+      properties:
+        name:
+          description: Unique user name
+          type: string
+        password:
+          description: Password
+          type: string
+      required:
+      - name
+      - password
+      type: object
+    UserDto:
+      description: Data about a user
+      properties:
+        created:
+          description: When the user was created
+          format: date-time
+          type: string
+        id:
+          description: Identifier of the user
+          format: uuid
+          type: string
+        last_login:
+          description: When the user was last seen
+          format: date-time
+          type: string
+        name:
+          description: Unique user name
+          type: string
+        roles:
+          description: Roles of the user
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        updated:
+          description: When the user was last updated
+          format: date-time
+          type: string
+      required:
+      - id
+      - name
+      - roles
+      - created
+      - updated
+      - last_login
+      type: object
+    UserUpdateDto:
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        password:
+          type:
+          - string
+          - 'null'
+      type: object
 info:
   contact:
     email: zannabianca199712@gmail.com
