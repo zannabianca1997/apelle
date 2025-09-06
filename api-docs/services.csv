@@ -1,0 +1,4 @@
+users,http://localhost:8081,/api/users
+songs,http://localhost:8082,/api/songs
+queues,http://localhost:8083,/api/queues
+configs,http://localhost:8084,/api/configs

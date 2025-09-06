@@ -7,4 +7,3 @@ include:
   - configs/compose.yml
   - gateway/compose.yml
   - web-ui/compose.yml
-  - api-docs/compose.yml

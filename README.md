@@ -27,7 +27,6 @@ exposes the port it uses, enabling testing of the single service.
 | front         | 3000 |
 | db            | 5432 |
 | cache-pubsub  | 6379 |
-| api-docs      | 8079 |
 | gateway       | 8080 |
 | users         | 8081 |
 | songs         | 8082 |
@@ -35,15 +34,6 @@ exposes the port it uses, enabling testing of the single service.
 | configs       | 8084 |
 | queues-events | 8085 |
 | songs-youtube | 8091 |
-
-## Swagger
-
-The public api is available and testable through the [Swagger
-UI](http://localhost:8080/swagger-ui). A valid account must be provided, and
-will be used for authentication.
-
-The api-docs of the single services can be found by navigating to [the internal
-swagger](http://localhost:8079/swagger-ui).
 
 ## Services
 
@@ -55,7 +45,6 @@ flowchart
     gateway[Gateway<br>Nginx]
     webui[Frontend<br>Svelte SPA]
     migrator[Flyway<br>Java image<br>Runned once on demand]
-    api-docs["Open Api documentation<br>Rust microservice<br>Running only at build-time and dev"]
 
     db@{ shape: cyl, label: "Postgres" }
     cache-pubsub[Redis/Valkey<br>working both as a cache and pub-sub]
@@ -98,13 +87,6 @@ flowchart
 
     services -->|store permanent data on| db
     services -.->|collect migrations| migrator -->|applies migrations| db
-
-    gateway -->|/api-docs| api-docs
-    gateway -->|/swagger-ui| api-docs
-
-    webui -.->|bindings built from| api-docs
-
-    services -.->|collect openapi specs| api-docs
 ```
 
 Following is a short description of each service. See the dedicated `README.md`

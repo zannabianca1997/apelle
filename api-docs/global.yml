@@ -1,0 +1,20 @@
+openapi: 3.1.0
+info:
+    title: Apelle API
+    version: 2.0.0-alpha
+    summary: Apelle public API
+    description: |
+        > A communist music queue
+
+        `apelle` is a service for handling a shared music queue. Users can insert songs
+        in the queues, and upvote them to push them upward. `apelle` will track the
+        position of each song in the queue, and the position of the currently playing
+        song.
+
+        This is the documentation for the external API.
+    license:
+        name: MIT
+        identifier: MIT
+    contact:
+        name: zannabianca1997
+        email: zannabianca199712@gmail.com

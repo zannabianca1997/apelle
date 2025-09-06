@@ -1,0 +1,635 @@
+info:
+  contact:
+    email: zannabianca199712@gmail.com
+    name: zannabianca1997
+  description: '> A communist music queue
+
+
+    `apelle` is a service for handling a shared music queue. Users can insert songs
+
+    in the queues, and upvote them to push them upward. `apelle` will track the
+
+    position of each song in the queue, and the position of the currently playing
+
+    song.
+
+
+    This is the documentation for the external API.
+
+    '
+  license:
+    identifier: MIT
+    name: MIT
+  summary: Apelle public API
+  title: Apelle API
+  version: 2.0.0-alpha
+openapi: 3.1.0
+paths:
+  /api/configs/queues/{id}:
+    get:
+      description: 'Queue configs are immutable. When a queue change its config, a
+        new config is
+
+        created instead of changing the old one. This makes the result of this call
+
+        cachable.'
+      operationId: configs_get
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueConfig'
+          description: Queue config
+        '404':
+          description: Queue not found
+        '500':
+          description: Internal server error
+      summary: Returns a queue config
+      tags:
+      - service-configs
+  /api/queues:
+    get:
+      operationId: queues_find
+      parameters:
+      - description: The code of the searched queue
+        in: query
+        name: code
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            text/json:
+              schema:
+                format: uuid
+                type: string
+          description: Queue found
+        '403':
+          description: User is not allowed to read the queue data
+        '404':
+          description: Queue not found
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+    post:
+      description: 'Create a new empty queue with the given code and config.
+
+
+        If the config is not provided, a the default config will be used.
+
+        If no code is provided, a random code will be generated.'
+      operationId: queues_create
+      parameters:
+      - description: 'Return the full queue config instead of just the UUID
+
+          Return the whole config instead of just the id'
+        in: query
+        name: config
+        required: false
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: 'null'
+              - $ref: '#/components/schemas/QueueCreate'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+          description: Queue created
+        '404':
+          description: Config not found
+        '500':
+          description: Internal server error
+        '502':
+          description: Failed to connect to config service
+      summary: Create a new queue
+      tags:
+      - service-queues
+  /api/queues/{queue_id}:
+    delete:
+      operationId: queues_delete
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Queue deleted
+        '403':
+          description: User is not allowed to delete the queue
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+    get:
+      operationId: queues_get
+      parameters:
+      - description: Return the full queue config instead of just the UUID
+        in: query
+        name: config
+        required: false
+        schema:
+          type: boolean
+      - description: Return the full song data instead of just the UUID
+        in: query
+        name: songs
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: songs_source
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+          description: Queue created
+        '403':
+          description: User is not allowed to read the queue data
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/enqueue:
+    post:
+      description: 'You can plug an object from the `/search` endpoint straight into
+        this
+
+        endpoint. Additional fields will be ignored. If a `state: "New"` song is
+
+        given, it will be solved even if already solved somewhere else.
+
+
+        `song` and `song_source` will be reported to the songs service, and the
+
+        returned value will be expanded accordingly.
+
+
+        Trying to add a song that is already in the queue, or is the playing one
+
+        will result in a `409 Conflict`.'
+      operationId: queues_enqueue
+      parameters:
+      - description: Override the default behavior of auto-liking
+        in: query
+        name: autolike
+        required: false
+        schema:
+          type:
+          - boolean
+          - 'null'
+      - description: Return the full song data instead of just the UUID
+        in: query
+        name: song
+        required: false
+        schema:
+          type: boolean
+      - description: Return also the source data for the song
+        in: query
+        name: song_source
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchResponseItem'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueuedSong'
+          description: Song enqueued
+        '403':
+          description: User is not allowed to enqueue songs
+        '409':
+          description: The song is already in the queue
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Add a song to the queue
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/events:
+    get:
+      operationId: queues_events
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/EventContent'
+          description: Queue events
+        '403':
+          description: User is not allowed to read the queue events
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/next:
+    post:
+      description: 'Changes the current song to another one, and set the new one as
+        playing.
+
+
+        If no song is given, the one on top of the queue will be used. If the queue
+
+        is empty or the given song is not in the queue, a `404 Not Found` error will
+
+        be returned.
+
+
+        This endpoint can be accessed through two possible channels. Either one has
+
+        the `QUEUE_NEXT` permission, or the `QUEUE_AUTO_NEXT` permission. The second
+
+        channel requires additional restrictions to be met:
+
+        - The current song must be null, or ended without stopping.
+
+        - The song cannot be specified, enabling only moving to the top song.
+
+
+        If a song is not specified, the `If-Match` header is required.'
+      operationId: queues_next
+      parameters:
+      - description: 'Force this call to be evaluated in the `auto-next` mode
+
+
+          If missing, the call will pass in the `auto-next` mode only if the
+
+          conditions for one to succeed are met'
+        in: query
+        name: auto
+        required: false
+        schema:
+          type:
+          - boolean
+          - 'null'
+      - description: Move to a particular song instead of the next in list
+        in: query
+        name: song
+        required: false
+        schema:
+          format: uuid
+          type:
+          - string
+          - 'null'
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Song changed
+        '403':
+          description: User is not allowed to enqueue songs
+        '404':
+          description: 'Song not found: either a id was given of a song that is no
+            in the queue, or the list is empty'
+        '409':
+          description: The song is already in the queue
+        '428':
+          description: 'A request that does not contain a `song` parameter must have
+            an `If-Match` header.
+
+
+            This is needed as `next` requests come in bulk when the song ends, and
+            we must refuse all but one.'
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Change the current song
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/queue/{song_id}/like:
+    post:
+      operationId: queues_like
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: song_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          description: Song liked
+        '403':
+          description: User is not allowed to like songs
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/songs/search:
+    get:
+      description: 'Search for songs based on a query. The query will be normalized
+        by
+
+        lowercasing it, removing all the non-alphanumeric characters, and
+
+        normalizing all spaces with a single space.
+
+
+        If songs from only one source is wanted, the `source` query parameter can
+        be
+
+        used. It can be repeated to generate an aggregated query. If omitted, all
+
+        available sources will be used.
+
+
+        The order of the songs from a single source is kept. Different sources are
+
+        randomly mixed, but in a way that depends only from the set of sources
+
+        choosen and the query.
+
+
+        The songs are paginated. The cursor is an opaque string. The duration of
+
+        validity of the cursor depends on the specific providers. In case it
+
+        expires, a `400 Bad Request` is returned.'
+      operationId: songs_search
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        schema:
+          type: string
+      - description: 'List of sources to search
+
+
+          Empty to use all sources'
+        in: query
+        name: source
+        required: false
+        schema:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+      - description: Maximum number of items per page
+        in: query
+        name: page_size
+        required: false
+        schema:
+          format: int32
+          minimum: 0
+          type: integer
+      - description: Requested page
+        in: query
+        name: page
+        required: false
+        schema:
+          oneOf:
+          - type: 'null'
+          - type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginated_SearchResponseItem_Cursor'
+          description: Search results
+        '400':
+          description: 'Bad page token: either invalid, not from this search, or expired'
+        '404':
+          description: One of the requested sources was not found
+        '500':
+          description: Internal Server Error
+        '502':
+          description: Error in connectiong to the providers
+      summary: Search for songs
+      tags:
+      - service-songs
+  /api/songs/solved/{id}:
+    get:
+      description: 'Get the data of a song that was previously resolved. If `source_data`
+        is set
+
+        to `true`, the data from the song source will be included (like thumbnails
+
+        and url).'
+      operationId: songs_get
+      parameters:
+      - description: Include the data from the song source
+        in: query
+        name: source_data
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+          description: Song data
+        '500':
+          description: Internal Server Error
+        '502':
+          description: Error returned from provider
+      summary: Get song data
+      tags:
+      - service-songs
+  /api/songs/sources:
+    get:
+      description: Get a paginated list of sources. The sources are alphabetically
+        ordered.
+      operationId: songs_list
+      parameters:
+      - description: Maximum number of items per page
+        in: query
+        name: page_size
+        required: false
+        schema:
+          format: int32
+          minimum: 0
+          type: integer
+      - description: Requested page
+        in: query
+        name: page
+        required: false
+        schema:
+          oneOf:
+          - type: 'null'
+          - format: int32
+            minimum: 0
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginated_Source'
+          description: List of sources
+        '500':
+          description: Internal server error
+      summary: List available sources
+      tags:
+      - service-songs
+  /api/users:
+    post:
+      description: 'Create a new user with the given name and password. No global
+        role is
+
+        assigned. Name must be unique, not empty, not containing trailing or leading
+
+        spaces and control characters. It must also fit in a http header.'
+      operationId: users_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateDto'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: User created
+        '400':
+          description: Invalid user name
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+      summary: Create a new user
+      tags:
+      - service-users
+  /api/users/me:
+    delete:
+      description: Delete the user the credentials used refer to.
+      operationId: users_delete
+      responses:
+        '204':
+          description: User deleted
+        '500':
+          description: Internal server error
+      summary: Delete current user
+      tags:
+      - service-users
+    get:
+      description: Get data about the user the credentials used refer to.
+      operationId: users_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: Data about the user
+        '500':
+          description: Internal server error
+      summary: Current user data
+      tags:
+      - service-users
+    patch:
+      description: 'Modify the datas about the user the credentials used refer to.
+
+
+        See the creation endpoint for the constraints.'
+      operationId: users_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateDto'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: Patched data about the user
+        '400':
+          description: Invalid user name
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+      summary: Patch current user data
+      tags:
+      - service-users
+tags:
+- description: Endpoints served by the `configs` service
+  name: service-configs
+- description: Endpoints served by the `queues` service
+  name: service-queues
+- description: Endpoints served by the `songs` service
+  name: service-songs
+- description: Endpoints served by the `users` service
+  name: service-users
+

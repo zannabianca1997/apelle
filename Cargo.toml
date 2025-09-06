@@ -10,7 +10,6 @@ members = [
     "queues/dtos",
     "configs",
     "configs/dtos",
-    "api-docs",
 ]
 resolver = "3"
 
