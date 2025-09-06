@@ -4,11 +4,12 @@ use apelle_common::id_or_rep::IdOrRep;
 use apelle_configs_dtos::QueueConfig;
 use apelle_songs_dtos::public::Song;
 use chrono::{DateTime, Duration, FixedOffset};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, ToSchema)]
+#[cfg_attr(debug_assertions, derive(Deserialize))]
 pub struct Queue {
     pub id: Uuid,
     pub code: String,
@@ -26,6 +27,7 @@ pub struct Queue {
 }
 
 #[derive(Debug, Clone, Serialize, ToSchema)]
+#[cfg_attr(debug_assertions, derive(Deserialize))]
 pub struct Current {
     song: IdOrRep<Song>,
     #[serde(flatten)]
@@ -33,6 +35,7 @@ pub struct Current {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, ToSchema)]
+#[cfg_attr(debug_assertions, derive(Deserialize))]
 #[serde(untagged)]
 enum TimeRef {
     Relative { position: Duration },
@@ -59,6 +62,7 @@ impl Current {
 }
 
 #[derive(Debug, Clone, Serialize, ToSchema)]
+#[cfg_attr(debug_assertions, derive(Deserialize))]
 pub struct QueuedSong {
     /// Song that was queued
     pub song: IdOrRep<Song>,

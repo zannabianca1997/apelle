@@ -100,6 +100,13 @@ impl EventContent {
                     tracing::warn!(sync =? doc, ?patch, "Patch failed to apply to preceding sync");
                     return Err((Self::Sync(doc), Self::Patch(patch)));
                 };
+                #[cfg(debug_assertions)]
+                {
+                    let Ok(_) = serde_json::from_value::<Queue>(doc.0.clone()) else {
+                        tracing::warn!(sync =? doc, "Patch applied to preceding sync did not result in a valid queue");
+                        return Err((Self::Sync(doc), Self::Patch(patch)));
+                    };
+                }
                 Ok(Self::Sync(doc))
             }
         }
