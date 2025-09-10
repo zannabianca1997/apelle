@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO queue (code, config_id) VALUES ($1, $2) RETURNING id, created, updated, player_state_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "updated",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "player_state_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9c3d4c1b7e7f204117a378b6401001b02ff673e5008418dbcad4a4a6c54b9b62"
+}

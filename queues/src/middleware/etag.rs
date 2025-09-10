@@ -24,7 +24,6 @@ use axum_extra::{
 use chrono::{DateTime, FixedOffset};
 use reqwest::StatusCode;
 use snafu::Snafu;
-use textwrap_macros::unfill;
 use uuid::Uuid;
 
 use crate::QueuePathParams;
@@ -108,19 +107,20 @@ pub async fn etag_middleware(
         request.extensions_mut().insert(HasIfMatch);
     }
 
-    let (last_modified, etag) =
-        sqlx::query_as("SELECT updated, player_state_id FROM queue WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&mut tx)
-            .await
-            .map_err(SqlError::from)?
-            .map(|(updated, r): (DateTime<FixedOffset>, Uuid)| {
-                (
-                    LastModified::from(SystemTime::from(updated)),
-                    ETag::from_str(&format!("\"{r}\"")).unwrap(),
-                )
-            })
-            .ok_or(EtagError::NotFound)?;
+    let (last_modified, etag) = sqlx::query!(
+        "SELECT updated, player_state_id FROM queue WHERE id = $1",
+        id
+    )
+    .fetch_optional(&mut tx)
+    .await
+    .map_err(SqlError::from)?
+    .map(|row| {
+        (
+            LastModified::from(SystemTime::from(row.updated)),
+            ETag::from_str(&format!("\"{}\"", row.player_state_id)).unwrap(),
+        )
+    })
+    .ok_or(EtagError::NotFound)?;
 
     if let Method::GET | Method::HEAD = method {
         // Read method: check the queue has changed
@@ -190,7 +190,7 @@ impl Changed {
         collector: &Collector<5>,
         queue_id: Uuid,
     ) -> Result<Self, SqlError> {
-        let (player_state_id, updated) = sqlx::query_as(unfill!(
+        let state = sqlx::query!(
             "
             UPDATE queue 
             SET 
@@ -198,23 +198,23 @@ impl Changed {
             updated = NOW() 
             WHERE id = $1
             RETURNING player_state_id, updated 
-            "
-        ))
-        .bind(queue_id)
+            ",
+            queue_id
+        )
         .fetch_one(tx)
         .await?;
 
         Event::queue(queue_id)
-            .replace("/player_state_id", player_state_id)
-            .replace("/updated", updated)
+            .replace("/player_state_id", state.player_state_id)
+            .replace("/updated", state.updated)
             .build()
             .collect(collector)
             .await;
 
         Ok(Self {
             info: ETagInfo {
-                player_state_id,
-                updated,
+                player_state_id: state.player_state_id,
+                updated: state.updated.into(),
             },
         })
     }

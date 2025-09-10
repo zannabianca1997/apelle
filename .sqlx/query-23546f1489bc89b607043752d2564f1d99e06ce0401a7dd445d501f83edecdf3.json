@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH queue_data AS (\n            SELECT\n                queue.current_song,\n                queue.current_song_queued_by\n            FROM queue\n            INNER JOIN queue_user \n                ON  queue_user.queue_id = queue.id\n                AND queue_user.user_id  = queue.current_song_queued_by\n            WHERE queue.id = $1\n            AND queue.current_song IS NOT NULL\n        ),\n        update_queue AS (\n            UPDATE queue\n            SET\n                current_song = NULL,\n                current_song_start_at = NULL,\n                current_song_position = NULL,\n                current_song_queued_by = NULL\n            WHERE id = $1\n        )\n        INSERT INTO queued_song (queue_id, song_id, queued_by)\n        SELECT\n            $1, current_song, current_song_queued_by\n        FROM queue_data\n        RETURNING song_id, queued_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "song_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "queued_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "23546f1489bc89b607043752d2564f1d99e06ce0401a7dd445d501f83edecdf3"
+}

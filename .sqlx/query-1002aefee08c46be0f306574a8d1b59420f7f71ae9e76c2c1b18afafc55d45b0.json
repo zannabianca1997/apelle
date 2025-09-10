@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT EXISTS (\n            SELECT 1\n            FROM queue\n            WHERE current_song = $1\n            AND id = $2\n\n            UNION ALL\n\n            SELECT 1\n            FROM queued_song\n            WHERE song_id = $1\n            AND queue_id = $2\n        ) AS \"exist!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exist!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "1002aefee08c46be0f306574a8d1b59420f7f71ae9e76c2c1b18afafc55d45b0"
+}

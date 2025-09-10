@@ -18,7 +18,6 @@ use axum::{
 use reqwest::StatusCode;
 use serde::Deserialize;
 use snafu::Snafu;
-use textwrap_macros::unfill;
 use utoipa::{IntoParams, IntoResponses, ToSchema, openapi};
 
 use crate::{
@@ -168,8 +167,8 @@ pub async fn enqueue(
     .json()
     .await?;
 
-    if sqlx::query_scalar(unfill!(
-        "
+    if sqlx::query_scalar!(
+        r#"
         SELECT EXISTS (
             SELECT 1
             FROM queue
@@ -182,11 +181,11 @@ pub async fn enqueue(
             FROM queued_song
             WHERE song_id = $1
             AND queue_id = $2
-        )
-        "
-    ))
-    .bind(song.id)
-    .bind(id)
+        ) AS "exist!"
+        "#,
+        song.id,
+        id
+    )
     .fetch_one(&mut tx)
     .await?
     {
@@ -197,19 +196,16 @@ pub async fn enqueue(
     // Insert the song in the database queue
     let (queued_at, user_likes) = async {
         // Add the song to the queue
-        let queued_at = sqlx::query_scalar(
-            unfill!(
-                "
-                INSERT INTO queued_song (queue_id, song_id, queued_by)
-                VALUES ($1, $2, $3)
-                RETURNING queued_at
-                "
-            )
-            .trim_ascii(),
+        let queued_at = sqlx::query_scalar!(
+            "
+            INSERT INTO queued_song (queue_id, song_id, queued_by)
+            VALUES ($1, $2, $3)
+            RETURNING queued_at
+            ",
+            id,
+            song.id,
+            user.id()
         )
-        .bind(id)
-        .bind(song.id)
-        .bind(user.id())
         .fetch_one(&mut tx)
         .await?;
 
@@ -217,12 +213,14 @@ pub async fn enqueue(
         // one
         let user_likes =
             if autolike.unwrap_or(user.auto_like()) && user.likes() < user.role().max_likes {
-                sqlx::query("INSERT INTO likes (queue_id, song_id, user_id) VALUES ($1, $2, $3)")
-                    .bind(id)
-                    .bind(song.id)
-                    .bind(user.id())
-                    .execute(&mut tx)
-                    .await?;
+                sqlx::query!(
+                    "INSERT INTO likes (queue_id, song_id, user_id) VALUES ($1, $2, $3)",
+                    id,
+                    song.id,
+                    user.id()
+                )
+                .execute(&mut tx)
+                .await?;
                 1
             } else {
                 0
@@ -238,7 +236,7 @@ pub async fn enqueue(
         } else {
             IdOrRep::Id(song.id)
         },
-        queued_at,
+        queued_at: queued_at.into(),
         likes: user_likes,
         user_likes,
     };

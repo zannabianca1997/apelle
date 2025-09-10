@@ -54,12 +54,12 @@ pub async fn extract_queue_config(
     mut request: Request,
 ) -> Result<Request, FetchConfigError> {
     // Get the queue config id
-    let config_id: Uuid = sqlx::query_scalar("SELECT config_id FROM queue WHERE id = $1")
-        .bind(queue_id)
-        .fetch_optional(&mut tx)
-        .await
-        .map_err(SqlError::from)?
-        .context(QueueNotFoundSnafu)?;
+    let config_id: Uuid =
+        sqlx::query_scalar!("SELECT config_id FROM queue WHERE id = $1", queue_id)
+            .fetch_optional(&mut tx)
+            .await
+            .map_err(SqlError::from)?
+            .context(QueueNotFoundSnafu)?;
 
     // Get the config from the config service
     let config: QueueConfig = client

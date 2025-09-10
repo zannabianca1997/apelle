@@ -11,7 +11,6 @@ use axum::{
     response::IntoResponse,
 };
 use snafu::Snafu;
-use textwrap_macros::unfill;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -88,8 +87,8 @@ pub async fn extract_queue_user(
     let autolike_default = config.autolike;
 
     // Create the user, or get the existing one setup
-    let (role_id, autolike_override, likes): (Uuid, Option<bool>, i16) = sqlx::query_as(unfill!(
-        "
+    let user_row = sqlx::query!(
+        r#"
         WITH upsert_queue_user AS (
             INSERT INTO queue_user (queue_id, user_id, role_id)
             VALUES ($1, $2, $3)
@@ -98,33 +97,33 @@ pub async fn extract_queue_user(
         )
         SELECT
             u.role_id,
-            u.autolike,
-            COALESCE(SUM(l.count)::smallint, 0::smallint) AS total_likes
+            u.autolike AS autolike_override,
+            COALESCE(SUM(l.count)::smallint, 0::smallint) AS "total_likes!"
         FROM
             upsert_queue_user u
         LEFT JOIN
             likes l ON u.queue_id = l.queue_id AND u.user_id = l.user_id
         GROUP BY
             u.queue_id, u.user_id, u.role_id, u.autolike;
-        "
-    ))
-    .bind(queue_id)
-    .bind(user.id())
-    .bind(default_role_id)
+        "#,
+        queue_id,
+        user.id(),
+        default_role_id
+    )
     .fetch_one(&mut tx)
     .await
     .map_err(SqlError::from)?;
 
     let user = QueueUser {
         user,
-        auto_like: autolike_override.unwrap_or(autolike_default),
+        auto_like: user_row.autolike_override.unwrap_or(autolike_default),
         role: config
             .roles
             .values()
-            .find(|r| r.id == role_id)
+            .find(|r| r.id == user_row.role_id)
             .unwrap()
             .clone(),
-        likes: likes as _,
+        likes: user_row.total_likes as _,
     };
 
     request.extensions_mut().insert(Arc::new(user));

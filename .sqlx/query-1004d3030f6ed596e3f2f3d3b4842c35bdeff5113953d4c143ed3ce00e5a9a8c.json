@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            qs.song_id,\n            qs.queued_at,\n            COALESCE(tl.likes_count, 0::smallint) AS \"likes!: i16\",\n            COALESCE(ul.user_likes_count, 0::smallint) AS \"user_likes!: i16\"\n        FROM\n            queued_song qs\n        LEFT JOIN LATERAL (\n            SELECT\n                l.queue_id,\n                l.song_id,\n                SUM(l.count)::smallint AS likes_count\n            FROM\n                likes l\n            WHERE\n                l.queue_id = qs.queue_id AND l.song_id = qs.song_id\n            GROUP BY\n                l.queue_id,\n                l.song_id\n        ) tl ON TRUE\n        LEFT JOIN LATERAL (\n            SELECT\n                l.queue_id,\n                l.song_id,\n                SUM(l.count)::smallint AS user_likes_count\n            FROM\n                likes l\n            WHERE\n                l.queue_id = qs.queue_id\n                AND l.song_id = qs.song_id\n                AND l.user_id = $2\n            GROUP BY\n                l.queue_id,\n                l.song_id\n        ) ul ON TRUE\n        WHERE\n            qs.queue_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "song_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "queued_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "likes!: i16",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_likes!: i16",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "1004d3030f6ed596e3f2f3d3b4842c35bdeff5113953d4c143ed3ce00e5a9a8c"
+}

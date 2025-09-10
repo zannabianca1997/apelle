@@ -16,8 +16,6 @@ use chrono::Duration;
 use futures::{StreamExt, TryStreamExt as _, future::OptionFuture, stream};
 use reqwest::StatusCode;
 use snafu::Snafu;
-use sqlx::Row as _;
-use textwrap_macros::unfill;
 use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
 
@@ -134,32 +132,22 @@ pub async fn get(
     let current_services = services.clone();
 
     let (code, current, created, updated, player_state_id) = {
-        let (
-            code,
-            current_song,
-            current_song_position,
-            current_song_start_at,
-            player_state_id,
-            created,
-            updated,
-        ) = sqlx::query_as(
-            unfill!(
-                "
+        let queue = sqlx::query!(
+            r#"
             SELECT 
                 code, 
-                current_song, current_song_position, current_song_start_at, player_state_id, 
+                current_song, current_song_position AS "current_song_position: i64",
+                current_song_start_at, player_state_id, 
                 created, updated 
             FROM queue WHERE id = $1
-            "
-            )
-            .trim_ascii(),
+            "#,
+            id
         )
-        .bind(id)
         .fetch_one(&mut tx)
         .await
         .map_err(SqlError::from)?;
 
-        let current_song = OptionFuture::from(Option::map(current_song, |current: Uuid| {
+        let current_song = OptionFuture::from(Option::map(queue.current_song, |current: Uuid| {
             solve_song(
                 current_client,
                 current_services,
@@ -170,14 +158,18 @@ pub async fn get(
         .await
         .transpose()?;
 
-        let current_song_position = Option::map(current_song_position, Duration::seconds);
+        let current_song_position = Option::map(queue.current_song_position, Duration::seconds);
 
-        let current = match (current_song, current_song_position, current_song_start_at) {
+        let current = match (
+            current_song,
+            current_song_position,
+            queue.current_song_start_at,
+        ) {
             (Some(song), Some(position), None) => {
                 Some(Current::stopped(IdOrRep::Rep(song), position))
             }
             (Some(song), None, Some(starts_at)) => {
-                Some(Current::playing(IdOrRep::Rep(song), starts_at))
+                Some(Current::playing(IdOrRep::Rep(song), starts_at.into()))
             }
             (None, None, None) => None,
             _ => panic!(
@@ -185,64 +177,67 @@ pub async fn get(
             ),
         };
 
-        (code, current, created, updated, player_state_id)
+        (
+            queue.code,
+            current,
+            queue.created,
+            queue.updated,
+            queue.player_state_id,
+        )
     };
 
-    let queue = sqlx::query(
-        unfill!(
-            "
+    let queue = sqlx::query!(
+        r#"
+        SELECT
+            qs.song_id,
+            qs.queued_at,
+            COALESCE(tl.likes_count, 0::smallint) AS "likes!: i16",
+            COALESCE(ul.user_likes_count, 0::smallint) AS "user_likes!: i16"
+        FROM
+            queued_song qs
+        LEFT JOIN LATERAL (
             SELECT
-                qs.song_id,
-                qs.queued_at,
-                COALESCE(tl.likes_count, 0::smallint) AS likes,
-                COALESCE(ul.user_likes_count, 0::smallint) AS user_likes
+                l.queue_id,
+                l.song_id,
+                SUM(l.count)::smallint AS likes_count
             FROM
-                queued_song qs
-            LEFT JOIN LATERAL (
-                SELECT
-                    l.queue_id,
-                    l.song_id,
-                    SUM(l.count)::smallint AS likes_count
-                FROM
-                    likes l
-                WHERE
-                    l.queue_id = qs.queue_id AND l.song_id = qs.song_id
-                GROUP BY
-                    l.queue_id,
-                    l.song_id
-            ) tl ON TRUE
-            LEFT JOIN LATERAL (
-                SELECT
-                    l.queue_id,
-                    l.song_id,
-                    SUM(l.count)::smallint AS user_likes_count
-                FROM
-                    likes l
-                WHERE
-                    l.queue_id = qs.queue_id
-                    AND l.song_id = qs.song_id
-                    AND l.user_id = $2
-                GROUP BY
-                    l.queue_id,
-                    l.song_id
-            ) ul ON TRUE
+                likes l
             WHERE
-                qs.queue_id = $1
-            "
-        )
-        .trim_ascii(),
+                l.queue_id = qs.queue_id AND l.song_id = qs.song_id
+            GROUP BY
+                l.queue_id,
+                l.song_id
+        ) tl ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT
+                l.queue_id,
+                l.song_id,
+                SUM(l.count)::smallint AS user_likes_count
+            FROM
+                likes l
+            WHERE
+                l.queue_id = qs.queue_id
+                AND l.song_id = qs.song_id
+                AND l.user_id = $2
+            GROUP BY
+                l.queue_id,
+                l.song_id
+        ) ul ON TRUE
+        WHERE
+            qs.queue_id = $1
+        "#,
+        id,
+        user.user().id()
     )
-    .bind(id)
-    .bind(user.user().id())
     .map(|row| {
-        let id = row.get("song_id");
+        let id = row.song_id;
         (
             id,
             QueuedSong {
                 song: IdOrRep::Id(id),
-                queued_at: row.get("queued_at"),
-                likes: row.get::<i16, _>("likes") as _,
-                user_likes: row.get::<i16, _>("user_likes") as _,
+                queued_at: row.queued_at.into(),
+                likes: row.likes as _,
+                user_likes: row.user_likes as _,
             },
         )
     })
@@ -282,7 +277,7 @@ pub async fn get(
             IdOrRep::Id(config.id)
         },
         queue,
-        created,
-        updated,
+        created: created.into(),
+        updated: updated.into(),
     }))
 }

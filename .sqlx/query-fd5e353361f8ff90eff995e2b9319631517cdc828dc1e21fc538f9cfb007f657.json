@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT current_song, current_song_start_at, NOW() AS \"now!\" FROM queue WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "current_song",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "current_song_start_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "now!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      null
+    ]
+  },
+  "hash": "fd5e353361f8ff90eff995e2b9319631517cdc828dc1e21fc538f9cfb007f657"
+}

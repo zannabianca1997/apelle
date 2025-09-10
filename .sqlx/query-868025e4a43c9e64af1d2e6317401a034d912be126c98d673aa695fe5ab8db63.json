@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE queue \n            SET \n            player_state_id = gen_random_uuid(), \n            updated = NOW() \n            WHERE id = $1\n            RETURNING player_state_id, updated \n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "player_state_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "updated",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "868025e4a43c9e64af1d2e6317401a034d912be126c98d673aa695fe5ab8db63"
+}

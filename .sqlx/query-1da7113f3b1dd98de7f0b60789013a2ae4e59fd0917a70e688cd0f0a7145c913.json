@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE queue\n        SET\n            current_song = $2,\n            current_song_start_at = NOW(),\n            current_song_position = NULL,\n            current_song_queued_by = $3\n        WHERE id = $1\n        RETURNING current_song_start_at AS \"current_song_start_at!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "current_song_start_at!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "1da7113f3b1dd98de7f0b60789013a2ae4e59fd0917a70e688cd0f0a7145c913"
+}

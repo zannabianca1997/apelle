@@ -13,10 +13,8 @@ use axum::{
     extract::{Path, Query, State},
     response::{IntoResponse, NoContent},
 };
-use chrono::{DateTime, FixedOffset};
 use reqwest::StatusCode;
 use snafu::Snafu;
-use textwrap_macros::unfill;
 use tracing::instrument;
 use utoipa::{IntoParams, IntoResponses, openapi};
 use uuid::Uuid;
@@ -166,20 +164,16 @@ pub async fn next(
                 song.is_none()
                     && user.can(QueueUserAction::Song(QueueUserActionSong::AutoNext))
                     && {
-                        let (current_song, current_song_start_at, now): (
-                    Option<Uuid>,
-                    Option<DateTime<FixedOffset>>,
-                    DateTime<FixedOffset>,
-                ) = sqlx::query_as(
-                    "SELECT current_song, current_song_start_at, NOW() FROM queue WHERE id = $1",
-                )
-                .bind(id)
-                .fetch_one(&mut tx)
-                .await
-                .map_err(SqlError::from)?;
+                        let current = sqlx::query!(
+                            r#"SELECT current_song, current_song_start_at, NOW() AS "now!" FROM queue WHERE id = $1"#,
+                            id
+                        )
+                        .fetch_one(&mut tx)
+                        .await
+                        .map_err(SqlError::from)?;
 
-                        if let Some(current_song) = current_song {
-                            if let Some(current_song_start_at) = current_song_start_at {
+                        if let Some(current_song) = current.current_song {
+                            if let Some(current_song_start_at) = current.current_song_start_at {
                                 // Get the duration of the current song
                                 let current_song_duration = client
                                     .get(
@@ -197,7 +191,7 @@ pub async fn next(
                                     .duration;
 
                                 // Auto-next is available if the current song is finished
-                                current_song_start_at + current_song_duration <= now
+                                current_song_start_at + current_song_duration <= current.now
                             } else {
                                 // Current song is stopped, no auto-next
                                 false
@@ -246,7 +240,7 @@ pub async fn next(
     );
 
     // Add the current song to the end of the queue
-    let reenqueued = sqlx::query_as(unfill!(
+    let reenqueued = sqlx::query!(
         "
         WITH queue_data AS (
             SELECT
@@ -273,41 +267,44 @@ pub async fn next(
             $1, current_song, current_song_queued_by
         FROM queue_data
         RETURNING song_id, queued_at
-        "
-    ))
-    .bind(id)
+        ",
+        id
+    )
     .fetch_optional(&mut tx)
     .await
     .map_err(SqlError::from)?;
 
     let mut event = PatchEventBuilder::queue(id);
 
-    if let Some((song, queued_at)) = reenqueued {
+    if let Some(reenqueued) = reenqueued {
         event = event
             .add(
-                format!("/queue/{song}"),
+                format!("/queue/{}", reenqueued.song_id),
                 QueuedSong {
-                    song: IdOrRep::Id(song),
-                    queued_at,
+                    song: IdOrRep::Id(reenqueued.song_id),
+                    queued_at: reenqueued.queued_at.into(),
                     likes: 0,
                     user_likes: 0,
                 },
             )
-            .move_("/current/song", format!("/queue/{song}/song"));
+            .move_(
+                "/current/song",
+                format!("/queue/{}/song", reenqueued.song_id),
+            );
     }
 
     event = event.replace("/current", None::<Current>);
 
     // Remove the requested song from the queue
     let (song, queued_by): (Uuid, Uuid) = if let Some(song) = song {
-        let queued_by = sqlx::query_scalar(unfill!(
+        let queued_by = sqlx::query_scalar!(
             "
             DELETE FROM queued_song WHERE queue_id = $1 AND song_id = $2
             RETURNING queued_by
-            "
-        ))
-        .bind(id)
-        .bind(song)
+            ",
+            id,
+            song
+        )
         .fetch_optional(&mut tx)
         .await
         .map_err(SqlError::from)?;
@@ -320,46 +317,44 @@ pub async fn next(
     } else {
         // Delete and return top song
 
-        let song = sqlx::query_as(
-            unfill!(
-                "
-                WITH top_song_to_remove AS (
-                    SELECT
-                        qs.song_id
-                    FROM
-                        queued_song qs
-                    LEFT JOIN
-                        likes l ON qs.queue_id = l.queue_id AND qs.song_id = l.song_id
-                    WHERE
-                        qs.queue_id = $1
-                    GROUP BY
-                        qs.song_id, qs.queued_at
-                    ORDER BY
-                        COALESCE(SUM(l.count), 0) DESC,
-                        qs.queued_at ASC
-                    LIMIT 1
-                )
-                DELETE FROM
-                    queued_song
+        let song = sqlx::query!(
+            "
+            WITH top_song_to_remove AS (
+                SELECT
+                    qs.song_id
+                FROM
+                    queued_song qs
+                LEFT JOIN
+                    likes l ON qs.queue_id = l.queue_id AND qs.song_id = l.song_id
                 WHERE
-                    queue_id = $1
-                    AND song_id = (SELECT song_id FROM top_song_to_remove)
-                RETURNING song_id, queued_by
-                "
+                    qs.queue_id = $1
+                GROUP BY
+                    qs.song_id, qs.queued_at
+                ORDER BY
+                    COALESCE(SUM(l.count), 0) DESC,
+                    qs.queued_at ASC
+                LIMIT 1
             )
-            .trim_ascii(),
+            DELETE FROM
+                queued_song
+            WHERE
+                queue_id = $1
+                AND song_id = (SELECT song_id FROM top_song_to_remove)
+            RETURNING song_id, queued_by
+            ",
+            id
         )
-        .bind(id)
         .fetch_optional(&mut tx)
         .await
         .map_err(SqlError::from)?;
 
-        song.ok_or(NextError::NotFound)?
+        song.map(|song| (song.song_id, song.queued_by))
+            .ok_or(NextError::NotFound)?
     };
 
     // Set the new current song
-    let current_song_start_at = sqlx::query_scalar(unfill!(
-        "
+    let current_song_start_at = sqlx::query_scalar!(
+        r#"
         UPDATE queue
         SET
             current_song = $2,
@@ -367,12 +362,12 @@ pub async fn next(
             current_song_position = NULL,
             current_song_queued_by = $3
         WHERE id = $1
-        RETURNING current_song_start_at
-        "
-    ))
-    .bind(id)
-    .bind(song)
-    .bind(queued_by)
+        RETURNING current_song_start_at AS "current_song_start_at!"
+        "#,
+        id,
+        song,
+        queued_by
+    )
     .fetch_one(&mut tx)
     .await
     .map_err(SqlError::from)?;
@@ -380,7 +375,7 @@ pub async fn next(
     event
         .replace(
             "/current",
-            Current::playing(IdOrRep::Id(song), current_song_start_at),
+            Current::playing(IdOrRep::Id(song), current_song_start_at.into()),
         )
         .move_(format!("/queue/{song}/song"), "/current/song")
         .remove(format!("/queue/{song}"))

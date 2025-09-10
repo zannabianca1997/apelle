@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO likes (queue_id, song_id, user_id)\n        VALUES ($1, $2, $3)\n        ON CONFLICT (queue_id, song_id, user_id, given_at) DO UPDATE\n        SET count = likes.count + 1;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ef446a3f09aeab47493d419bde54e9b5ffefab904487f00cc469c457b7b75c5a"
+}

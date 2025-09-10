@@ -66,8 +66,7 @@ pub async fn delete(
         return Err(DeleteError::Forbidden);
     }
 
-    sqlx::query("DELETE FROM queue WHERE id = $1")
-        .bind(id)
+    sqlx::query!("DELETE FROM queue WHERE id = $1", id)
         .execute(&mut tx)
         .await
         .map_err(SqlError::from)?;

@@ -11,14 +11,12 @@ use axum::{
     extract::{Query, State},
     response::IntoResponse,
 };
-use chrono::{DateTime, FixedOffset};
 use futures::{FutureExt, TryFutureExt};
 use rand::{Rng, SeedableRng, rngs::SmallRng};
 use reqwest::StatusCode;
 use snafu::Snafu;
 use sqlx::PgConnection;
 use utoipa::{IntoParams, IntoResponses, openapi};
-use uuid::Uuid;
 
 use crate::{Services, config::CodeConfig, middleware::etag::ETagInfo, model::Queue};
 
@@ -146,41 +144,43 @@ pub async fn create(
     let (code, config): (_, QueueConfig) = tokio::try_join!(code, config)?;
 
     // Create the queue
-    let (id, created, updated,player_state_id): (Uuid, DateTime<FixedOffset>, DateTime<FixedOffset>, Uuid) =
-        sqlx::query_as(
+    let inserted =
+        sqlx::query!(
             "INSERT INTO queue (code, config_id) VALUES ($1, $2) RETURNING id, created, updated, player_state_id",
+            &code,
+            config.id
         )
-        .bind(&code)
-        .bind(config.id)
         .fetch_one(&mut tx)
         .await
         .map_err(SqlError::from)?;
 
     // Create the queue user
-    sqlx::query("INSERT INTO queue_user (queue_id, user_id, role_id) VALUES ($1, $2, $3)")
-        .bind(id)
-        .bind(user.id())
-        .bind(config.roles[&config.creator_role].id)
-        .execute(&mut tx)
-        .await
-        .map_err(SqlError::from)?;
+    sqlx::query!(
+        "INSERT INTO queue_user (queue_id, user_id, role_id) VALUES ($1, $2, $3)",
+        inserted.id,
+        user.id(),
+        config.roles[&config.creator_role].id
+    )
+    .execute(&mut tx)
+    .await
+    .map_err(SqlError::from)?;
 
     Ok((
         StatusCode::CREATED,
-        ETagInfo::new(player_state_id, updated),
+        ETagInfo::new(inserted.player_state_id, inserted.updated.into()),
         Json(Queue {
-            id,
+            id: inserted.id,
             current: None,
             code,
-            player_state_id,
+            player_state_id: inserted.player_state_id,
             config: if return_config {
                 IdOrRep::Rep(config)
             } else {
                 IdOrRep::Id(config.id)
             },
             queue: HashMap::new(),
-            created,
-            updated,
+            created: inserted.created.into(),
+            updated: inserted.updated.into(),
         }),
     ))
 }
@@ -188,7 +188,7 @@ pub async fn create(
 async fn gen_queue_code(db: &mut PgConnection, config: &CodeConfig) -> Result<String, SqlError> {
     tracing::debug!("Generating queue code");
 
-    let count: u64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM queue")
+    let count: u64 = sqlx::query_scalar!(r#"SELECT COUNT(*) AS "count!" FROM queue"#)
         .fetch_one(&mut *db)
         .await? as _;
 
@@ -213,10 +213,12 @@ async fn gen_queue_code(db: &mut PgConnection, config: &CodeConfig) -> Result<St
 
         tracing::debug!(code, "Checking if code is free");
 
-        if sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM queue WHERE code = $1")
-            .bind(&code)
-            .fetch_one(&mut *db)
-            .await?
+        if sqlx::query_scalar!(
+            r#"SELECT COUNT(*) AS "count!" FROM queue WHERE code = $1"#,
+            &code
+        )
+        .fetch_one(&mut *db)
+        .await?
             == 0
         {
             return Ok(code);

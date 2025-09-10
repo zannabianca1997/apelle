@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH top_song_to_remove AS (\n                SELECT\n                    qs.song_id\n                FROM\n                    queued_song qs\n                LEFT JOIN\n                    likes l ON qs.queue_id = l.queue_id AND qs.song_id = l.song_id\n                WHERE\n                    qs.queue_id = $1\n                GROUP BY\n                    qs.song_id, qs.queued_at\n                ORDER BY\n                    COALESCE(SUM(l.count), 0) DESC,\n                    qs.queued_at ASC\n                LIMIT 1\n            )\n            DELETE FROM\n                queued_song\n            WHERE\n                queue_id = $1\n                AND song_id = (SELECT song_id FROM top_song_to_remove)\n            RETURNING song_id, queued_by\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "song_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "queued_by",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "1947f3ccb0649de45fe2ec20b9f19e7e71f03e3516320f0464aee821c0a8b411"
+}

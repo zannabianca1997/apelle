@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH upsert_queue_user AS (\n            INSERT INTO queue_user (queue_id, user_id, role_id)\n            VALUES ($1, $2, $3)\n            ON CONFLICT (queue_id, user_id) DO UPDATE SET last_seen = NOW()\n            RETURNING queue_id, user_id, role_id, autolike\n        )\n        SELECT\n            u.role_id,\n            u.autolike AS autolike_override,\n            COALESCE(SUM(l.count)::smallint, 0::smallint) AS \"total_likes!\"\n        FROM\n            upsert_queue_user u\n        LEFT JOIN\n            likes l ON u.queue_id = l.queue_id AND u.user_id = l.user_id\n        GROUP BY\n            u.queue_id, u.user_id, u.role_id, u.autolike;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "role_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "autolike_override",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 2,
+        "name": "total_likes!",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "560da7f166003f8cbf1d58e9fb9c2c40155cc972ad9f40c113dfdd706b07f8c2"
+}

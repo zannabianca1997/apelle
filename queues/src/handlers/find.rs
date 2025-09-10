@@ -66,8 +66,7 @@ pub async fn find(
     mut tx: SqlTx,
     Query(FindQueryParams { code }): Query<FindQueryParams>,
 ) -> Result<Json<Uuid>, FindError> {
-    let id: Uuid = sqlx::query_scalar("SELECT id FROM queue WHERE code = $1")
-        .bind(code)
+    let id: Uuid = sqlx::query_scalar!("SELECT id FROM queue WHERE code = $1", code)
         .fetch_optional(&mut tx)
         .await
         .map_err(SqlError::from)?
