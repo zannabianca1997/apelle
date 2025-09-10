@@ -92,14 +92,14 @@ flowchart
 Following is a short description of each service. See the dedicated `README.md`
 in each service directory for more details.
 
-## `db`
+### `db`
 A simple postgres instance. It is used to store all permanent data.
 
-## `migrator`
+### `migrator`
 A container used to handle migrations. It is configured to migrate `db` at
 startup, with the migration collected from all the others services.
 
-## `gateway`
+### `gateway`
 An nginx instance, working as the entry point to the costellation. It has two
 main functions: handling authentication, and routing to the various services. On
 an incoming request it forwards the request headers with a `GET` on the `/auth`
@@ -107,7 +107,7 @@ endpoint of the `users` services. If the request authenticate with success, the
 headers returned by the auth services are added to the request and the final
 result is forwarded to the `/public` endpoint of the service.
 
-## `cache-pubsub`
+### `cache-pubsub`
 A valkey instance working a double function. First, it provide a common pub-sub
 to communicate real-time events (likes and song additions). Second, it serves as
 a cache for volatile data like youtube searches and registered providers.
@@ -134,10 +134,13 @@ Queue configurations service. Keep track of the configuration of each queue.
 Queue events service. Receives events from the pub-sub, and trasmits them to the
 frontend as [SSE](https://en.wikipedia.org/wiki/Server-sent_events).
 
-### `api-docs`
-api-docs API documentation, serving [api-docs
-UI](https://api-docs.io/tools/api-docs-ui/), the openapi specifications from all
-the services, and an aggregate for the public api served by nginx.
+## Adding a new public-facing service
+To add a new public-facing service one must:
+- create the service, and expose its public interface under `/public`
+- add a line to `api-docs/services.csv`, containing the service name, the url in
+  dev mode and the public endpoint
+- run `api-docs/api-docs.sh`
+- run `nvm use && npm run orval` inside the `web-ui` directory
 
 ## Prod-like mode
 
