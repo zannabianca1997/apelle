@@ -52,6 +52,9 @@ RUN --mount=type=cache,target=/build/target/             \
     --target x86_64-unknown-linux-musl --locked \
     --recipe-path recipe.json --bins
 
+# Use only the prepared statements
+ENV SQLX_OFFLINE=true
+
 COPY . .
 ARG BIN
 RUN --mount=type=cache,target=/build/target/             \

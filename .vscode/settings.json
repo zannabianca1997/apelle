@@ -12,4 +12,8 @@
         "svelte"
     ],
     "i18n-ally.keystyle": "nested",
+    "rust-analyzer.assist.preferSelf": true,
+    "rust-analyzer.cargo.extraEnv": {
+        "DATABASE_URL":"postgres://apelle:apelle@localhost:5432/apelle"
+    },
 }
