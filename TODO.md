@@ -14,9 +14,9 @@
   - [x] Next
     - [x] AutoNext
   - [ ] Remove
-- [ ] WebUI
-  - [ ] Login page
-  - [ ] Landing page
+- [x] WebUI
+  - [x] Login page
+  - [x] Landing page
   - [ ] Queue page
     - [ ] Queue model
 
