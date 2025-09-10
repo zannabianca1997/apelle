@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SET CONSTRAINTS queue_user_role_config_id_is_valid DEFERRED",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "e15d2e83bce27500945b8fdafa4ccf9e29758d93f82f5338bed0c8591cb256a3"
+}

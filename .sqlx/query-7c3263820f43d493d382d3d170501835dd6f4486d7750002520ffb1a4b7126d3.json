@@ -1,0 +1,45 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO queue_user_role_permission (role_id, permission) \n        SELECT * FROM UNNEST($1::uuid[], $2::queue_user_action[]) AS t(role_id, permission)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        {
+          "Custom": {
+            "name": "queue_user_action[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "queue_user_action",
+                  "kind": {
+                    "Enum": [
+                      "GET_QUEUE",
+                      "DELETE_QUEUE",
+                      "CONFIGURE_QUEUE",
+                      "REMOVE_SONG",
+                      "BAN_SONG",
+                      "UNBAN_SONG",
+                      "ENQUEUE_SONG",
+                      "PLAY_SONG",
+                      "PAUSE_SONG",
+                      "LIKE_SONG",
+                      "NEXT_SONG",
+                      "AUTO_NEXT_SONG",
+                      "BAN_USER",
+                      "UNBAN_USER",
+                      "REMOVE_USER"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7c3263820f43d493d382d3d170501835dd6f4486d7750002520ffb1a4b7126d3"
+}

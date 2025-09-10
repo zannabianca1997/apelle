@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO queue_user_role (config_id, name, max_likes) \n        SELECT $1 as config_id, * FROM UNNEST($2::text[], $3::int[]) AS t(name, max_likes)\n        RETURNING id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "TextArray",
+        "Int4Array"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1917395882fcb15cfac462d1f0687c944789e80898d28f4466c8cb04097974de"
+}
