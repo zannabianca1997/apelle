@@ -4,6 +4,8 @@
         "svelte.svelte-vscode",
         "ms-azuretools.vscode-containers",
         "lokalise.i18n-ally",
-        "mechatroner.rainbow-csv"
+        "mechatroner.rainbow-csv",
+        "mads-hartmann.bash-ide-vscode",
+        "jq-syntax-highlighting.jq-syntax-highlighting"
     ]
 }

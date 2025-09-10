@@ -9,52 +9,9 @@ DEFAULT_SERVICES="$(dirname $0)/services.csv"
 DEFAULT_GLOBAL="$(dirname $0)/global.yml"
 DEFAULT_OUTPUT="$(dirname $0)/../openapi.yml"
 
-JQ_SCRIPT=$(cat <<-"END"
-    # Remove general keys that will be provided aside
-    del(.openapi, .info)
-
-    # Editing the paths
-    | .paths |= with_entries(
-        # Select all the public paths
-        select(.key | startswith("/public")) 
-        # Remove the /public prefix
-        | .key |= sub("^/public"; "<EXTERN>")
-    )
-
-    # Editing the paths
-    | .paths |= map_values(
-        with_entries(
-            .value |= (
-                # Remove the public tag
-                .tags |= map(select(. != "public"))
-                # Prepend the service to the operationId
-                | .operationId |= "<SERVICE>_" + .
-            )
-        )
-    )
-
-    # Get all unique tags from the paths
-    | ([.paths | values[] | values[] | .tags] | flatten | unique) as $used_tags
-    # Keep only the tags that are in the paths
-    | .tags |= map(select(.name | IN($used_tags[])))
-END
-)
-
-JQ_MERGE_SCRIPT=$(cat <<-"END"
-    . as $input
-    # Merge all fields from the global object with the merged paths and tags
-    | ($input.global // {}) + {
-        # Combine paths from global and all apis
-        paths: (($input.global.paths // {}) + ($input.apis | reduce .[] as $item ({}; .paths += ($item.paths // {})))).paths,
-        # Combine components from global and all apis
-        components: {
-            schemas: (($input.global.components.schemas // {}) + ($input.apis | reduce .[] as $item ({}; .components.schemas += ($item.components.schemas // {})))).components.schemas
-        },
-        # Combine tags from global and all apis, then make them unique
-        tags: (($input.global.tags // []) + ($input.apis | reduce .[] as $item ([]; . + ($item.tags // [])))) | unique_by(.name)
-    }
-END
-)
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+JQ_SERVICE_SCRIPT="$SCRIPT_DIR/service.jq"
+JQ_MERGE_SCRIPT="$SCRIPT_DIR/merge.jq"
 
 help() {
 cat <<END
@@ -161,13 +118,9 @@ service() {
         return
     fi
 
-    local api=$(curl -s "$url/service/openapi.json")
+    local api="{\"extern\": \"$extern\", \"service\": \"$service\", \"spec\": $(curl -s "$url/service/openapi.json")}"
 
-    # Replace the placeholders
-    local jq_script=${JQ_SCRIPT//"<SERVICE>"/$service}
-    jq_script=${jq_script//"<EXTERN>"/$extern}
-
-    api="$("$JQ" -c "$jq_script" <<< "$api")"
+    api="$("$JQ" -c -f "$JQ_SERVICE_SCRIPT" <<< "$api")"
 
     APIS="${APIS}${api},"
 }
@@ -185,7 +138,7 @@ main() {
 
     APIS="${APIS::-1}]}"
 
-    local merged=$("$JQ" -c "$JQ_MERGE_SCRIPT" <<< "${APIS}")
+    local merged=$("$JQ" -c -f "$JQ_MERGE_SCRIPT" <<< "${APIS}")
 
     json2yaml <<< "$merged" > "$OUTPUT"
 }
