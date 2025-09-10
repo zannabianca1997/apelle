@@ -4,7 +4,7 @@ use apelle_common::db::{SqlError, SqlTx};
 use apelle_configs_dtos::{
     QueueConfig, QueueConfigCreate, QueueUserAction, QueueUserRole, QueueUserRoleCreate,
 };
-use axum::{debug_handler, http::StatusCode, response::IntoResponse, Json};
+use axum::{Json, debug_handler, http::StatusCode, response::IntoResponse};
 use snafu::Snafu;
 use utoipa::{
     IntoResponses,
@@ -102,10 +102,7 @@ pub async fn create(
     .await
     .map_err(SqlError::from)?;
 
-    let name_mapping: HashMap<String, Uuid> = names
-        .into_iter()
-        .zip(role_ids)
-        .collect();
+    let name_mapping: HashMap<String, Uuid> = names.into_iter().zip(role_ids).collect();
 
     // Insert permissions
     let (role_ids, permissions): (Vec<Uuid>, Vec<QueueUserAction>) = roles

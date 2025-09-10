@@ -62,8 +62,7 @@ pub async fn delete(Path(id): Path<Uuid>, mut tx: SqlTx) -> Result<NoContent, De
     if id.is_nil() {
         return Err(DeleteError::CannotDeleteDefaultConfig);
     }
-    let rows = sqlx::query("DELETE FROM queue_config WHERE id = $1")
-        .bind(id)
+    let rows = sqlx::query!("DELETE FROM queue_config WHERE id = $1", id)
         .execute(&mut tx)
         .await
         .map_err(SqlError::from)?

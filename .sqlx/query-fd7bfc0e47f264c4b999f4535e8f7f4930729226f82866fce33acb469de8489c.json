@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, name, max_likes, \n        ARRAY(\n            SELECT permission \n            FROM queue_user_role_permission \n            WHERE role_id = queue_user_role.id\n        ) AS \"permissions!: Vec<QueueUserAction>\",\n        ARRAY(\n            SELECT granted.name \n            FROM queue_user_grant_roles \n            INNER JOIN queue_user_role granted \n                ON granted.id = queue_user_grant_roles.granted_role_id\n            WHERE role_id = queue_user_role.id\n        ) AS \"can_grant!\", \n        ARRAY(\n            SELECT removed.name \n            FROM queue_user_remove_roles \n            INNER JOIN queue_user_role removed \n                ON removed.id = queue_user_remove_roles.removed_role_id\n            WHERE role_id = queue_user_role.id\n        ) AS \"can_revoke!\"\n        FROM queue_user_role \n        WHERE config_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "max_likes",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "permissions!: Vec<QueueUserAction>",
+        "type_info": {
+          "Custom": {
+            "name": "queue_user_action[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "queue_user_action",
+                  "kind": {
+                    "Enum": [
+                      "GET_QUEUE",
+                      "DELETE_QUEUE",
+                      "CONFIGURE_QUEUE",
+                      "REMOVE_SONG",
+                      "BAN_SONG",
+                      "UNBAN_SONG",
+                      "ENQUEUE_SONG",
+                      "PLAY_SONG",
+                      "PAUSE_SONG",
+                      "LIKE_SONG",
+                      "NEXT_SONG",
+                      "AUTO_NEXT_SONG",
+                      "BAN_USER",
+                      "UNBAN_USER",
+                      "REMOVE_USER"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "can_grant!",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 5,
+        "name": "can_revoke!",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "fd7bfc0e47f264c4b999f4535e8f7f4930729226f82866fce33acb469de8489c"
+}
