@@ -12,7 +12,6 @@ use axum::{
     response::IntoResponse,
 };
 use snafu::Snafu;
-use textwrap_macros::unfill;
 use utoipa::{IntoResponses, openapi};
 
 use crate::dtos::{UserCreateDto, UserDto};
@@ -94,15 +93,15 @@ pub async fn create(
         .hash_password(password.as_bytes(), &salt)
         .unwrap();
 
-    let Some((id, created, updated, last_login)) = sqlx::query_as(unfill!(
+    let Some(row) = sqlx::query!(
         "
         INSERT INTO apelle_user (name, password) VALUES ($1, $2)
         ON CONFLICT (name) DO NOTHING
         RETURNING id, created, updated, last_login
-        "
-    ))
-    .bind(&name)
-    .bind(password.to_string())
+        ",
+        &name,
+        password.to_string()
+    )
     .fetch_optional(&mut tx)
     .await
     .map_err(SqlError::from)?
@@ -113,12 +112,12 @@ pub async fn create(
     Ok((
         StatusCode::CREATED,
         Json(UserDto {
-            id,
+            id: row.id,
             name,
             roles: HashSet::new(),
-            created,
-            updated,
-            last_login,
+            created: row.created.into(),
+            updated: row.updated.into(),
+            last_login: row.last_login.into(),
         }),
     ))
 }

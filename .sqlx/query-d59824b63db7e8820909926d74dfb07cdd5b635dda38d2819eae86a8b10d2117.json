@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "height",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "width",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "url",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d59824b63db7e8820909926d74dfb07cdd5b635dda38d2819eae86a8b10d2117"
+}

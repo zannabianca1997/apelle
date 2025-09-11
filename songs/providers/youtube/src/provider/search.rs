@@ -18,7 +18,6 @@ use redis::{AsyncCommands, aio::ConnectionManager};
 use reqwest::StatusCode;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
-use sqlx::Row as _;
 use uuid::Uuid;
 
 use crate::{
@@ -220,7 +219,7 @@ pub async fn search(
 
     let video_ids: Vec<_> = items
         .iter()
-        .map(|i| {
+        .filter_map(|i| {
             if let youtube::SearchResultId::Video { video_id } = &i.id {
                 Some(video_id.as_str())
             } else {
@@ -229,15 +228,16 @@ pub async fn search(
         })
         .collect();
 
-    let known_ids: HashMap<String, Uuid> =
-        sqlx::query("SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)")
-            .bind(&video_ids)
-            .map(|row| (row.get(0), row.get(1)))
-            .fetch_all(&mut tx)
-            .await
-            .map_err(SqlError::from)?
-            .into_iter()
-            .collect();
+    let known_ids: HashMap<String, Uuid> = sqlx::query!(
+        "SELECT video_id, id FROM youtube_song WHERE video_id = ANY($1)",
+        &video_ids as &[&str]
+    )
+    .map(|row| (row.video_id, row.id))
+    .fetch_all(&mut tx)
+    .await
+    .map_err(SqlError::from)?
+    .into_iter()
+    .collect();
 
     // Converting the items to our internal representation
 

@@ -21,7 +21,6 @@ use redis::aio::ConnectionManager;
 use reqwest::StatusCode;
 use snafu::{ResultExt, Snafu};
 use sqlx::PgPool;
-use textwrap_macros::unfill;
 use url::Url;
 use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
@@ -174,7 +173,7 @@ pub async fn resolve(
     };
 
     // New song, creating the main entity
-    let id: Uuid = sqlx::query_scalar(unfill!(
+    let id: Uuid = sqlx::query_scalar!(
         "
         WITH used_source AS (
             SELECT id FROM source
@@ -184,12 +183,12 @@ pub async fn resolve(
         SELECT $2, $3, $4, used_source.id
         FROM used_source
         RETURNING id
-        "
-    ))
-    .bind(&source)
-    .bind(duration.num_seconds() as i32)
-    .bind(title)
-    .bind(user.id())
+        ",
+        &source,
+        duration.num_seconds() as i32,
+        title,
+        user.id()
+    )
     .fetch_one(&mut tx)
     .await
     .map_err(SqlError::from)?;
@@ -220,8 +219,7 @@ pub async fn resolve(
         Err(err) => {
             // Failed put, reverting the creation of the main entity
             tracing::error!(%provider, "Error from provider, reverting creation of song");
-            let deletion_result = sqlx::query("DELETE FROM song WHERE id = $1")
-                .bind(id)
+            let deletion_result = sqlx::query!("DELETE FROM song WHERE id = $1", id)
                 .execute(&pool)
                 .await;
 

@@ -18,7 +18,6 @@ use futures::TryFutureExt;
 use redis::aio::ConnectionManager;
 use reqwest::StatusCode;
 use snafu::{ResultExt as _, Snafu};
-use textwrap_macros::unfill;
 use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
@@ -97,20 +96,19 @@ pub async fn get(
 ) -> Result<(TypedHeader<CacheControl>, Json<Song>), Error> {
     tracing::debug!(%id, "Getting song data");
 
-    let (title, duration, added_by, created, source_urn): (_, i32, _, _, String) =
-        sqlx::query_as(unfill!(
-            "
-            SELECT song.title, song.duration, song.added_by, song.created, source.urn
+    let row = sqlx::query!(
+        "
+            SELECT song.title, song.duration, song.added_by, song.created, source.urn AS source_urn
             FROM song
             JOIN source ON song.source_id = source.id
             WHERE song.id = $1
-            "
-        ))
-        .bind(id)
-        .fetch_optional(&mut tx)
-        .await
-        .map_err(SqlError::from)?
-        .ok_or(Error::NotFound)?;
+            ",
+        id
+    )
+    .fetch_optional(&mut tx)
+    .await
+    .map_err(SqlError::from)?
+    .ok_or(Error::NotFound)?;
 
     // The song data in the database won't be updated
     let mut cache_control = CacheControl::new()
@@ -118,7 +116,7 @@ pub async fn get(
         .with_max_age(std::time::Duration::from_secs(31536000));
 
     let source_data = if source_data {
-        let provider = provider_for_urn(&mut cache, source_urn.as_str()).await?;
+        let provider = provider_for_urn(&mut cache, row.source_urn.as_str()).await?;
 
         let (response_cache, response) = client
             .get(solved_endpoint(&provider, id))
@@ -144,7 +142,7 @@ pub async fn get(
         cache_control = response_cache;
 
         // Marking that we seen the source
-        seen_sources.seen_urn(source_urn).await;
+        seen_sources.seen_urn(row.source_urn).await;
 
         Some(response)
     } else {
@@ -155,10 +153,10 @@ pub async fn get(
         TypedHeader(cache_control),
         Json(Song {
             id,
-            title,
-            duration: Duration::seconds(duration as _),
-            added_by,
-            created,
+            title: row.title,
+            duration: Duration::seconds(row.duration as _),
+            added_by: row.added_by,
+            created: row.created.into(),
             source_data,
         }),
     ))
@@ -184,7 +182,7 @@ pub async fn delete(
 ) -> Result<NoContent, Error> {
     tracing::info!(%id, "Deleting song");
 
-    let source_urn: String = sqlx::query_scalar(unfill!(
+    let source_urn = sqlx::query_scalar!(
         "
         WITH deleted_song AS (
             DELETE FROM song
@@ -194,9 +192,9 @@ pub async fn delete(
         SELECT source.urn
         FROM source
         JOIN deleted_song ON source.id = deleted_song.source_id;
-        "
-    ))
-    .bind(id)
+        ",
+        id
+    )
     .fetch_optional(&mut tx)
     .await
     .map_err(SqlError::from)?

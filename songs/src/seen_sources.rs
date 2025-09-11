@@ -1,5 +1,4 @@
 use apelle_common::Reporter;
-use textwrap_macros::unfill;
 use tokio::sync::mpsc::{Receiver, Sender, error::SendError};
 
 /// Worker that updates the source table when sources are seen or used
@@ -26,18 +25,15 @@ async fn worker(db: sqlx::Pool<sqlx::Postgres>, mut receiver: Receiver<String>, 
     let mut buffer = Vec::with_capacity(bufsize);
 
     while receiver.recv_many(&mut buffer, bufsize).await > 0 {
-        if let Err(e) = sqlx::query(
-            unfill!(
-                "
-                        UPDATE source
-                        SET last_heard = NOW()
-                        FROM UNNEST($1::text[]) AS updates (urn)
-                        WHERE source.urn = updates.urn
-                        "
-            )
-            .trim_ascii(),
+        if let Err(e) = sqlx::query!(
+            "
+            UPDATE source
+            SET last_heard = NOW()
+            FROM UNNEST($1::text[]) AS updates (urn)
+            WHERE source.urn = updates.urn
+            ",
+            &buffer
         )
-        .bind(&buffer)
         .execute(&db)
         .await
         {

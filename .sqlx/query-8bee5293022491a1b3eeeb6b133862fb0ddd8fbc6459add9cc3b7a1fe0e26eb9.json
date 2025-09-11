@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH deleted_song AS (\n            DELETE FROM song\n            WHERE id = $1\n            RETURNING source_id\n        )\n        SELECT source.urn\n        FROM source\n        JOIN deleted_song ON source.id = deleted_song.source_id;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "urn",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8bee5293022491a1b3eeeb6b133862fb0ddd8fbc6459add9cc3b7a1fe0e26eb9"
+}

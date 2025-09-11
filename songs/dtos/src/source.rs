@@ -29,5 +29,5 @@ pub struct Source {
     pub urn: String,
     pub name: String,
     pub created: DateTime<FixedOffset>,
-    pub last_heard: DateTime<FixedOffset>,
+    pub last_heard: Option<DateTime<FixedOffset>>,
 }

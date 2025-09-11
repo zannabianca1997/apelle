@@ -15,7 +15,6 @@ use futures::{FutureExt, TryFutureExt, future::OptionFuture};
 use reqwest::{Response, StatusCode};
 use serde::Serialize;
 use snafu::{ResultExt as _, Snafu};
-use sqlx::query_scalar;
 use url::Url;
 
 use super::dtos::{
@@ -91,8 +90,7 @@ pub async fn resolve(
     Json(ResolveRequest { video_id }): Json<ResolveRequest>,
 ) -> Result<Json<ResolveResponse<PublicSongData, YoutubeSongData>>, ResolveError> {
     // Checking if the song is already registered
-    let know_id = query_scalar("SELECT id FROM youtube_song WHERE video_id = $1")
-        .bind(&video_id)
+    let know_id = sqlx::query_scalar!("SELECT id FROM youtube_song WHERE video_id = $1", &video_id)
         .fetch_optional(&mut tx)
         .await
         .map_err(SqlError::from)?;
@@ -101,19 +99,19 @@ pub async fn resolve(
         tracing::info!(%id, video_id, "Song already registered");
 
         let public = OptionFuture::from(public.then_some(async {
-            let thumbs = sqlx::query_as(
+            let thumbs = sqlx::query!(
                 "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
+                id
             )
-            .bind(id)
             .fetch_all(&mut tx)
             .await
             .map_err(SqlError::from)?
             .into_iter()
-            .map(|(height, width, url): (i32, i32, String)| {
+            .map(|row| {
                 Ok::<_, ResolveError>(dtos::Thumbnail {
-                    height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
+                    height: row.height.try_into().context(DBInvalidThumbSizeSnafu)?,
+                    width: row.width.try_into().context(DBInvalidThumbSizeSnafu)?,
+                    url: Url::parse(&row.url).context(DBInvalidThumbUrlSnafu)?,
                 })
             })
             .collect::<Result<_, _>>()?;

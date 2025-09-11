@@ -30,19 +30,20 @@ use crate::{
 ///
 /// Get data about the user the credentials used refer to.
 pub async fn get(mut tx: SqlTx, auth: AuthHeaders) -> Result<Json<UserDto>, SqlError> {
-    let (created, updated, last_login) =
-        sqlx::query_as("SELECT created, updated, last_login FROM apelle_user WHERE id = $1")
-            .bind(auth.id())
-            .fetch_one(&mut tx)
-            .await?;
+    let row = sqlx::query!(
+        "SELECT created, updated, last_login FROM apelle_user WHERE id = $1",
+        auth.id()
+    )
+    .fetch_one(&mut tx)
+    .await?;
 
     Ok(Json(UserDto {
         id: auth.id(),
         name: auth.name().to_string(),
         roles: auth.roles().map(ToOwned::to_owned).collect(),
-        created,
-        updated,
-        last_login,
+        created: row.created.into(),
+        updated: row.updated.into(),
+        last_login: row.last_login.into(),
     }))
 }
 
@@ -161,8 +162,7 @@ pub async fn patch(
 ///
 /// Delete the user the credentials used refer to.
 pub async fn delete(mut tx: SqlTx, auth: AuthHeaders) -> Result<NoContent, SqlError> {
-    sqlx::query("DELETE FROM apelle_user WHERE id = $1")
-        .bind(auth.id())
+    sqlx::query!("DELETE FROM apelle_user WHERE id = $1", auth.id())
         .execute(&mut tx)
         .await?;
     Ok(NoContent)

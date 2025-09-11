@@ -25,7 +25,7 @@ use axum_extra::{
 use futures::TryStreamExt;
 use route_recognizer::Router;
 use snafu::{OptionExt, ResultExt, Snafu};
-use sqlx::{PgPool, Row};
+use sqlx::PgPool;
 use textwrap_macros::unfill;
 use tokio::sync::mpsc::Receiver;
 use utoipa::{IntoResponses, openapi};
@@ -246,15 +246,17 @@ async fn authenticate(
     let TypedHeader(auth) = auth;
 
     // Auth workflow
-    let row = sqlx::query("SELECT id, password FROM apelle_user WHERE name = $1")
-        .bind(auth.username())
-        .fetch_optional(&mut tx)
-        .await
-        .map_err(SqlError::from)?
-        .context(UsernameNotFoundSnafu)?;
+    let row = sqlx::query!(
+        "SELECT id, password FROM apelle_user WHERE name = $1",
+        auth.username()
+    )
+    .fetch_optional(&mut tx)
+    .await
+    .map_err(SqlError::from)?
+    .context(UsernameNotFoundSnafu)?;
 
     let password_hash =
-        password_hash::PasswordHash::new(row.get(1)).context(BadDatabasePasswordHashSnafu)?;
+        password_hash::PasswordHash::new(&row.password).context(BadDatabasePasswordHashSnafu)?;
 
     password_hasher
         .verify_password(auth.password().as_bytes(), &password_hash)
@@ -262,7 +264,7 @@ async fn authenticate(
 
     // Passed!
 
-    let id = row.get(0);
+    let id = row.id;
     tracing::info!(%id, "User logged in");
     login_sender.try_send(id).unwrap_or_else(|err| match err {
         tokio::sync::mpsc::error::TrySendError::Full(id) => {
@@ -315,11 +317,12 @@ pub(crate) async fn login_updater(mut login_receiver: Receiver<Uuid>, db: PgPool
     let mut buffer = Vec::with_capacity(bufsize);
 
     while login_receiver.recv_many(&mut buffer, bufsize).await > 0 {
-        if let Err(e) =
-            sqlx::query("UPDATE apelle_user SET last_login = NOW() WHERE id = ANY($1::uuid[])")
-                .bind(&buffer)
-                .execute(&db)
-                .await
+        if let Err(e) = sqlx::query!(
+            "UPDATE apelle_user SET last_login = NOW() WHERE id = ANY($1::uuid[])",
+            &buffer
+        )
+        .execute(&db)
+        .await
         {
             tracing::error!("Failed to update last login: {}", Reporter(e));
         }

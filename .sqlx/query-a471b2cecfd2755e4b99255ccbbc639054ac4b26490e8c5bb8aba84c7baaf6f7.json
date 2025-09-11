@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH used_source AS (\n            SELECT id FROM source\n            WHERE urn = $1\n        )\n        INSERT INTO song (duration, title, added_by, source_id)\n        SELECT $2, $3, $4, used_source.id\n        FROM used_source\n        RETURNING id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a471b2cecfd2755e4b99255ccbbc639054ac4b26490e8c5bb8aba84c7baaf6f7"
+}

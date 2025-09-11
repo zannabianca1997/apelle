@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT created, updated, last_login FROM apelle_user WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 1,
+        "name": "updated",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_login",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9899f2e10c8b8fc440df0d2934ebb8cba0d052d61048a1c0386f0741cbe564df"
+}

@@ -19,7 +19,6 @@ use futures::FutureExt;
 use redis::{AsyncCommands as _, aio::ConnectionManager};
 use reqwest::Response;
 use snafu::{ResultExt, Snafu};
-use textwrap_macros::unfill;
 use url::Url;
 use uuid::Uuid;
 
@@ -134,19 +133,16 @@ pub async fn register(
 
 /// Check that the source is registered
 async fn check_urn_presence(db: &mut SqlTx, urn: &str) -> Result<(), ProviderRegistrationError> {
-    let exist: bool = sqlx::query_scalar(
-        unfill!(
-            "
-            SELECT EXISTS (
-                SELECT 1
-                FROM source
-                WHERE source.urn = $1
-            )
-            "
-        )
-        .trim_ascii(),
+    let exist: bool = sqlx::query_scalar!(
+        r#"
+        SELECT EXISTS (
+            SELECT 1
+            FROM source
+            WHERE source.urn = $1
+        ) AS "exist!"
+        "#,
+        urn
     )
-    .bind(urn)
     .fetch_one(db)
     .await
     .map_err(SqlError::from)?;

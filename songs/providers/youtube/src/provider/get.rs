@@ -58,28 +58,29 @@ pub async fn get(
 ) -> Result<Json<PublicSongData>, GetError> {
     tracing::info!(%id, "Retrieving song data");
 
-    let video_id: String = sqlx::query_scalar("SELECT video_id FROM youtube_song WHERE id = $1")
-        .bind(id)
-        .fetch_optional(&mut tx)
-        .await
-        .map_err(SqlError::from)?
-        .context(NotFoundSnafu)?;
-
-    let thumbs =
-        sqlx::query_as("SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1")
-            .bind(id)
-            .fetch_all(&mut tx)
+    let video_id: String =
+        sqlx::query_scalar!("SELECT video_id FROM youtube_song WHERE id = $1", id)
+            .fetch_optional(&mut tx)
             .await
             .map_err(SqlError::from)?
-            .into_iter()
-            .map(|(height, width, url): (i32, i32, String)| {
-                Ok::<_, GetError>(dtos::Thumbnail {
-                    height: height.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    width: width.try_into().context(DBInvalidThumbSizeSnafu)?,
-                    url: Url::parse(&url).context(DBInvalidThumbUrlSnafu)?,
-                })
-            })
-            .collect::<Result<_, _>>()?;
+            .context(NotFoundSnafu)?;
+
+    let thumbs = sqlx::query!(
+        "SELECT height, width, url FROM youtube_thumbnail WHERE song_id = $1",
+        id
+    )
+    .fetch_all(&mut tx)
+    .await
+    .map_err(SqlError::from)?
+    .into_iter()
+    .map(|row| {
+        Ok::<_, GetError>(dtos::Thumbnail {
+            height: row.height.try_into().context(DBInvalidThumbSizeSnafu)?,
+            width: row.width.try_into().context(DBInvalidThumbSizeSnafu)?,
+            url: Url::parse(&row.url).context(DBInvalidThumbUrlSnafu)?,
+        })
+    })
+    .collect::<Result<_, _>>()?;
 
     Ok(Json(PublicSongData {
         url: video_url(&youtube_api.public_url, &*video_id),

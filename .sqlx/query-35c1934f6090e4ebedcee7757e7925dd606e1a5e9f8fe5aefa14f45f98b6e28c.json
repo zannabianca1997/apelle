@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE source\n            SET last_heard = NOW()\n            FROM UNNEST($1::text[]) AS updates (urn)\n            WHERE source.urn = updates.urn\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "35c1934f6090e4ebedcee7757e7925dd606e1a5e9f8fe5aefa14f45f98b6e28c"
+}

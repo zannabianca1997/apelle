@@ -4,7 +4,6 @@ use apelle_common::{
 };
 use apelle_songs_dtos::source::{Source, SourceRegister};
 use axum::{Json, debug_handler, extract::Query, response::NoContent};
-use sqlx::{Row, postgres::PgRow};
 
 /// Register a new source
 ///
@@ -25,12 +24,14 @@ pub async fn register(
 ) -> Result<NoContent, SqlError> {
     tracing::info!(urn, name, "Registering source");
 
-    let rows = sqlx::query("INSERT INTO source (urn, name) VALUES ($1, $2) ON CONFLICT DO NOTHING")
-        .bind(&urn)
-        .bind(&name)
-        .execute(&mut tx)
-        .await?
-        .rows_affected();
+    let rows = sqlx::query!(
+        "INSERT INTO source (urn, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        &urn,
+        &name
+    )
+    .execute(&mut tx)
+    .await?
+    .rows_affected();
 
     if rows == 0 {
         tracing::debug!(urn, name, "Source already registered");
@@ -62,21 +63,21 @@ pub async fn list(
 
     // Using LIMIT OFFSET, as there are few sources (probably less than a single
     // page) and they have a easy order
-    let items = sqlx::query(
+    let items = sqlx::query!(
         "SELECT urn, name, created, last_heard FROM source ORDER BY urn DESC LIMIT $1 OFFSET $2",
+        page_size as i64,
+        page as i64
     )
-    .bind(page_size as i64)
-    .bind(page as i64)
-    .map(|row: PgRow| Source {
-        urn: row.get(0),
-        name: row.get(1),
-        created: row.get(2),
-        last_heard: row.get(3),
+    .map(|row| Source {
+        urn: row.urn,
+        name: row.name,
+        created: row.created.into(),
+        last_heard: row.last_heard.map(Into::into),
     })
     .fetch_all(&mut tx)
     .await?;
 
-    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM source")
+    let total: i64 = sqlx::query_scalar!(r#"SELECT COUNT(*) AS "total!" FROM source"#)
         .fetch_one(&mut tx)
         .await?;
 

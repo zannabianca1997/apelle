@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO youtube_thumbnail (song_id, height, width, url, size)\n        SELECT $1, * FROM UNNEST($2::int4[], $3::int4[], $4::text[], $5::text[])\n        ON CONFLICT (song_id, size)  \n        DO UPDATE SET (url, width, height) = (EXCLUDED.url, EXCLUDED.width, EXCLUDED.height)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array",
+        "Int4Array",
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "76a5345149b50cb60ee7ca936bd825d8cdd61375bef52efff5e8a432e436c3af"
+}
