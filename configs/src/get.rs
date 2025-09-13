@@ -103,7 +103,7 @@ pub async fn get(
             roles.insert(
                 row.name,
                 QueueUserRole {
-                    id,
+                    id: row.id,
                     max_likes: row.max_likes as _,
                     permissions: row.permissions.into_iter().collect(),
                     can_grant: row.can_grant.into_iter().collect(),
