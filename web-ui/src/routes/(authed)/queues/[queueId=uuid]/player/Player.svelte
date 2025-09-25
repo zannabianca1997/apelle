@@ -17,12 +17,10 @@
 	}
 </script>
 
-<div>
-	{#if !song || !isLoaded(song)}
-		<span>
-			{song ? $_('backoffice.currentSong.loading') : $_('backoffice.currentSong.nothingPlaying')}
-		</span>
-	{:else}
-		<CurrentSongCard {song} />
-	{/if}
-</div>
+{#if !song || !isLoaded(song)}
+	<span>
+		{song ? $_('backoffice.currentSong.loading') : $_('backoffice.currentSong.nothingPlaying')}
+	</span>
+{:else}
+	<CurrentSongCard {song} />
+{/if}
