@@ -12,7 +12,7 @@
 	import { Logger } from '$lib/logger';
 	import { goto } from '$app/navigation';
 	import type { EventHandler, MouseEventHandler } from 'svelte/elements';
-	import normalizeCode from '$lib/normalizeCode';
+	import normalizeCode from '$lib/utils/normalizeCode';
 
 	const logger = new Logger('routes.authed');
 
@@ -82,11 +82,11 @@
 </script>
 
 <header class="w-full">
-	<h1 class="my-10 text-center text-5xl font-extrabold leading-[1.5] tracking-[0.01em]">
+	<h1 class="my-10 text-center text-5xl leading-[1.5] font-extrabold tracking-[0.01em]">
 		{$_('landing.title')}
 	</h1>
 	<h2
-		class="my-10 text-center text-3xl font-extrabold leading-[1.5] tracking-[0.01em] text-[#e18282]"
+		class="my-10 text-center text-3xl leading-[1.5] font-extrabold tracking-[0.01em] text-[#e18282]"
 	>
 		{$_('landing.subtitle')}
 	</h2>

@@ -1,6 +1,5 @@
 import { Config, defineConfig } from 'orval';
 
-
 const config: Config = {
 	apelle: {
 		input: { target: '../openapi.yml' },
