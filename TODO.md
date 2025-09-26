@@ -18,7 +18,12 @@
   - [x] Login page
   - [x] Landing page
   - [ ] Queue page
-    - [ ] Queue model
+    - [x] Queue model
+    - [ ] Player view
+    - [ ] Search bar
+    - [ ] Queued songs cards
+  - [ ] Players
+    - [ ] Youtube
 
 ### TODO
 
