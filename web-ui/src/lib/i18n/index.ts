@@ -9,15 +9,15 @@ logger.info('Initializing i18n');
 const defaultLocale = 'en';
 
 register('en', () => {
-  logger.debug('Loading english language');
-  return import('./en.json');
+    logger.debug('Loading english language');
+    return import('./en.json');
 });
 register('it', () => {
-  logger.debug('Loading italian language');
-  return import('./it.json');
+    logger.debug('Loading italian language');
+    return import('./it.json');
 });
 
 init({
-  fallbackLocale: defaultLocale,
-  initialLocale: window.navigator.language
+    fallbackLocale: defaultLocale,
+    initialLocale: window.navigator.language
 });

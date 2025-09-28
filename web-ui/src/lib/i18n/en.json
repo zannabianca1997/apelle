@@ -1,107 +1,107 @@
 {
-  "backoffice": {
-    "currentSong": {
-      "loading": "Loading...",
-      "nothingPlaying": "Nothing currently playing",
-      "progress": "{position} of {duration}"
-    },
-    "partyName": "Party name: ",
-    "queue": {
-      "empty": "Nothing yet...",
-      "like": "Move up",
-      "liked": {
-        "pre": "Liked",
-        "unit": "times"
-      },
-      "title": "Queue"
-    },
-    "search": {
-      "add": "Add",
-      "dismiss": "Exit",
-      "label": "Now I want to listen to...",
-      "next": "More",
-      "pageOnTotal": "{number} of {total}",
-      "prev": "Back",
-      "submit": "Search",
-      "unknowPageNumber": "many"
-    },
-    "song": {
-      "duration": "Duration",
-      "durationFormat": "HH:mm:ss",
-      "likes": "Likes",
-      "progress": ""
-    }
-  },
-  "comingSoon": [
-    "Coming soon!",
-    "Work in progress!",
-    "Under construction!",
-    "Check back later!",
-    "Open me a MR!"
-  ],
-  "comingSoon[0]": "",
-  "comingSoon[1]": "",
-  "comingSoon[2]": "",
-  "comingSoon[__i18n_ally_root__][0]": "",
-  "comingSoon[__i18n_ally_root__][1]": "",
-  "comingSoon[__i18n_ally_root__][2]": "",
-  "landing": {
-    "choices": {
-      "host": {
-        "custom": "Custom",
-        "private": "Private",
-        "public": "Public",
-        "text": "Host"
-      },
-      "join": {
-        "errors": {
-          "queueCodeRequired": "The party code is required",
-          "queueNotFound": "The party {queueCode} does not exist"
+    "backoffice": {
+        "currentSong": {
+            "loading": "Loading...",
+            "nothingPlaying": "Nothing currently playing",
+            "progress": "{position} of {duration}"
         },
-        "id": {
-          "label": "Party code",
-          "placeholder": "HASTGA"
+        "partyName": "Party name: ",
+        "queue": {
+            "empty": "Nothing yet...",
+            "like": "Move up",
+            "liked": {
+                "pre": "Liked",
+                "unit": "times"
+            },
+            "title": "Queue"
         },
-        "submit": "Enter",
-        "text": "Join"
-      }
+        "search": {
+            "add": "Add",
+            "dismiss": "Exit",
+            "label": "Now I want to listen to...",
+            "next": "More",
+            "pageOnTotal": "{number} of {total}",
+            "prev": "Back",
+            "submit": "Search",
+            "unknowPageNumber": "many"
+        },
+        "song": {
+            "duration": "Duration",
+            "durationFormat": "HH:mm:ss",
+            "likes": "Likes",
+            "progress": ""
+        }
     },
-    "images": {
-      "morpheus": "Morpheus from Matrix, asking you to choose between two pills"
+    "comingSoon": [
+        "Coming soon!",
+        "Work in progress!",
+        "Under construction!",
+        "Check back later!",
+        "Open me a MR!"
+    ],
+    "comingSoon[0]": "",
+    "comingSoon[1]": "",
+    "comingSoon[2]": "",
+    "comingSoon[__i18n_ally_root__][0]": "",
+    "comingSoon[__i18n_ally_root__][1]": "",
+    "comingSoon[__i18n_ally_root__][2]": "",
+    "landing": {
+        "choices": {
+            "host": {
+                "custom": "Custom",
+                "private": "Private",
+                "public": "Public",
+                "text": "Host"
+            },
+            "join": {
+                "errors": {
+                    "queueCodeRequired": "The party code is required",
+                    "queueNotFound": "The party {queueCode} does not exist"
+                },
+                "id": {
+                    "label": "Party code",
+                    "placeholder": "HASTGA"
+                },
+                "submit": "Enter",
+                "text": "Join"
+            }
+        },
+        "images": {
+            "morpheus": "Morpheus from Matrix, asking you to choose between two pills"
+        },
+        "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
+        "title": "Welcome to Apelle"
     },
-    "subtitle": "Well done on your first step. Just choose an option below and start adding songs.",
-    "title": "Welcome to Apelle"
-  },
-  "login": {
-    "signinForm": {
-      "errors": {
-        "badCredentials": "Invalid credentials: user {username} does not exist, or the password is incorrect",
-        "passwordRequired": "The password is required",
-        "usernameRequired": "The username is required"
-      },
-      "password": "Password",
-      "submit": "Signin",
-      "username": "Username"
+    "login": {
+        "signinForm": {
+            "errors": {
+                "badCredentials": "Invalid credentials: user {username} does not exist, or the password is incorrect",
+                "passwordRequired": "The password is required",
+                "usernameRequired": "The username is required"
+            },
+            "password": "Password",
+            "submit": "Signin",
+            "username": "Username"
+        },
+        "signupForm": {
+            "errors": {
+                "passwordDoesNotMatch": "The passwords does not match",
+                "passwordRequired": "The password is required",
+                "userExists": "User {username} already exists",
+                "usernameRequired": "The username is required"
+            },
+            "password": "Password",
+            "passwordCheck": "Repeat password",
+            "submit": "Signup",
+            "username": "Username"
+        }
     },
-    "signupForm": {
-      "errors": {
-        "passwordDoesNotMatch": "The passwords does not match",
-        "passwordRequired": "The password is required",
-        "userExists": "User {username} already exists",
-        "usernameRequired": "The username is required"
-      },
-      "password": "Password",
-      "passwordCheck": "Repeat password",
-      "submit": "Signup",
-      "username": "Username"
+    "navbar": {
+        "autoplay": "Autoplay",
+        "dropdown": "Menu",
+        "logout": "Logout",
+        "playFromHere": "Play from this device",
+        "title": "Apelle",
+        "volume": "Volume"
     }
-  },
-  "navbar": {
-    "autoplay": "Autoplay",
-    "dropdown": "Menu",
-    "logout": "Logout",
-    "playFromHere": "Play from this device",
-    "title": "Apelle",
-    "volume": "Volume"
-  }
 }

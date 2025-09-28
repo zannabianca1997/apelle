@@ -15,8 +15,8 @@ import type { LayoutLoad } from './$types';
  * server), the locale is not set.
  */
 export const load: LayoutLoad = async () => {
-  locale.set(window.navigator.language);
-  await waitLocale();
+    locale.set(window.navigator.language);
+    await waitLocale();
 };
 
 // Create a static site

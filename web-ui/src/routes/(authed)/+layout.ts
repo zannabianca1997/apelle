@@ -8,7 +8,7 @@ const logger = new Logger('routes.authed.layout');
  * Redirect to the auth endpoint if the user is not authenticated
  */
 export const load: LayoutLoad = async ({ url }) => {
-  if (!authService.authenticated()) {
-    await routeToAuth(url);
-  }
+    if (!authService.authenticated()) {
+        await routeToAuth(url);
+    }
 };

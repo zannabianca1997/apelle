@@ -6,8 +6,8 @@ import authService from '$lib/auth.svelte';
  * Redirect to the original page if the user is authenticated
  */
 export const load: LayoutLoad = async ({ url }) => {
-  if (authService.authenticated()) {
-    const originalUrl = url.searchParams.get('original') ?? '/';
-    goto(originalUrl);
-  }
+    if (authService.authenticated()) {
+        const originalUrl = url.searchParams.get('original') ?? '/';
+        goto(originalUrl);
+    }
 };

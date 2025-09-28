@@ -2,11 +2,11 @@
 @plugin '@tailwindcss/forms';
 
 @theme {
-  --color-backgroundtop: #0a0a0a;
-  --color-backgroundbottom: #2b2b2b;
+    --color-backgroundtop: #0a0a0a;
+    --color-backgroundbottom: #2b2b2b;
 
-  --color-text: #ffffff;
+    --color-text: #ffffff;
 
-  --color-redpill: #911616;
-  --color-bluepill: #3c6b9a;
+    --color-redpill: #911616;
+    --color-bluepill: #3c6b9a;
 }
