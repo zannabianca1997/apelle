@@ -114,15 +114,15 @@
             color="red"
             onsubmit={host}
         >
-            <Button class="flex-grow-1"
-                >{$_('landing.choices.host.public')}</Button
-            >
-            <Button class="flex-grow-1" onclick={comingSoon}
-                >{$_('landing.choices.host.private')}</Button
-            >
-            <Button class="flex-grow-1" onclick={comingSoon}
-                >{$_('landing.choices.host.custom')}</Button
-            >
+            <Button class="flex-grow-1">
+                {$_('landing.choices.host.public')}
+            </Button>
+            <Button class="flex-grow-1" onclick={comingSoon}>
+                {$_('landing.choices.host.private')}
+            </Button>
+            <Button class="flex-grow-1" onclick={comingSoon}>
+                {$_('landing.choices.host.custom')}
+            </Button>
         </Panel>
         <Panel
             icon={IconUserCircleOutline}

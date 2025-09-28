@@ -38,9 +38,8 @@
             <h1
                 class="text-[32px] leading-[1.5] font-black tracking-[.01em] text-[#379b46]"
             >
-                {$_('backoffice.partyName')}<code class="text-white"
-                    >{queue.code}</code
-                >
+                {$_('backoffice.partyName')}
+                <code class="text-white">{queue.code}</code>
             </h1>
             <Search />
         </section>

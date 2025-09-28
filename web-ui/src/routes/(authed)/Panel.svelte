@@ -45,8 +45,10 @@
         class={['w-full', color === 'red' ? 'bg-redpill' : 'bg-bluepill']}
         onclick={() => {
             activePanel = id;
-        }}>{title}</Button
+        }}
     >
+        {title}
+    </Button>
     {#if active}
         <form
             class="flex flex-grow-1 flex-wrap items-center justify-stretch gap-2"

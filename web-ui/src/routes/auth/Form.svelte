@@ -33,6 +33,8 @@
         class={[
             'mt-auto w-full',
             color == 'red' ? 'bg-redpill' : 'bg-bluepill'
-        ]}>{@render submit()}</Button
+        ]}
     >
+        {@render submit()}
+    </Button>
 </form>
