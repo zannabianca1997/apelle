@@ -1,3 +1,3 @@
 export default {
-	log: { '': 'all' }
+  log: { '': 'all' }
 } as const;

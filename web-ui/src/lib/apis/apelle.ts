@@ -20,11 +20,11 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
  * JSON Patch 'add' operation representation
  */
 export interface AddOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
-	/** Value to add to the target location. */
-	value: unknown;
+  path: string;
+  /** Value to add to the target location. */
+  value: unknown;
 }
 
 export type Config = string | QueueConfigCreate;
@@ -33,16 +33,16 @@ export type Config = string | QueueConfigCreate;
  * JSON Patch 'copy' operation representation
  */
 export interface CopyOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 to copy value from. */
-	from: string;
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  from: string;
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
+  path: string;
 }
 
 export type CurrentAllOf = {
-	song: IdOrRepSong;
+  song: IdOrRepSong;
 };
 
 export type Current = TimeRef & CurrentAllOf;
@@ -50,52 +50,52 @@ export type Current = TimeRef & CurrentAllOf;
 export type Cursor = string;
 
 export type EventContentOneOfKind =
-	(typeof EventContentOneOfKind)[keyof typeof EventContentOneOfKind];
+  (typeof EventContentOneOfKind)[keyof typeof EventContentOneOfKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfKind = {
-	Deleted: 'Deleted'
+  Deleted: 'Deleted'
 } as const;
 
 /**
  * The queue was deleted
  */
 export type EventContentOneOf = {
-	kind: EventContentOneOfKind;
+  kind: EventContentOneOfKind;
 };
 
 export type EventContentOneOfThreeKind =
-	(typeof EventContentOneOfThreeKind)[keyof typeof EventContentOneOfThreeKind];
+  (typeof EventContentOneOfThreeKind)[keyof typeof EventContentOneOfThreeKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfThreeKind = {
-	Patch: 'Patch'
+  Patch: 'Patch'
 } as const;
 
 /**
  * A patch to apply to the queue data
  */
 export type EventContentOneOfThree = {
-	kind: EventContentOneOfThreeKind;
-	/** A patch to apply to the queue data */
-	value: Patch;
+  kind: EventContentOneOfThreeKind;
+  /** A patch to apply to the queue data */
+  value: Patch;
 };
 
 export type EventContentOneOfFiveKind =
-	(typeof EventContentOneOfFiveKind)[keyof typeof EventContentOneOfFiveKind];
+  (typeof EventContentOneOfFiveKind)[keyof typeof EventContentOneOfFiveKind];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfFiveKind = {
-	Sync: 'Sync'
+  Sync: 'Sync'
 } as const;
 
 /**
  * The entire value of the queue data
  */
 export type EventContentOneOfFive = {
-	kind: EventContentOneOfFiveKind;
-	/** The entire value of the queue data */
-	value: Queue;
+  kind: EventContentOneOfFiveKind;
+  /** The entire value of the queue data */
+  value: Queue;
 };
 
 export type EventContent = EventContentOneOf | EventContentOneOfThree | EventContentOneOfFive;
@@ -103,14 +103,14 @@ export type EventContent = EventContentOneOf | EventContentOneOfThree | EventCon
 export type IdOrRepQueueConfigOneOfRoles = { [key: string]: QueueUserRole };
 
 export type IdOrRepQueueConfigOneOf = {
-	autolike: boolean;
-	banned_role: string;
-	created: string;
-	creator_role: string;
-	default_role: string;
-	id: string;
-	roles: IdOrRepQueueConfigOneOfRoles;
-	updated: string;
+  autolike: boolean;
+  banned_role: string;
+  created: string;
+  creator_role: string;
+  default_role: string;
+  id: string;
+  roles: IdOrRepQueueConfigOneOfRoles;
+  updated: string;
 };
 
 /**
@@ -144,23 +144,23 @@ as they require querying the source service
 export type IdOrRepSongOneOfSourceData = IdOrRepSongOneOfSourceDataAnyOf | null;
 
 export type IdOrRepSongOneOf = {
-	/** User that first added the song */
-	added_by?: IdOrRepSongOneOfAddedBy;
-	/** When the song was added */
-	created: string;
-	/** Duration of the song */
-	duration: string;
-	/** Unique id of the song */
-	id: string;
-	/** Additional data from the song source
+  /** User that first added the song */
+  added_by?: IdOrRepSongOneOfAddedBy;
+  /** When the song was added */
+  created: string;
+  /** Duration of the song */
+  duration: string;
+  /** Unique id of the song */
+  id: string;
+  /** Additional data from the song source
 
 These contains stuff like thumbnails,
 the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service */
-	source_data?: IdOrRepSongOneOfSourceData;
-	/** Title of the song */
-	title: string;
+  source_data?: IdOrRepSongOneOfSourceData;
+  /** Title of the song */
+  title: string;
 };
 
 /**
@@ -172,12 +172,12 @@ export type IdOrRepSong = string | IdOrRepSongOneOf;
  * JSON Patch 'move' operation representation
  */
 export interface MoveOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 to move value from. */
-	from: string;
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  from: string;
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
+  path: string;
 }
 
 /**
@@ -190,21 +190,21 @@ export type PageInfoCursorTotal = number | null;
  * Information about a page
  */
 export interface PageInfoCursor {
-	first?: string;
-	last?: string;
-	next?: string;
-	page: string;
-	prev?: string;
-	/**
-	 * The size of the page
-	 * @minimum 0
-	 */
-	size: number;
-	/**
-	 * The total number of items
-	 * @minimum 0
-	 */
-	total?: PageInfoCursorTotal;
+  first?: string;
+  last?: string;
+  next?: string;
+  page: string;
+  prev?: string;
+  /**
+   * The size of the page
+   * @minimum 0
+   */
+  size: number;
+  /**
+   * The total number of items
+   * @minimum 0
+   */
+  total?: PageInfoCursorTotal;
 }
 
 /**
@@ -217,26 +217,26 @@ export type PageInfoU32Total = number | null;
  * Information about a page
  */
 export interface PageInfoU32 {
-	/** @minimum 0 */
-	first?: number;
-	/** @minimum 0 */
-	last?: number;
-	/** @minimum 0 */
-	next?: number;
-	/** @minimum 0 */
-	page: number;
-	/** @minimum 0 */
-	prev?: number;
-	/**
-	 * The size of the page
-	 * @minimum 0
-	 */
-	size: number;
-	/**
-	 * The total number of items
-	 * @minimum 0
-	 */
-	total?: PageInfoU32Total;
+  /** @minimum 0 */
+  first?: number;
+  /** @minimum 0 */
+  last?: number;
+  /** @minimum 0 */
+  next?: number;
+  /** @minimum 0 */
+  page: number;
+  /** @minimum 0 */
+  prev?: number;
+  /**
+   * The size of the page
+   * @minimum 0
+   */
+  size: number;
+  /**
+   * The total number of items
+   * @minimum 0
+   */
+  total?: PageInfoU32Total;
 }
 
 /**
@@ -245,42 +245,42 @@ export interface PageInfoU32 {
 export type PaginatedSearchResponseItemCursorItemsItemDetails = { [key: string]: unknown };
 
 export type PaginatedSearchResponseItemCursorItemsItem = {
-	/** Data to pass the frontend describing the song */
-	details: PaginatedSearchResponseItemCursorItemsItemDetails;
-	/** Source that provided this search result */
-	source: string;
-	/** Data to pass the service to resolve the song */
-	state: SearchResponseItemStateValue;
+  /** Data to pass the frontend describing the song */
+  details: PaginatedSearchResponseItemCursorItemsItemDetails;
+  /** Source that provided this search result */
+  source: string;
+  /** Data to pass the service to resolve the song */
+  state: SearchResponseItemStateValue;
 };
 
 /**
  * A page of results
  */
 export interface PaginatedSearchResponseItemCursor {
-	/** The items in the page */
-	items: PaginatedSearchResponseItemCursorItemsItem[];
-	/** Information about the page */
-	page_info: PageInfoCursor;
+  /** The items in the page */
+  items: PaginatedSearchResponseItemCursorItemsItem[];
+  /** Information about the page */
+  page_info: PageInfoCursor;
 }
 
 /**
  * Information about a source registered in the database
  */
 export type PaginatedSourceItemsItem = {
-	created: string;
-	last_heard: string;
-	name: string;
-	urn: string;
+  created: string;
+  last_heard: string;
+  name: string;
+  urn: string;
 };
 
 /**
  * A page of results
  */
 export interface PaginatedSource {
-	/** The items in the page */
-	items: PaginatedSourceItemsItem[];
-	/** Information about the page */
-	page_info: PageInfoU32;
+  /** The items in the page */
+  items: PaginatedSourceItemsItem[];
+  /** Information about the page */
+  page_info: PageInfoU32;
 }
 
 /**
@@ -289,15 +289,15 @@ export interface PaginatedSource {
 export type Patch = PatchOperation[];
 
 export type PatchOperationOneOfAllOfOp =
-	(typeof PatchOperationOneOfAllOfOp)[keyof typeof PatchOperationOneOfAllOfOp];
+  (typeof PatchOperationOneOfAllOfOp)[keyof typeof PatchOperationOneOfAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfAllOfOp = {
-	add: 'add'
+  add: 'add'
 } as const;
 
 export type PatchOperationOneOfAllOf = {
-	op: PatchOperationOneOfAllOfOp;
+  op: PatchOperationOneOfAllOfOp;
 };
 
 /**
@@ -306,15 +306,15 @@ export type PatchOperationOneOfAllOf = {
 export type PatchOperationOneOf = AddOperation & PatchOperationOneOfAllOf;
 
 export type PatchOperationOneOfFourAllOfOp =
-	(typeof PatchOperationOneOfFourAllOfOp)[keyof typeof PatchOperationOneOfFourAllOfOp];
+  (typeof PatchOperationOneOfFourAllOfOp)[keyof typeof PatchOperationOneOfFourAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfFourAllOfOp = {
-	remove: 'remove'
+  remove: 'remove'
 } as const;
 
 export type PatchOperationOneOfFourAllOf = {
-	op: PatchOperationOneOfFourAllOfOp;
+  op: PatchOperationOneOfFourAllOfOp;
 };
 
 /**
@@ -323,15 +323,15 @@ export type PatchOperationOneOfFourAllOf = {
 export type PatchOperationOneOfFour = RemoveOperation & PatchOperationOneOfFourAllOf;
 
 export type PatchOperationOneOfSevenAllOfOp =
-	(typeof PatchOperationOneOfSevenAllOfOp)[keyof typeof PatchOperationOneOfSevenAllOfOp];
+  (typeof PatchOperationOneOfSevenAllOfOp)[keyof typeof PatchOperationOneOfSevenAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfSevenAllOfOp = {
-	replace: 'replace'
+  replace: 'replace'
 } as const;
 
 export type PatchOperationOneOfSevenAllOf = {
-	op: PatchOperationOneOfSevenAllOfOp;
+  op: PatchOperationOneOfSevenAllOfOp;
 };
 
 /**
@@ -340,15 +340,15 @@ export type PatchOperationOneOfSevenAllOf = {
 export type PatchOperationOneOfSeven = ReplaceOperation & PatchOperationOneOfSevenAllOf;
 
 export type PatchOperationOneOfOnezeroAllOfOp =
-	(typeof PatchOperationOneOfOnezeroAllOfOp)[keyof typeof PatchOperationOneOfOnezeroAllOfOp];
+  (typeof PatchOperationOneOfOnezeroAllOfOp)[keyof typeof PatchOperationOneOfOnezeroAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnezeroAllOfOp = {
-	move: 'move'
+  move: 'move'
 } as const;
 
 export type PatchOperationOneOfOnezeroAllOf = {
-	op: PatchOperationOneOfOnezeroAllOfOp;
+  op: PatchOperationOneOfOnezeroAllOfOp;
 };
 
 /**
@@ -357,15 +357,15 @@ export type PatchOperationOneOfOnezeroAllOf = {
 export type PatchOperationOneOfOnezero = MoveOperation & PatchOperationOneOfOnezeroAllOf;
 
 export type PatchOperationOneOfOnethreeAllOfOp =
-	(typeof PatchOperationOneOfOnethreeAllOfOp)[keyof typeof PatchOperationOneOfOnethreeAllOfOp];
+  (typeof PatchOperationOneOfOnethreeAllOfOp)[keyof typeof PatchOperationOneOfOnethreeAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnethreeAllOfOp = {
-	copy: 'copy'
+  copy: 'copy'
 } as const;
 
 export type PatchOperationOneOfOnethreeAllOf = {
-	op: PatchOperationOneOfOnethreeAllOfOp;
+  op: PatchOperationOneOfOnethreeAllOfOp;
 };
 
 /**
@@ -374,15 +374,15 @@ export type PatchOperationOneOfOnethreeAllOf = {
 export type PatchOperationOneOfOnethree = CopyOperation & PatchOperationOneOfOnethreeAllOf;
 
 export type PatchOperationOneOfOnesixAllOfOp =
-	(typeof PatchOperationOneOfOnesixAllOfOp)[keyof typeof PatchOperationOneOfOnesixAllOfOp];
+  (typeof PatchOperationOneOfOnesixAllOfOp)[keyof typeof PatchOperationOneOfOnesixAllOfOp];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnesixAllOfOp = {
-	test: 'test'
+  test: 'test'
 } as const;
 
 export type PatchOperationOneOfOnesixAllOf = {
-	op: PatchOperationOneOfOnesixAllOfOp;
+  op: PatchOperationOneOfOnesixAllOfOp;
 };
 
 /**
@@ -394,26 +394,26 @@ export type PatchOperationOneOfOnesix = TestOperation & PatchOperationOneOfOnesi
  * JSON Patch single patch operation
  */
 export type PatchOperation =
-	| PatchOperationOneOf
-	| PatchOperationOneOfFour
-	| PatchOperationOneOfSeven
-	| PatchOperationOneOfOnezero
-	| PatchOperationOneOfOnethree
-	| PatchOperationOneOfOnesix;
+  | PatchOperationOneOf
+  | PatchOperationOneOfFour
+  | PatchOperationOneOfSeven
+  | PatchOperationOneOfOnezero
+  | PatchOperationOneOfOnethree
+  | PatchOperationOneOfOnesix;
 
 /**
  * Register himself as a provider
  */
 export interface ProviderRegistration {
-	/** Use fast handshake
+  /** Use fast handshake
 
 This suggest to the `songs` service that the webhook is known to work
 and that checks can be skipped */
-	fast_handshake?: boolean;
-	/** URN of the source this provider can answer for */
-	source_urn: string;
-	/** Url where this provider is serving the provider API */
-	url: string;
+  fast_handshake?: boolean;
+  /** URN of the source this provider can answer for */
+  source_urn: string;
+  /** Url where this provider is serving the provider API */
+  url: string;
 }
 
 export type QueueCurrent = null | Current;
@@ -421,44 +421,44 @@ export type QueueCurrent = null | Current;
 export type QueueQueue = { [key: string]: QueuedSong };
 
 export interface Queue {
-	code: string;
-	config: IdOrRepQueueConfig;
-	created: string;
-	current?: QueueCurrent;
-	id: string;
-	player_state_id: string;
-	queue: QueueQueue;
-	updated: string;
+  code: string;
+  config: IdOrRepQueueConfig;
+  created: string;
+  current?: QueueCurrent;
+  id: string;
+  player_state_id: string;
+  queue: QueueQueue;
+  updated: string;
 }
 
 export type QueueConfigRoles = { [key: string]: QueueUserRole };
 
 export interface QueueConfig {
-	autolike: boolean;
-	banned_role: string;
-	created: string;
-	creator_role: string;
-	default_role: string;
-	id: string;
-	roles: QueueConfigRoles;
-	updated: string;
+  autolike: boolean;
+  banned_role: string;
+  created: string;
+  creator_role: string;
+  default_role: string;
+  id: string;
+  roles: QueueConfigRoles;
+  updated: string;
 }
 
 export type QueueConfigCreateRoles = { [key: string]: QueueUserRoleCreate };
 
 export interface QueueConfigCreate {
-	autolike?: boolean;
-	banned_role: string;
-	creator_role: string;
-	default_role: string;
-	roles: QueueConfigCreateRoles;
+  autolike?: boolean;
+  banned_role: string;
+  creator_role: string;
+  default_role: string;
+  roles: QueueConfigCreateRoles;
 }
 
 export type QueueCreateCode = string | null;
 
 export interface QueueCreate {
-	code?: QueueCreateCode;
-	config?: Config;
+  code?: QueueCreateCode;
+  config?: Config;
 }
 
 /**
@@ -468,75 +468,75 @@ export type QueueUserAction = (typeof QueueUserAction)[keyof typeof QueueUserAct
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueueUserAction = {
-	GET_QUEUE: 'GET_QUEUE',
-	DELETE_QUEUE: 'DELETE_QUEUE',
-	CONFIGURE_QUEUE: 'CONFIGURE_QUEUE',
-	REMOVE_SONG: 'REMOVE_SONG',
-	BAN_SONG: 'BAN_SONG',
-	UNBAN_SONG: 'UNBAN_SONG',
-	ENQUEUE_SONG: 'ENQUEUE_SONG',
-	PLAY_SONG: 'PLAY_SONG',
-	PAUSE_SONG: 'PAUSE_SONG',
-	NEXT_SONG: 'NEXT_SONG',
-	AUTO_NEXT_SONG: 'AUTO_NEXT_SONG',
-	LIKE_SONG: 'LIKE_SONG',
-	BAN_USER: 'BAN_USER',
-	UNBAN_USER: 'UNBAN_USER',
-	REMOVE_USER: 'REMOVE_USER'
+  GET_QUEUE: 'GET_QUEUE',
+  DELETE_QUEUE: 'DELETE_QUEUE',
+  CONFIGURE_QUEUE: 'CONFIGURE_QUEUE',
+  REMOVE_SONG: 'REMOVE_SONG',
+  BAN_SONG: 'BAN_SONG',
+  UNBAN_SONG: 'UNBAN_SONG',
+  ENQUEUE_SONG: 'ENQUEUE_SONG',
+  PLAY_SONG: 'PLAY_SONG',
+  PAUSE_SONG: 'PAUSE_SONG',
+  NEXT_SONG: 'NEXT_SONG',
+  AUTO_NEXT_SONG: 'AUTO_NEXT_SONG',
+  LIKE_SONG: 'LIKE_SONG',
+  BAN_USER: 'BAN_USER',
+  UNBAN_USER: 'UNBAN_USER',
+  REMOVE_USER: 'REMOVE_USER'
 } as const;
 
 export interface QueueUserRole {
-	can_grant: string[];
-	can_revoke: string[];
-	id: string;
-	/** @minimum 0 */
-	max_likes: number;
-	permissions: QueueUserAction[];
+  can_grant: string[];
+  can_revoke: string[];
+  id: string;
+  /** @minimum 0 */
+  max_likes: number;
+  permissions: QueueUserAction[];
 }
 
 export interface QueueUserRoleCreate {
-	can_grant: string[];
-	can_revoke: string[];
-	/** @minimum 0 */
-	max_likes: number;
-	permissions: QueueUserAction[];
+  can_grant: string[];
+  can_revoke: string[];
+  /** @minimum 0 */
+  max_likes: number;
+  permissions: QueueUserAction[];
 }
 
 export interface QueuedSong {
-	/**
-	 * Number of likes this song has
-	 * @minimum 0
-	 */
-	likes: number;
-	/** When the song was queued */
-	queued_at: string;
-	/** Song that was queued */
-	song: IdOrRepSong;
-	/**
-	 * Number of likes this song has by the current user
-	 * @minimum 0
-	 */
-	user_likes: number;
+  /**
+   * Number of likes this song has
+   * @minimum 0
+   */
+  likes: number;
+  /** When the song was queued */
+  queued_at: string;
+  /** Song that was queued */
+  song: IdOrRepSong;
+  /**
+   * Number of likes this song has by the current user
+   * @minimum 0
+   */
+  user_likes: number;
 }
 
 /**
  * JSON Patch 'remove' operation representation
  */
 export interface RemoveOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
+  path: string;
 }
 
 /**
  * JSON Patch 'replace' operation representation
  */
 export interface ReplaceOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
-	/** Value to replace with. */
-	value: unknown;
+  path: string;
+  /** Value to replace with. */
+  value: unknown;
 }
 
 /**
@@ -547,102 +547,102 @@ e.g. the video id for youtube
 export type ResolveSongRequestData = { [key: string]: unknown };
 
 export interface ResolveSongRequest {
-	/** Data that the user used to define the song
+  /** Data that the user used to define the song
 
 e.g. the video id for youtube */
-	data: ResolveSongRequestData;
-	/** URN of the song source */
-	source: string;
+  data: ResolveSongRequestData;
+  /** URN of the song source */
+  source: string;
 }
 
 export interface SearchResponseItem {
-	/** Source that provided this search result */
-	source: string;
-	/** Data to pass the service to resolve the song */
-	state: SearchResponseItemState;
+  /** Source that provided this search result */
+  source: string;
+  /** Data to pass the service to resolve the song */
+  state: SearchResponseItemState;
 }
 
 export type SearchResponseItemStateOneOfData = { [key: string]: unknown };
 
 export type SearchResponseItemStateOneOfState =
-	(typeof SearchResponseItemStateOneOfState)[keyof typeof SearchResponseItemStateOneOfState];
+  (typeof SearchResponseItemStateOneOfState)[keyof typeof SearchResponseItemStateOneOfState];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateOneOfState = {
-	New: 'New'
+  New: 'New'
 } as const;
 
 /**
  * Need to be resolved
  */
 export type SearchResponseItemStateOneOf = {
-	data: SearchResponseItemStateOneOfData;
-	state: SearchResponseItemStateOneOfState;
+  data: SearchResponseItemStateOneOfData;
+  state: SearchResponseItemStateOneOfState;
 };
 
 export type SearchResponseItemStateOneOfFourState =
-	(typeof SearchResponseItemStateOneOfFourState)[keyof typeof SearchResponseItemStateOneOfFourState];
+  (typeof SearchResponseItemStateOneOfFourState)[keyof typeof SearchResponseItemStateOneOfFourState];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateOneOfFourState = {
-	Known: 'Known'
+  Known: 'Known'
 } as const;
 
 /**
  * Is a known song
  */
 export type SearchResponseItemStateOneOfFour = {
-	id: string;
-	state: SearchResponseItemStateOneOfFourState;
+  id: string;
+  state: SearchResponseItemStateOneOfFourState;
 };
 
 /**
  * How to resolve this search item
  */
 export type SearchResponseItemState =
-	| SearchResponseItemStateOneOf
-	| SearchResponseItemStateOneOfFour;
+  | SearchResponseItemStateOneOf
+  | SearchResponseItemStateOneOfFour;
 
 export type SearchResponseItemStateValueOneOfData = { [key: string]: unknown };
 
 export type SearchResponseItemStateValueOneOfState =
-	(typeof SearchResponseItemStateValueOneOfState)[keyof typeof SearchResponseItemStateValueOneOfState];
+  (typeof SearchResponseItemStateValueOneOfState)[keyof typeof SearchResponseItemStateValueOneOfState];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateValueOneOfState = {
-	New: 'New'
+  New: 'New'
 } as const;
 
 /**
  * Need to be resolved
  */
 export type SearchResponseItemStateValueOneOf = {
-	data: SearchResponseItemStateValueOneOfData;
-	state: SearchResponseItemStateValueOneOfState;
+  data: SearchResponseItemStateValueOneOfData;
+  state: SearchResponseItemStateValueOneOfState;
 };
 
 export type SearchResponseItemStateValueOneOfFourState =
-	(typeof SearchResponseItemStateValueOneOfFourState)[keyof typeof SearchResponseItemStateValueOneOfFourState];
+  (typeof SearchResponseItemStateValueOneOfFourState)[keyof typeof SearchResponseItemStateValueOneOfFourState];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateValueOneOfFourState = {
-	Known: 'Known'
+  Known: 'Known'
 } as const;
 
 /**
  * Is a known song
  */
 export type SearchResponseItemStateValueOneOfFour = {
-	id: string;
-	state: SearchResponseItemStateValueOneOfFourState;
+  id: string;
+  state: SearchResponseItemStateValueOneOfFourState;
 };
 
 /**
  * How to resolve this search item
  */
 export type SearchResponseItemStateValue =
-	| SearchResponseItemStateValueOneOf
-	| SearchResponseItemStateValueOneOfFour;
+  | SearchResponseItemStateValueOneOf
+  | SearchResponseItemStateValueOneOfFour;
 
 /**
  * User that first added the song
@@ -670,33 +670,33 @@ as they require querying the source service
 export type SongSourceData = SongSourceDataAnyOf | null;
 
 export interface Song {
-	/** User that first added the song */
-	added_by?: SongAddedBy;
-	/** When the song was added */
-	created: string;
-	/** Duration of the song */
-	duration: string;
-	/** Unique id of the song */
-	id: string;
-	/** Additional data from the song source
+  /** User that first added the song */
+  added_by?: SongAddedBy;
+  /** When the song was added */
+  created: string;
+  /** Duration of the song */
+  duration: string;
+  /** Unique id of the song */
+  id: string;
+  /** Additional data from the song source
 
 These contains stuff like thumbnails,
 the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service */
-	source_data?: SongSourceData;
-	/** Title of the song */
-	title: string;
+  source_data?: SongSourceData;
+  /** Title of the song */
+  title: string;
 }
 
 /**
  * Information about a source registered in the database
  */
 export interface Source {
-	created: string;
-	last_heard: string;
-	name: string;
-	urn: string;
+  created: string;
+  last_heard: string;
+  name: string;
+  urn: string;
 }
 
 /**
@@ -706,8 +706,8 @@ This is sent from source providers to the songs service
 to signal that a new source is available
  */
 export interface SourceRegister {
-	name: string;
-	urn: string;
+  name: string;
+  urn: string;
 }
 
 export type SyncData = Queue;
@@ -716,19 +716,19 @@ export type SyncData = Queue;
  * JSON Patch 'test' operation representation
  */
 export interface TestOperation {
-	/** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
+  /** JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901) that references a location
 within the target document where the operation is performed. */
-	path: string;
-	/** Value to test against. */
-	value: unknown;
+  path: string;
+  /** Value to test against. */
+  value: unknown;
 }
 
 export type TimeRefOneOf = {
-	position: string;
+  position: string;
 };
 
 export type TimeRefOneOfTwo = {
-	starts_at: string;
+  starts_at: string;
 };
 
 export type TimeRef = TimeRefOneOf | TimeRefOneOfTwo;
@@ -737,28 +737,28 @@ export type TimeRef = TimeRefOneOf | TimeRefOneOfTwo;
  * Data to create a new user
  */
 export interface UserCreateDto {
-	/** Unique user name */
-	name: string;
-	/** Password */
-	password: string;
+  /** Unique user name */
+  name: string;
+  /** Password */
+  password: string;
 }
 
 /**
  * Data about a user
  */
 export interface UserDto {
-	/** When the user was created */
-	created: string;
-	/** Identifier of the user */
-	id: string;
-	/** When the user was last seen */
-	last_login: string;
-	/** Unique user name */
-	name: string;
-	/** Roles of the user */
-	roles: string[];
-	/** When the user was last updated */
-	updated: string;
+  /** When the user was created */
+  created: string;
+  /** Identifier of the user */
+  id: string;
+  /** When the user was last seen */
+  last_login: string;
+  /** Unique user name */
+  name: string;
+  /** Roles of the user */
+  roles: string[];
+  /** When the user was last updated */
+  updated: string;
 }
 
 export type UserUpdateDtoName = string | null;
@@ -766,107 +766,107 @@ export type UserUpdateDtoName = string | null;
 export type UserUpdateDtoPassword = string | null;
 
 export interface UserUpdateDto {
-	name?: UserUpdateDtoName;
-	password?: UserUpdateDtoPassword;
+  name?: UserUpdateDtoName;
+  password?: UserUpdateDtoPassword;
 }
 
 export type QueuesFindParams = {
-	/**
-	 * The code of the searched queue
-	 */
-	code: string;
+  /**
+   * The code of the searched queue
+   */
+  code: string;
 };
 
 export type QueuesCreateParams = {
-	/**
+  /**
  * Return the full queue config instead of just the UUID
 Return the whole config instead of just the id
  */
-	config?: boolean;
+  config?: boolean;
 };
 
 export type QueuesCreateBody = null | QueueCreate;
 
 export type QueuesGetParams = {
-	/**
-	 * Return the full queue config instead of just the UUID
-	 */
-	config?: boolean;
-	/**
-	 * Return the full song data instead of just the UUID
-	 */
-	songs?: boolean;
-	songs_source?: boolean;
+  /**
+   * Return the full queue config instead of just the UUID
+   */
+  config?: boolean;
+  /**
+   * Return the full song data instead of just the UUID
+   */
+  songs?: boolean;
+  songs_source?: boolean;
 };
 
 export type QueuesEnqueueParams = {
-	/**
-	 * Override the default behavior of auto-liking
-	 */
-	autolike?: boolean | null;
-	/**
-	 * Return the full song data instead of just the UUID
-	 */
-	song?: boolean;
-	/**
-	 * Return also the source data for the song
-	 */
-	song_source?: boolean;
+  /**
+   * Override the default behavior of auto-liking
+   */
+  autolike?: boolean | null;
+  /**
+   * Return the full song data instead of just the UUID
+   */
+  song?: boolean;
+  /**
+   * Return also the source data for the song
+   */
+  song_source?: boolean;
 };
 
 export type QueuesNextParams = {
-	/**
+  /**
  * Force this call to be evaluated in the `auto-next` mode
 
 If missing, the call will pass in the `auto-next` mode only if the
 conditions for one to succeed are met
  */
-	auto?: boolean | null;
-	/**
-	 * Move to a particular song instead of the next in list
-	 */
-	song?: string | null;
+  auto?: boolean | null;
+  /**
+   * Move to a particular song instead of the next in list
+   */
+  song?: string | null;
 };
 
 export type SongsSearchParams = {
-	/**
-	 * Search query
-	 */
-	q: string;
-	/**
+  /**
+   * Search query
+   */
+  q: string;
+  /**
  * List of sources to search
 
 Empty to use all sources
  */
-	source?: string[];
-	/**
-	 * Maximum number of items per page
-	 * @minimum 0
-	 */
-	page_size?: number;
-	/**
-	 * Requested page
-	 */
-	page?: null | string;
+  source?: string[];
+  /**
+   * Maximum number of items per page
+   * @minimum 0
+   */
+  page_size?: number;
+  /**
+   * Requested page
+   */
+  page?: null | string;
 };
 
 export type SongsGetParams = {
-	/**
-	 * Include the data from the song source
-	 */
-	source_data?: boolean;
+  /**
+   * Include the data from the song source
+   */
+  source_data?: boolean;
 };
 
 export type SongsListParams = {
-	/**
-	 * Maximum number of items per page
-	 * @minimum 0
-	 */
-	page_size?: number;
-	/**
-	 * Requested page
-	 */
-	page?: null | number;
+  /**
+   * Maximum number of items per page
+   * @minimum 0
+   */
+  page_size?: number;
+  /**
+   * Requested page
+   */
+  page?: null | number;
 };
 
 /**
@@ -876,23 +876,23 @@ cachable.
  * @summary Returns a queue config
  */
 export const configsGet = <TData = AxiosResponse<QueueConfig>>(
-	id: string,
-	options?: AxiosRequestConfig
+  id: string,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/configs/queues/${id}`, options);
+  return axios.get(`/api/configs/queues/${id}`, options);
 };
 
 /**
  * @summary Read the queue data
  */
 export const queuesFind = <TData = AxiosResponse<string>>(
-	params: QueuesFindParams,
-	options?: AxiosRequestConfig
+  params: QueuesFindParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/queues`, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.get(`/api/queues`, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
@@ -903,38 +903,38 @@ If no code is provided, a random code will be generated.
  * @summary Create a new queue
  */
 export const queuesCreate = <TData = AxiosResponse<Queue>>(
-	queuesCreateBody: QueuesCreateBody,
-	params?: QueuesCreateParams,
-	options?: AxiosRequestConfig
+  queuesCreateBody: QueuesCreateBody,
+  params?: QueuesCreateParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/queues`, queuesCreateBody, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.post(`/api/queues`, queuesCreateBody, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
  * @summary Read the queue data
  */
 export const queuesDelete = <TData = AxiosResponse<void>>(
-	queueId: string,
-	options?: AxiosRequestConfig
+  queueId: string,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.delete(`/api/queues/${queueId}`, options);
+  return axios.delete(`/api/queues/${queueId}`, options);
 };
 
 /**
  * @summary Read the queue data
  */
 export const queuesGet = <TData = AxiosResponse<Queue>>(
-	queueId: string,
-	params?: QueuesGetParams,
-	options?: AxiosRequestConfig
+  queueId: string,
+  params?: QueuesGetParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/queues/${queueId}`, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.get(`/api/queues/${queueId}`, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
@@ -950,25 +950,25 @@ will result in a `409 Conflict`.
  * @summary Add a song to the queue
  */
 export const queuesEnqueue = <TData = AxiosResponse<QueuedSong>>(
-	queueId: string,
-	searchResponseItem: SearchResponseItem,
-	params?: QueuesEnqueueParams,
-	options?: AxiosRequestConfig
+  queueId: string,
+  searchResponseItem: SearchResponseItem,
+  params?: QueuesEnqueueParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/queues/${queueId}/enqueue`, searchResponseItem, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.post(`/api/queues/${queueId}/enqueue`, searchResponseItem, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
  * @summary Read the queue data
  */
 export const queuesEvents = <TData = AxiosResponse<EventContent>>(
-	queueId: string,
-	options?: AxiosRequestConfig
+  queueId: string,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/queues/${queueId}/events`, options);
+  return axios.get(`/api/queues/${queueId}/events`, options);
 };
 
 /**
@@ -988,25 +988,25 @@ If a song is not specified, the `If-Match` header is required.
  * @summary Change the current song
  */
 export const queuesNext = <TData = AxiosResponse<void>>(
-	queueId: string,
-	params?: QueuesNextParams,
-	options?: AxiosRequestConfig
+  queueId: string,
+  params?: QueuesNextParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/queues/${queueId}/next`, undefined, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.post(`/api/queues/${queueId}/next`, undefined, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
  * @summary Read the queue data
  */
 export const queuesLike = <TData = AxiosResponse<void>>(
-	queueId: string,
-	songId: string,
-	options?: AxiosRequestConfig
+  queueId: string,
+  songId: string,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/queues/${queueId}/queue/${songId}/like`, undefined, options);
+  return axios.post(`/api/queues/${queueId}/queue/${songId}/like`, undefined, options);
 };
 
 /**
@@ -1028,13 +1028,13 @@ expires, a `400 Bad Request` is returned.
  * @summary Search for songs
  */
 export const songsSearch = <TData = AxiosResponse<PaginatedSearchResponseItemCursor>>(
-	params: SongsSearchParams,
-	options?: AxiosRequestConfig
+  params: SongsSearchParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/songs/search`, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.get(`/api/songs/search`, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
@@ -1044,14 +1044,14 @@ and url).
  * @summary Get song data
  */
 export const songsGet = <TData = AxiosResponse<Song>>(
-	id: string,
-	params?: SongsGetParams,
-	options?: AxiosRequestConfig
+  id: string,
+  params?: SongsGetParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/songs/solved/${id}`, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.get(`/api/songs/solved/${id}`, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
@@ -1059,13 +1059,13 @@ export const songsGet = <TData = AxiosResponse<Song>>(
  * @summary List available sources
  */
 export const songsList = <TData = AxiosResponse<PaginatedSource>>(
-	params?: SongsListParams,
-	options?: AxiosRequestConfig
+  params?: SongsListParams,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/songs/sources`, {
-		...options,
-		params: { ...params, ...options?.params }
-	});
+  return axios.get(`/api/songs/sources`, {
+    ...options,
+    params: { ...params, ...options?.params }
+  });
 };
 
 /**
@@ -1075,10 +1075,10 @@ spaces and control characters. It must also fit in a http header.
  * @summary Create a new user
  */
 export const usersCreate = <TData = AxiosResponse<UserDto>>(
-	userCreateDto: UserCreateDto,
-	options?: AxiosRequestConfig
+  userCreateDto: UserCreateDto,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.post(`/api/users`, userCreateDto, options);
+  return axios.post(`/api/users`, userCreateDto, options);
 };
 
 /**
@@ -1086,9 +1086,9 @@ export const usersCreate = <TData = AxiosResponse<UserDto>>(
  * @summary Delete current user
  */
 export const usersDelete = <TData = AxiosResponse<void>>(
-	options?: AxiosRequestConfig
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.delete(`/api/users/me`, options);
+  return axios.delete(`/api/users/me`, options);
 };
 
 /**
@@ -1096,9 +1096,9 @@ export const usersDelete = <TData = AxiosResponse<void>>(
  * @summary Current user data
  */
 export const usersGet = <TData = AxiosResponse<UserDto>>(
-	options?: AxiosRequestConfig
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.get(`/api/users/me`, options);
+  return axios.get(`/api/users/me`, options);
 };
 
 /**
@@ -1108,10 +1108,10 @@ See the creation endpoint for the constraints.
  * @summary Patch current user data
  */
 export const usersPatch = <TData = AxiosResponse<UserDto>>(
-	userUpdateDto: UserUpdateDto,
-	options?: AxiosRequestConfig
+  userUpdateDto: UserUpdateDto,
+  options?: AxiosRequestConfig
 ): Promise<TData> => {
-	return axios.patch(`/api/users/me`, userUpdateDto, options);
+  return axios.patch(`/api/users/me`, userUpdateDto, options);
 };
 
 export type ConfigsGetResult = AxiosResponse<QueueConfig>;
