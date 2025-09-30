@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Queue } from '$lib/apis/apelle';
-    import Search from './search/Search.svelte';
+    import Search from './search/SearchSection.svelte';
     import type { PageProps } from './$types';
     import Player from './player/Player.svelte';
     import QueueView from './queue/QueueView.svelte';
