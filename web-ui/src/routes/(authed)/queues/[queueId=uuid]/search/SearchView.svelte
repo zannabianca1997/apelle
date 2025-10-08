@@ -83,8 +83,9 @@
 <section>
     <form onsubmit={() => searchFor(query)}>
         <SearchBar
-            bind:value={query}
+            label={$_('backoffice.search.label')}
             submitTxt={$_('backoffice.search.submit')}
+            bind:value={query}
         />
     </form>
 </section>

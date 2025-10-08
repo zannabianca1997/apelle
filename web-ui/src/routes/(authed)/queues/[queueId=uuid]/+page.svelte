@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Queue } from '$lib/apis/apelle';
+    import type { Queue, SearchResponseItem } from '$lib/apis/apelle';
     import Search from './search/SearchSection.svelte';
     import type { PageProps } from './$types';
     import Player from './player/Player.svelte';
@@ -24,10 +24,6 @@
 </svelte:head>
 
 {#if queue}
-    <aside>
-        {JSON.stringify(queue, undefined, 2)}
-    </aside>
-
     <main class="flex w-4/5 flex-col gap-[57px]">
         <section
             class="flex h-[244px] w-full flex-row items-center justify-evenly gap-6 rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3"
@@ -36,22 +32,26 @@
         </section>
         <section>
             <h1
-                class="text-[32px] leading-[1.5] font-black tracking-[.01em] text-[#379b46]"
+                class="text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]"
             >
                 {$_('backoffice.partyName')}
                 <code class="text-white">{queue.code}</code>
             </h1>
-            <Search />
+            <Search queueId={queue.id} />
         </section>
         <section>
             <h1
-                class="text-[32px] leading-[1.5] font-black tracking-[.01em] text-[#379b46]"
+                class="text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]"
             >
                 {$_('backoffice.queue.title')}
             </h1>
             <QueueView songs={queue.queue} />
         </section>
     </main>
+
+    <aside>
+        {JSON.stringify(queue, undefined, 2)}
+    </aside>
 {:else}
-    <h1>Loading...</h1>
+    <h1>{$_('backoffice.loading')}</h1>
 {/if}

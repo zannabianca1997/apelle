@@ -55,9 +55,28 @@
     };
 </script>
 
-<dialog
-    bind:this={dialog}
-    class="flex w-[90%] flex-col gap-[39px] rounded-lg bg-[#282828] text-white"
->
+<dialog bind:this={dialog}>
     <SearchView bind:this={searchView} {onSongChosen} onDismiss={close} />
 </dialog>
+
+<style lang="scss">
+    dialog[open] {
+        width: 90%;
+
+        display: flex;
+        flex-direction: column;
+        gap: 39px;
+
+        border-radius: 8px;
+        background: #282828;
+
+        color: white;
+
+        position: fixed; 
+        top: 50%;
+        left: 50%; 
+        transform: translate(-50%, -50%); 
+        margin: 0;
+        
+    }
+</style>

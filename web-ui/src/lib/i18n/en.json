@@ -29,8 +29,9 @@
             "duration": "Duration",
             "durationFormat": "HH:mm:ss",
             "likes": "Likes",
-            "progress": ""
-        }
+            "loading": "Loading..."
+        },
+        "loading": "Loading..."
     },
     "comingSoon": [
         "Coming soon!",
@@ -39,12 +40,6 @@
         "Check back later!",
         "Open me a MR!"
     ],
-    "comingSoon[0]": "",
-    "comingSoon[1]": "",
-    "comingSoon[2]": "",
-    "comingSoon[__i18n_ally_root__][0]": "",
-    "comingSoon[__i18n_ally_root__][1]": "",
-    "comingSoon[__i18n_ally_root__][2]": "",
     "landing": {
         "choices": {
             "host": {
