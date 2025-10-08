@@ -22,7 +22,10 @@ use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{QueuesService, config::SseConfig};
-use apelle_queues_dtos::events::{EventContent, PatchesLost, SubscribedClient};
+use apelle_queues_dtos::{
+    PushSyncEventQueryParam,
+    events::{EventContent, PatchesLost, SubscribedClient},
+};
 
 /// Errors happening starting the event stream
 #[derive(Debug, Snafu)]
@@ -76,12 +79,7 @@ pub async fn events(
     // Start listening to events
     let events = subscriber.events(id, user.id());
 
-    let state_machine = Arc::new(StateMachine {
-        queues_url,
-        id,
-        client,
-        sync_timeout,
-    });
+    let state_machine = StateMachine::new(queues_url, id, client, sync_timeout);
 
     // Ask the queues service to provide an initial state
     state_machine.clone().ask_sync_event().await?;
@@ -136,20 +134,30 @@ fn ready_left<R, T>(t: T) -> futures::future::Either<futures::future::Ready<T>, 
 }
 
 struct StateMachine {
-    queues_url: Url,
-    id: Uuid,
+    push_sync_event_endpoint: Url,
     client: ServicesClient,
     sync_timeout: Duration,
 }
 
 impl StateMachine {
+    fn new(queues_url: Url, id: Uuid, client: ServicesClient, sync_timeout: Duration) -> Arc<Self> {
+        return Arc::new(Self {
+            push_sync_event_endpoint: queues_url
+                .join(&format!("/queues/{}/push_sync_event", id))
+                .unwrap(),
+            client,
+            sync_timeout,
+        });
+    }
+
     async fn ask_sync_event(self: Arc<Self>) -> Result<(), GetEventsError> {
         self.client
-            .post(
-                self.queues_url
-                    .join(&format!("/queues/{}/push_sync_event", self.id))
-                    .unwrap(),
-            )
+            .post(self.push_sync_event_endpoint.clone())
+            .query(&PushSyncEventQueryParam {
+                config: true,
+                songs: true,
+                songs_source: true,
+            })
             .send()
             .await
             .and_then(Response::error_for_status)

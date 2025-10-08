@@ -6,6 +6,7 @@ use apelle_common::{
     id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserActionQueue};
+use apelle_queues_dtos::GetQueryParams;
 use apelle_songs_dtos::public::{SolvedQueryParams, Song};
 use axum::{
     Extension, Json, debug_handler,
@@ -16,7 +17,7 @@ use chrono::Duration;
 use futures::{StreamExt, TryStreamExt as _, future::OptionFuture, stream};
 use reqwest::StatusCode;
 use snafu::Snafu;
-use utoipa::{IntoParams, IntoResponses, openapi};
+use utoipa::{IntoResponses, openapi};
 use uuid::Uuid;
 
 use crate::{
@@ -70,20 +71,6 @@ impl IntoResponses for GetError {
         .chain(SqlError::responses())
         .collect()
     }
-}
-
-#[derive(serde::Deserialize, IntoParams)]
-pub struct GetQueryParams {
-    /// Return the full queue config instead of just the UUID
-    #[serde(default)]
-    pub config: bool,
-    /// Return the full song data instead of just the UUID
-    #[serde(default)]
-    pub songs: bool,
-    // For each song, return the source data in addition to the song data (like
-    // thumbnails or public url)
-    #[serde(default)]
-    pub songs_source: bool,
 }
 
 async fn solve_song(

@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use apelle_common::{ServicesClient, common_errors::PubSubError, db::SqlTx};
 use apelle_configs_dtos::QueueConfig;
-use apelle_queues_dtos::events::{Collector, Event};
+use apelle_queues_dtos::{
+    PushSyncEventQueryParam,
+    events::{Collector, Event},
+};
 use axum::{
     Extension, Json, debug_handler,
     extract::{Path, Query, State},
@@ -13,7 +16,7 @@ use utoipa::IntoResponses;
 
 use crate::{
     QueuePathParams, Services,
-    handlers::get::{GetError, GetQueryParams, get},
+    handlers::get::{GetError, get},
     middleware::user::QueueUser,
 };
 
@@ -60,6 +63,7 @@ pub async fn push_sync_event(
     Extension(user): Extension<Arc<QueueUser>>,
     Extension(config): Extension<Arc<QueueConfig>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
+    Query(get_params): Query<PushSyncEventQueryParam>,
 ) -> Result<NoContent, PushSyncEventError> {
     let user_id = user.id();
     tracing::info!(queue=%id, user=%user_id, "Pushing sync event");
@@ -70,11 +74,7 @@ pub async fn push_sync_event(
         State(services),
         Extension(user),
         Extension(config),
-        Query(GetQueryParams {
-            config: false,
-            songs: false,
-            songs_source: false,
-        }),
+        Query(get_params),
         Path(QueuePathParams { id }),
     )
     .await?;
