@@ -11,6 +11,9 @@
 
     const queueId = $derived(data.connection.queue?.id);
     let queue: Queue | null = $derived(data.connection.queue);
+
+    const titleClasses =
+        'text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]';
 </script>
 
 <svelte:head>
@@ -31,21 +34,17 @@
             <Player song={queue.current} />
         </section>
         <section>
-            <h1
-                class="text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]"
-            >
+            <h1 class={titleClasses}>
                 {$_('backoffice.partyName')}
                 <code class="text-white">{queue.code}</code>
             </h1>
             <Search queueId={queue.id} />
         </section>
         <section>
-            <h1
-                class="text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]"
-            >
+            <h1 class={titleClasses}>
                 {$_('backoffice.queue.title')}
             </h1>
-            <QueueView songs={queue.queue} />
+            <QueueView songs={queue.queue} queueId={queue.id} />
         </section>
     </main>
 

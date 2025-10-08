@@ -7,6 +7,7 @@
     // import Thumbnail from '../Thumbnail.svelte';
     import IconAdd from '~icons/mdi/plus';
     import { searchDetails } from '$lib/sources';
+    import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
 
     const {
         song,
@@ -25,9 +26,9 @@
                     <Thumbnail thumbnails={song.thumbnails} />
                 {/if}
             </td> -->
-    <td class="overflow-hidden pl-[15px] text-ellipsis whitespace-nowrap">
+    <MarqueeOnHover host="td" class="pl-[15px]">
         {details.title}
-    </td>
+    </MarqueeOnHover>
     <td class="w-[175px]">
         <button
             onclick={() => onSongChosen?.(song)}

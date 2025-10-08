@@ -1,21 +1,23 @@
 <script lang="ts">
     import type { QueueQueue } from '$lib/apis/apelle';
-    import { dayjs, durationjs } from '$lib/time';
+    import { dayjs } from '$lib/time';
     import QueuedSongCard from './QueuedSongCard.svelte';
     import { _ } from 'svelte-i18n';
 
     let {
+        queueId,
         songs
     }: {
+        queueId: string;
         songs: QueueQueue;
     } = $props();
 
     const sortedSongs = $derived(
         Object.entries(songs).sort(([_0, a], [_1, b]) => {
             if (a.likes != b.likes) {
-                return a.likes - b.likes;
+                return b.likes - a.likes;
             }
-            return dayjs(b.queued_at).diff(dayjs(a.queued_at));
+            return dayjs(a.queued_at).diff(dayjs(b.queued_at));
         })
     );
 </script>
@@ -23,9 +25,7 @@
 {#if sortedSongs.length > 0}
     <ol class="flex list-none flex-col gap-3">
         {#each sortedSongs as [id, song] (id)}
-            <li class="h-[99px] w-full">
-                <QueuedSongCard {song} />
-            </li>
+            <QueuedSongCard {queueId} {song} />
         {/each}
     </ol>
 {:else}
