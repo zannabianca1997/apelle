@@ -11,5 +11,8 @@ export default {
     },
     notifications: {
         timeout: 3000
+    },
+    search: {
+        page_size: 5
     }
 } as const;

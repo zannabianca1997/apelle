@@ -11,6 +11,9 @@
     import IconNextPage from '~icons/mdi/chevron-right';
     import IconPreviousPage from '~icons/mdi/chevron-left';
     import SearchedSongCard from './SearchedSongCard.svelte';
+    import config from '$lib/config';
+
+    const page_size = config.search.page_size;
 
     const {
         onSongChosen: onSongChosenInner,
@@ -35,7 +38,7 @@
     export async function searchFor(q: string): Promise<boolean> {
         searching = true;
         query = q;
-        songs = (await songsSearch({ q: query })).data;
+        songs = (await songsSearch({ q: query, page_size })).data;
         searching = false;
         return true;
     }
@@ -46,7 +49,7 @@
         }
 
         searching = true;
-        songs = (await songsSearch({ q: query, page })).data;
+        songs = (await songsSearch({ q: query, page, page_size })).data;
         searching = false;
     }
 

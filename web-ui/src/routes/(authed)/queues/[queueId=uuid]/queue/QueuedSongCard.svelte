@@ -20,14 +20,18 @@
         song: QueuedSong;
     } = $props();
 
-    $effect(() => {
-        if (!isString(song.song)) {
-            return;
-        }
-
-        songsGet(song.song, {
+    function fetchData(id: string) {
+        songsGet(id, {
             source_data: true
         }).then(({ data }) => (song.song = data));
+    }
+
+    $effect(() => {
+        if (isString(song.song)) {
+            fetchData(song.song);
+        } else if (isString(song.song.source_data)) {
+            fetchData(song.song.id);
+        }
     });
 
     const duration = $derived.by(() => {

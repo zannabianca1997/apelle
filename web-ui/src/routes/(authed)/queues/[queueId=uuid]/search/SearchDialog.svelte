@@ -72,11 +72,12 @@
 
         color: white;
 
-        position: fixed; 
+        position: fixed;
         top: 50%;
-        left: 50%; 
-        transform: translate(-50%, -50%); 
+        left: 50%;
+        transform: translate(-50%, -50%);
         margin: 0;
-        
+
+        padding: 10px;
     }
 </style>

@@ -2,6 +2,8 @@ import type { PaginatedSearchResponseItemCursorItemsItemDetails } from '$lib/api
 import { Logger } from '$lib/logger';
 import type { SearchResultDetails, SourcePlugin } from '../types';
 
+import ThumbnailElement from '$lib/components/Thumbnail.svelte';
+
 const logger = new Logger('lib.sources.youtube');
 
 interface Thumbnail {
@@ -60,5 +62,17 @@ export default {
             throw new Error(msg);
         }
         return details;
+    },
+
+    ThumbnailElement: ThumbnailElement,
+    thumbnailData(
+        details: PaginatedSearchResponseItemCursorItemsItemDetails
+    ): Thumbnail[] {
+        if (!isSearchItemDetails(details)) {
+            const msg = 'Invalid value returned from Youtube provider';
+            logger.error(msg, details);
+            throw new Error(msg);
+        }
+        return details.thumbnails;
     }
-} satisfies SourcePlugin;
+} satisfies SourcePlugin<Thumbnail[]>;

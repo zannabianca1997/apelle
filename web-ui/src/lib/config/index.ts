@@ -35,6 +35,14 @@ export interface Notifications {
 }
 
 /**
+ * Configuration for the search dialog
+ */
+export interface Search {
+    /** How many result for page */
+    page_size: number;
+}
+
+/**
  * Profile based configuration
  */
 export interface Config {
@@ -42,6 +50,7 @@ export interface Config {
     player: Player;
     auth: Auth;
     notifications: Notifications;
+    search: Search;
 }
 
 export const config = (
