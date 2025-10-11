@@ -77,11 +77,11 @@ async fn solve_song(
     client: ServicesClient,
     services: Arc<Services>,
     id: Uuid,
-    source_data: bool,
+    details: bool,
 ) -> Result<Song, GetError> {
     Ok(client
         .get(services.songs_url.join(&format!("solved/{id}")).unwrap())
-        .query(&SolvedQueryParams { source_data })
+        .query(&SolvedQueryParams { details })
         .send()
         .await?
         .error_for_status()?
@@ -107,7 +107,7 @@ pub async fn get(
     Query(GetQueryParams {
         config: return_config,
         songs: return_songs,
-        songs_source: return_songs_source,
+        details: return_details,
     }): Query<GetQueryParams>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<Json<Queue>, GetError> {
@@ -135,12 +135,7 @@ pub async fn get(
         .map_err(SqlError::from)?;
 
         let current_song = OptionFuture::from(Option::map(queue.current_song, |current: Uuid| {
-            solve_song(
-                current_client,
-                current_services,
-                current,
-                return_songs_source,
-            )
+            solve_song(current_client, current_services, current, return_details)
         }))
         .await
         .transpose()?;
@@ -240,7 +235,7 @@ pub async fn get(
                     let mut r = r?;
                     let (_, QueuedSong { song, .. }) = &mut r;
                     song.or_try_extract_inplace(|id| {
-                        solve_song(client, services, id, return_songs_source)
+                        solve_song(client, services, id, return_details)
                     })
                     .await?;
                     Ok::<_, GetError>(r)

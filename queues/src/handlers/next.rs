@@ -182,7 +182,7 @@ pub async fn next(
                                             .join(&format!("songs/{current_song}"))
                                             .unwrap(),
                                     )
-                                    .query(&SolvedQueryParams { source_data: false })
+                                    .query(&SolvedQueryParams { details: false })
                                     .send()
                                     .await?
                                     .error_for_status()?

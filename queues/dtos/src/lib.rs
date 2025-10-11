@@ -38,7 +38,7 @@ pub struct GetQueryParams {
     // For each song, return the source data in addition to the song data (like
     // thumbnails or public url)
     #[serde(default)]
-    pub songs_source: bool,
+    pub details: bool,
 }
 
 pub type PushSyncEventQueryParam = GetQueryParams;

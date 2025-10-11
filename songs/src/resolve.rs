@@ -247,6 +247,6 @@ pub async fn resolve(
     Ok(redirect(id, solved_params))
 }
 
-fn redirect(id: Uuid, SolvedQueryParams { source_data }: SolvedQueryParams) -> Redirect {
+fn redirect(id: Uuid, SolvedQueryParams { details: source_data }: SolvedQueryParams) -> Redirect {
     Redirect::to(&format!("solved/{id}?source_data={source_data}"))
 }

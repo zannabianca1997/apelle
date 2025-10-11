@@ -134,7 +134,7 @@ the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service
  */
-export type IdOrRepSongOneOfSourceDataAnyOf = { [key: string]: unknown };
+export type IdOrRepSongOneOfDetailsAnyOf = { [key: string]: unknown };
 
 /**
  * Additional data from the song source
@@ -144,24 +144,26 @@ the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service
  */
-export type IdOrRepSongOneOfSourceData = IdOrRepSongOneOfSourceDataAnyOf | null;
+export type IdOrRepSongOneOfDetails = IdOrRepSongOneOfDetailsAnyOf | null;
 
 export type IdOrRepSongOneOf = {
     /** User that first added the song */
     added_by?: IdOrRepSongOneOfAddedBy;
     /** When the song was added */
     created: string;
-    /** Duration of the song */
-    duration: string;
-    /** Unique id of the song */
-    id: string;
     /** Additional data from the song source
 
 These contains stuff like thumbnails,
 the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service */
-    source_data?: IdOrRepSongOneOfSourceData;
+    details?: IdOrRepSongOneOfDetails;
+    /** Duration of the song */
+    duration: string;
+    /** Unique id of the song */
+    id: string;
+    /** Source that provided this song */
+    source: string;
     /** Title of the song */
     title: string;
 };
@@ -268,12 +270,14 @@ export interface PaginatedSearchResponseItemCursor {
     page_info: PageInfoCursor;
 }
 
+export type PaginatedSourceItemsItemLastHeard = string | null;
+
 /**
  * Information about a source registered in the database
  */
 export type PaginatedSourceItemsItem = {
     created: string;
-    last_heard: string;
+    last_heard?: PaginatedSourceItemsItemLastHeard;
     name: string;
     urn: string;
 };
@@ -668,7 +672,7 @@ the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service
  */
-export type SongSourceDataAnyOf = { [key: string]: unknown };
+export type SongDetailsAnyOf = { [key: string]: unknown };
 
 /**
  * Additional data from the song source
@@ -678,34 +682,38 @@ the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service
  */
-export type SongSourceData = SongSourceDataAnyOf | null;
+export type SongDetails = SongDetailsAnyOf | null;
 
 export interface Song {
     /** User that first added the song */
     added_by?: SongAddedBy;
     /** When the song was added */
     created: string;
-    /** Duration of the song */
-    duration: string;
-    /** Unique id of the song */
-    id: string;
     /** Additional data from the song source
 
 These contains stuff like thumbnails,
 the artist, an url or any source specific
 data. They are provided on-demand
 as they require querying the source service */
-    source_data?: SongSourceData;
+    details?: SongDetails;
+    /** Duration of the song */
+    duration: string;
+    /** Unique id of the song */
+    id: string;
+    /** Source that provided this song */
+    source: string;
     /** Title of the song */
     title: string;
 }
+
+export type SourceLastHeard = string | null;
 
 /**
  * Information about a source registered in the database
  */
 export interface Source {
     created: string;
-    last_heard: string;
+    last_heard?: SourceLastHeard;
     name: string;
     urn: string;
 }
@@ -865,7 +873,7 @@ export type SongsGetParams = {
     /**
      * Include the data from the song source
      */
-    source_data?: boolean;
+    details?: boolean;
 };
 
 export type SongsListParams = {

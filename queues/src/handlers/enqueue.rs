@@ -97,7 +97,7 @@ pub struct EnqueueQueryParams {
     pub song: bool,
     /// Return also the source data for the song
     #[serde(default)]
-    pub song_source: bool,
+    pub details: bool,
 }
 
 #[derive(Debug, Deserialize, Clone, ToSchema)]
@@ -114,7 +114,7 @@ pub struct SearchResponseItem {
 /// endpoint. Additional fields will be ignored. If a `state: "New"` song is
 /// given, it will be solved even if already solved somewhere else.
 ///
-/// `song` and `song_source` will be reported to the songs service, and the
+/// `song` and `details` will be passed on to the songs service, and the
 /// returned value will be expanded accordingly.
 ///
 /// Trying to add a song that is already in the queue, or is the playing one
@@ -136,7 +136,7 @@ pub async fn enqueue(
     Query(EnqueueQueryParams {
         autolike,
         song: return_song,
-        song_source: return_song_source,
+        details: return_details,
     }): Query<EnqueueQueryParams>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
     Json(search_response): Json<SearchResponseItem>,
@@ -159,7 +159,7 @@ pub async fn enqueue(
             .json(&ResolveSongRequest { source, data }),
     }
     .query(&SolvedQueryParams {
-        source_data: return_song && return_song_source,
+        details: return_song && return_details,
     })
     .send()
     .await?

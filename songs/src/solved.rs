@@ -92,7 +92,7 @@ pub async fn get(
     State(seen_sources): State<SeenSourcesWorker>,
     client: ServicesClient,
     Path(id): Path<Uuid>,
-    Query(SolvedQueryParams { source_data }): Query<SolvedQueryParams>,
+    Query(SolvedQueryParams { details }): Query<SolvedQueryParams>,
 ) -> Result<(TypedHeader<CacheControl>, Json<Song>), Error> {
     tracing::debug!(%id, "Getting song data");
 
@@ -115,7 +115,7 @@ pub async fn get(
         .with_immutable()
         .with_max_age(std::time::Duration::from_secs(31536000));
 
-    let source_data = if source_data {
+    let details = if details {
         let provider = provider_for_urn(&mut cache, row.source_urn.as_str()).await?;
 
         let (response_cache, response) = client
@@ -142,7 +142,7 @@ pub async fn get(
         cache_control = response_cache;
 
         // Marking that we seen the source
-        seen_sources.seen_urn(row.source_urn).await;
+        seen_sources.seen_urn(row.source_urn.clone()).await;
 
         Some(response)
     } else {
@@ -157,7 +157,8 @@ pub async fn get(
             duration: Duration::seconds(row.duration as _),
             added_by: row.added_by,
             created: row.created.into(),
-            source_data,
+            source: row.source_urn,
+            details,
         }),
     ))
 }

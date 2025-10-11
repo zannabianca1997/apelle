@@ -21,6 +21,8 @@ pub struct Song {
     pub added_by: Option<Uuid>,
     /// When the song was added
     pub created: DateTime<FixedOffset>,
+    /// Source that provided this song
+    pub source: String,
     /// Additional data from the song source
     ///
     /// These contains stuff like thumbnails,
@@ -29,7 +31,7 @@ pub struct Song {
     /// as they require querying the source service
     #[serde(skip_serializing_if = "Option::is_none")]
     #[schema(value_type = Object, nullable, required = false)]
-    pub source_data: Option<Value>,
+    pub details: Option<Value>,
 }
 
 impl HasId for Song {
@@ -42,7 +44,7 @@ impl HasId for Song {
 pub struct SolvedQueryParams {
     #[serde(default = "default_true")]
     /// Include the data from the song source
-    pub source_data: bool,
+    pub details: bool,
 }
 
 fn default_true() -> bool {

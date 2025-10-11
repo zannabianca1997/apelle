@@ -156,7 +156,7 @@ impl StateMachine {
             .query(&PushSyncEventQueryParam {
                 config: true,
                 songs: true,
-                songs_source: true,
+                details: true,
             })
             .send()
             .await

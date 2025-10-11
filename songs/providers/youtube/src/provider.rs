@@ -23,6 +23,7 @@ const GOOGLE_API_KEY_HEADER: HeaderName = HeaderName::from_static("x-goog-api-ke
 #[derive(Debug, Serialize, Deserialize)]
 struct YoutubeSongData {
     video_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     etag: Option<String>,
     fetched: DateTime<FixedOffset>,
     thumbs: HashMap<String, Thumbnail>,
