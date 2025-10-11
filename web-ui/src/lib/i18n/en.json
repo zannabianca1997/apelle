@@ -6,6 +6,7 @@
       "progress": "{position} of {duration}"
     },
     "loading": "Loading...",
+    "notFound": "The queue {id} does not exist",
     "partyName": "Party name: ",
     "queue": {
       "empty": "Nothing yet...",
@@ -42,6 +43,9 @@
     "Check back later!",
     "Open me a MR!"
   ],
+  "comingSoon[__i18n_ally_root__][0]": "",
+  "comingSoon[__i18n_ally_root__][1]": "",
+  "comingSoon[__i18n_ally_root__][2]": "",
   "landing": {
     "choices": {
       "host": {

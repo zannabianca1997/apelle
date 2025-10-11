@@ -11,10 +11,15 @@
     import IconVotedMany from '~icons/mdi/chevron-triple-up';
     import IconMoveUp from '~icons/mdi/arrow-up';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
+    import { songThumbnailData } from '$lib/sources';
+    import { Logger } from '$lib/logger';
+    const logger = new Logger(
+        'routes.authed.queues.queueIdUuid.queue.QueuedSongCard'
+    );
 
     let {
         queueId,
-        song
+        song = $bindable()
     }: {
         queueId: string;
         song: QueuedSong;
@@ -22,14 +27,14 @@
 
     function fetchData(id: string) {
         songsGet(id, {
-            source_data: true
+            details: true
         }).then(({ data }) => (song.song = data));
     }
 
     $effect(() => {
         if (isString(song.song)) {
             fetchData(song.song);
-        } else if (isString(song.song.source_data)) {
+        } else if (isString(song.song.details)) {
             fetchData(song.song.id);
         }
     });
@@ -47,6 +52,19 @@
     function vote() {
         queuesLike(queueId, isString(song.song) ? song.song : song.song.id);
     }
+
+    const [Thumbnail, TData] = $derived.by(() => {
+        const songData = song.song;
+        if (isString(songData)) {
+            return [null, null];
+        }
+        const songDetails = songData.details;
+        if (!songDetails) {
+            return [null, null];
+        }
+
+        return songThumbnailData({ ...songData, details: songDetails });
+    });
 </script>
 
 {#snippet property(name: string, value: string)}
@@ -56,10 +74,10 @@
     </li>
 {/snippet}
 
-<li class="grid h-[99px] w-full grid-cols-[4rem_auto_175px] justify-stretch">
-    {#if !isString(song.song)}
-        <div></div>
-        <div class="flex flex-col justify-center overflow-hidden pr-4">
+<li class="grid h-[99px] w-full grid-cols-[99px_auto_175px] justify-stretch">
+    {#if song && !isString(song.song)}
+        <Thumbnail src={TData} class="place-self-center" />
+        <div class="flex flex-col justify-center overflow-hidden pl-4 pr-4">
             <MarqueeOnHover host="h3" class="text-lg font-semibold">
                 {song.song.title}
             </MarqueeOnHover>

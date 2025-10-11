@@ -4,9 +4,8 @@
         type SearchResponseItem
     } from '$lib/apis/apelle';
     import { _ } from 'svelte-i18n';
-    // import Thumbnail from '../Thumbnail.svelte';
     import IconAdd from '~icons/mdi/plus';
-    import { searchDetails, thumbnailData } from '$lib/sources';
+    import { searchDetails, searchThumbnailData } from '$lib/sources';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
 
     const {
@@ -18,12 +17,12 @@
     } = $props();
 
     const details = $derived(searchDetails(song));
-    const [Thumbnail, TData] = $derived(thumbnailData(song));
+    const [Thumbnail, TData] = $derived(searchThumbnailData(song));
 </script>
 
 <tr>
     <td class="h-[99px] w-[176px] bg-transparent p-2">
-        <Thumbnail srcs={TData} class="h-full w-full" />
+        <Thumbnail src={TData} class="h-full w-full" />
     </td>
     <MarqueeOnHover host="td" class="pl-[15px]">
         {details.title}

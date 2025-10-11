@@ -10,9 +10,9 @@
     }
 
     const {
-        srcs,
+        src: srcData,
         ...imgProps
-    }: { srcs: Thumbnail[] } & Omit<HTMLImgAttributes, 'src'> = $props();
+    }: { src: Thumbnail[] } & Omit<HTMLImgAttributes, 'src'> = $props();
 
     let clientHeight: number | null = $state(null);
     let clientWidth: number | null = $state(null);
@@ -24,7 +24,7 @@
 
         let min_dist = Number.POSITIVE_INFINITY;
         let best_url = null;
-        for (const thumb of srcs) {
+        for (const thumb of srcData) {
             const dist =
                 (thumb.height - clientHeight) ** 2 +
                 (thumb.width - clientWidth) ** 2;

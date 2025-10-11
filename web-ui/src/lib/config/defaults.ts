@@ -3,8 +3,7 @@ export default {
         allowedDesync: 2
     },
     log: {
-        '': 'none',
-        auth: 'warn'
+        '': 'none'
     },
     auth: {
         localStorageKey: 'apelleUser'

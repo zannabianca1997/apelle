@@ -6,7 +6,7 @@
 
     let {
         queueId,
-        songs
+        songs = $bindable()
     }: {
         queueId: string;
         songs: QueueQueue;
@@ -24,8 +24,8 @@
 
 {#if sortedSongs.length > 0}
     <ol class="flex list-none flex-col gap-3">
-        {#each sortedSongs as [id, song] (id)}
-            <QueuedSongCard {queueId} {song} />
+        {#each sortedSongs as [id, _], i (id)}
+            <QueuedSongCard {queueId} bind:song={songs[id]} />
         {/each}
     </ol>
 {:else}

@@ -6,11 +6,27 @@
     import QueueView from './queue/QueueView.svelte';
     import isString from '$lib/utils/isString';
     import { _ } from 'svelte-i18n';
+    import Connection from '$lib/queue.svelte';
+    import { goto } from '$app/navigation';
+    import { error } from '$lib/errors.svelte';
 
     const { data }: PageProps = $props();
+    const queueId = $derived(data.queueId);
+    const connection = $derived(new Connection(queueId, notFound));
 
-    const queueId = $derived(data.connection.queue?.id);
-    let queue: Queue | null = $derived(data.connection.queue);
+    let queue: Queue | null = $derived(connection.queue);
+
+    function notFound() {
+        error({
+            _tag: 'queueNotFound',
+            msg: $_('backoffice.notFound', {
+                values: {
+                    id: queueId
+                }
+            })
+        });
+        goto('/');
+    }
 
     const titleClasses =
         'text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]';
@@ -44,12 +60,12 @@
             <h1 class={titleClasses}>
                 {$_('backoffice.queue.title')}
             </h1>
-            <QueueView songs={queue.queue} queueId={queue.id} />
+            <QueueView bind:songs={queue.queue} queueId={queue.id} />
         </section>
     </main>
 
-    <aside>
-        {JSON.stringify(queue, undefined, 2)}
+    <aside class="w-full">
+        <pre>{JSON.stringify(queue, undefined, 2)}</pre>
     </aside>
 {:else}
     <h1>{$_('backoffice.loading')}</h1>

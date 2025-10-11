@@ -6,6 +6,7 @@
       "progress": ""
     },
     "loading": "",
+    "notFound": "",
     "partyName": "Nome party: ",
     "queue": {
       "empty": "Ancora vuota...",
