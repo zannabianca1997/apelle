@@ -12,21 +12,22 @@
         class?: ClassValue;
     } = $props();
 
-    let element: HTMLElement | null = $state(null);
-    let isOverflowing = $derived.by(() => {
-        if (!element) return false;
-        // Check if the scrollable width is greater than the visible width (horizontal overflow)
-        const overflowX = element.scrollWidth > element.offsetWidth;
-        // Check if the scrollable height is greater than the visible height (vertical overflow)
-        const overflowY = element.scrollHeight > element.offsetHeight;
+    let content: HTMLElement | null = $state(null);
 
-        return overflowX || overflowY;
+    let containerWidth = $state(0);
+
+    let isOverflowing = $derived.by(() => {
+        if (!content) return false;
+        // Check if the scrollable width is greater than the visible width (horizontal overflow)
+        const overflowX = content.scrollWidth > containerWidth;
+
+        return overflowX;
     });
 </script>
 
 <svelte:element
     this={host}
-    bind:this={element}
+    bind:offsetWidth={containerWidth}
     class={[
         'title-marquee',
         additionalClass,
@@ -35,7 +36,7 @@
         }
     ]}
 >
-    <span class="title-content">{@render children()}</span>
+    <span class="title-content" bind:this={content}>{@render children()}</span>
     {#if isOverflowing}
         <span class="title-content">{@render children()}</span>
     {/if}
