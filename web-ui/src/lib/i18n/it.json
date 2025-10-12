@@ -29,6 +29,10 @@
       "unknowPageNumber": "molte"
     },
     "song": {
+      "actions": {
+        "next": "Riproduci",
+        "remove": "Rimuovi"
+      },
       "duration": "Durata",
       "durationFormat": "HH:mm:ss",
       "likes": "Mi piace",

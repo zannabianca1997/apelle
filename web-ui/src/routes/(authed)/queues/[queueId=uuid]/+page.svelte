@@ -90,9 +90,9 @@
         </section>
     </main>
 
-    <aside class="w-full">
+    <!-- <aside class="w-full">
         <pre>{JSON.stringify(queue, undefined, 2)}</pre>
-    </aside>
+    </aside> -->
 {:else}
     <h1>{$_('backoffice.loading')}</h1>
 {/if}

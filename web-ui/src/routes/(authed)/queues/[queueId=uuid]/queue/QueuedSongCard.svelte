@@ -73,6 +73,26 @@
         });
     }
 
+    const actionsBar: {
+        permission: QueueUserAction;
+        label: string;
+        icon: Component<typeof iconsSizes>;
+        onclick: () => void;
+    }[] = [
+        {
+            permission: 'NEXT_SONG',
+            label: $_('backoffice.song.actions.next'),
+            icon: IconPlay,
+            onclick: next
+        },
+        {
+            permission: 'REMOVE_SONG',
+            label: $_('backoffice.song.actions.remove'),
+            icon: IconRemove,
+            onclick: next
+        }
+    ];
+
     const [Thumbnail, TData] = $derived.by(() => {
         const songData = song.song;
         if (isString(songData)) {
@@ -113,17 +133,30 @@
     </li>
 {/snippet}
 
-{#snippet actionButton(
-    aria_label: string,
-    onclick: () => void,
-    IconElement: Component<typeof iconsSizes>
-)}
+{#snippet actionButton({
+    label,
+    onclick,
+    icon: IconElement
+}: typeof actionsBar extends (infer R)[] ? R : never)}
     <button
-        aria-label={aria_label}
+        aria-label={label}
         {onclick}
-        class=" cursor-pointer rounded-lg border-0 shadow-lg transition-all hover:bg-[#2e7d37] focus:outline-none focus:ring-4 focus:ring-[#379B46]/50"
+        class={[
+            'cursor-pointer rounded-lg border-0 p-1 shadow-lg',
+            'transition-all hover:bg-[#2e7d37]',
+            'focus:outline-none focus:ring-4 focus:ring-[#379B46]/50',
+            'group relative'
+        ]}
     >
         <IconElement {...iconsSizes} />
+        <span
+            class={[
+                'absolute z-10 hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block',
+                'left-1/2 top-full mt-2 -translate-x-1/2 transform'
+            ]}
+        >
+            {label}
+        </span>
     </button>
 {/snippet}
 
@@ -178,16 +211,12 @@
                 </div>
             </div>
         {/if}
-        <div class="col-span-2 flex gap-2 p-2">
-            {#if permissions.includes('REMOVE_SONG')}
-                {@render actionButton('remove', remove, IconRemove)}
-            {/if}
-            {#if false && permissions.includes('BAN_SONG')}
-                {@render actionButton('ban', ban, IconBan)}
-            {/if}
-            {#if permissions.includes('NEXT_SONG')}
-                {@render actionButton('playNext', next, IconPlay)}
-            {/if}
+        <div class="col-span-2 flex gap-2">
+            {#each actionsBar as action}
+                {#if permissions.includes(action.permission)}
+                    {@render actionButton(action)}
+                {/if}
+            {/each}
         </div>
     {:else}
         <span>{$_('backoffice.song.loading')}</span>
