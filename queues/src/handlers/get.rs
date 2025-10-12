@@ -6,7 +6,7 @@ use apelle_common::{
     id_or_rep::IdOrRep,
 };
 use apelle_configs_dtos::{QueueConfig, QueueUserAction, QueueUserActionQueue};
-use apelle_queues_dtos::GetQueryParams;
+use apelle_queues_dtos::{GetQueryParams, QueueUserDto};
 use apelle_songs_dtos::public::{SolvedQueryParams, Song};
 use axum::{
     Extension, Json, debug_handler,
@@ -253,6 +253,16 @@ pub async fn get(
         code,
         current,
         player_state_id,
+        user: QueueUserDto {
+            auto_like: user.auto_like(),
+            likes: user.likes(),
+            role: config
+                .roles
+                .iter()
+                .find_map(|(name, role)| (role.id == user.role().id).then_some(name))
+                .unwrap()
+                .clone(),
+        },
         config: if return_config {
             IdOrRep::Rep((*config).clone())
         } else {

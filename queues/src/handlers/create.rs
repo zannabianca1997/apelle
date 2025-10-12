@@ -5,7 +5,7 @@ use apelle_common::{
 };
 use apelle_configs_dtos::QueueConfig;
 
-use apelle_queues_dtos::{Config, QueueCreate};
+use apelle_queues_dtos::{Config, QueueCreate, QueueUserDto};
 use axum::{
     Json, debug_handler,
     extract::{Query, State},
@@ -173,6 +173,11 @@ pub async fn create(
             current: None,
             code,
             player_state_id: inserted.player_state_id,
+            user: QueueUserDto {
+                auto_like: config.autolike,
+                likes: 0,
+                role: config.creator_role.clone(),
+            },
             config: if return_config {
                 IdOrRep::Rep(config)
             } else {

@@ -1,5 +1,10 @@
 <script lang="ts">
-    import type { Queue, SearchResponseItem } from '$lib/apis/apelle';
+    import {
+        configsGet,
+        type Queue,
+        type QueueUserAction,
+        type SearchResponseItem
+    } from '$lib/apis/apelle';
     import Search from './search/SearchSection.svelte';
     import type { PageProps } from './$types';
     import Player from './player/Player.svelte';
@@ -15,6 +20,21 @@
     const connection = $derived(new Connection(queueId, notFound));
 
     let queue: Queue | null = $derived(connection.queue);
+
+    // Fetch the queue config if it was not provided
+    $effect(() => {
+        if (!queue || !isString(queue.config)) {
+            return;
+        }
+
+        configsGet(queue.config).then(({ data }) => (queue.config = data));
+    });
+
+    const permissions: QueueUserAction[] = $derived(
+        queue && !isString(queue.config)
+            ? queue.config.roles[queue.user.role].permissions
+            : []
+    );
 
     function notFound() {
         error({
@@ -54,13 +74,19 @@
                 {$_('backoffice.partyName')}
                 <code class="text-white">{queue.code}</code>
             </h1>
-            <Search queueId={queue.id} />
+            {#if permissions.includes('ENQUEUE_SONG')}
+                <Search queueId={queue.id} />
+            {/if}
         </section>
         <section>
             <h1 class={titleClasses}>
                 {$_('backoffice.queue.title')}
             </h1>
-            <QueueView bind:songs={queue.queue} queueId={queue.id} />
+            <QueueView
+                bind:songs={queue.queue}
+                queueId={queue.id}
+                {permissions}
+            />
         </section>
     </main>
 

@@ -1,0 +1,1572 @@
+components:
+  schemas:
+    AddOperation:
+      description: JSON Patch 'add' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to add to the target location.
+      required:
+      - path
+      - value
+      type: object
+    Config:
+      oneOf:
+      - format: uuid
+        type: string
+      - $ref: '#/components/schemas/QueueConfigCreate'
+    CopyOperation:
+      description: JSON Patch 'copy' operation representation
+      properties:
+        from:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            to copy value from.'
+          type: string
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - from
+      - path
+      type: object
+    Current:
+      allOf:
+      - $ref: '#/components/schemas/TimeRef'
+      - properties:
+          song:
+            $ref: '#/components/schemas/IdOrRep_Song'
+        required:
+        - song
+        type: object
+    Cursor:
+      type: string
+    EventContent:
+      oneOf:
+      - description: The queue was deleted
+        properties:
+          kind:
+            enum:
+            - Deleted
+            type: string
+        required:
+        - kind
+        type: object
+      - description: A patch to apply to the queue data
+        properties:
+          kind:
+            enum:
+            - Patch
+            type: string
+          value:
+            $ref: '#/components/schemas/Patch'
+            description: A patch to apply to the queue data
+        required:
+        - value
+        - kind
+        type: object
+      - description: The entire value of the queue data
+        properties:
+          kind:
+            enum:
+            - Sync
+            type: string
+          value:
+            $ref: '#/components/schemas/SyncData'
+            description: The entire value of the queue data
+        required:
+        - value
+        - kind
+        type: object
+    IdOrRep_QueueConfig:
+      description: Either an id or a representation of a resource
+      oneOf:
+      - format: uuid
+        type: string
+      - properties:
+          autolike:
+            type: boolean
+          banned_role:
+            type: string
+          created:
+            format: date-time
+            type: string
+          creator_role:
+            type: string
+          default_role:
+            type: string
+          id:
+            format: uuid
+            type: string
+          roles:
+            additionalProperties:
+              $ref: '#/components/schemas/QueueUserRole'
+            propertyNames:
+              type: string
+            type: object
+          updated:
+            format: date-time
+            type: string
+        required:
+        - id
+        - creator_role
+        - default_role
+        - banned_role
+        - roles
+        - autolike
+        - created
+        - updated
+        type: object
+    IdOrRep_Song:
+      description: Either an id or a representation of a resource
+      oneOf:
+      - format: uuid
+        type: string
+      - properties:
+          added_by:
+            description: User that first added the song
+            format: uuid
+            type:
+            - string
+            - 'null'
+          created:
+            description: When the song was added
+            format: date-time
+            type: string
+          details:
+            description: 'Additional data from the song source
+
+
+              These contains stuff like thumbnails,
+
+              the artist, an url or any source specific
+
+              data. They are provided on-demand
+
+              as they require querying the source service'
+            type:
+            - object
+            - 'null'
+          duration:
+            description: Duration of the song
+            type: string
+          id:
+            description: Unique id of the song
+            format: uuid
+            type: string
+          source:
+            description: Source that provided this song
+            type: string
+          title:
+            description: Title of the song
+            type: string
+        required:
+        - id
+        - title
+        - duration
+        - created
+        - source
+        type: object
+    MoveOperation:
+      description: JSON Patch 'move' operation representation
+      properties:
+        from:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            to move value from.'
+          type: string
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - from
+      - path
+      type: object
+    PageInfo_Cursor:
+      description: Information about a page
+      properties:
+        first:
+          type: string
+        last:
+          type: string
+        next:
+          type: string
+        page:
+          type: string
+        prev:
+          type: string
+        size:
+          description: The size of the page
+          format: int32
+          minimum: 0
+          type: integer
+        total:
+          description: The total number of items
+          format: int32
+          minimum: 0
+          type:
+          - integer
+          - 'null'
+      required:
+      - size
+      - page
+      type: object
+    PageInfo_u32:
+      description: Information about a page
+      properties:
+        first:
+          format: int32
+          minimum: 0
+          type: integer
+        last:
+          format: int32
+          minimum: 0
+          type: integer
+        next:
+          format: int32
+          minimum: 0
+          type: integer
+        page:
+          format: int32
+          minimum: 0
+          type: integer
+        prev:
+          format: int32
+          minimum: 0
+          type: integer
+        size:
+          description: The size of the page
+          format: int32
+          minimum: 0
+          type: integer
+        total:
+          description: The total number of items
+          format: int32
+          minimum: 0
+          type:
+          - integer
+          - 'null'
+      required:
+      - size
+      - page
+      type: object
+    Paginated_SearchResponseItem_Cursor:
+      description: A page of results
+      properties:
+        items:
+          description: The items in the page
+          items:
+            properties:
+              details:
+                description: Data to pass the frontend describing the song
+                type: object
+              source:
+                description: Source that provided this search result
+                type: string
+              state:
+                $ref: '#/components/schemas/SearchResponseItemState_Value'
+                description: Data to pass the service to resolve the song
+            required:
+            - source
+            - details
+            - state
+            type: object
+          type: array
+        page_info:
+          $ref: '#/components/schemas/PageInfo_Cursor'
+          description: Information about the page
+      required:
+      - items
+      - page_info
+      type: object
+    Paginated_Source:
+      description: A page of results
+      properties:
+        items:
+          description: The items in the page
+          items:
+            description: Information about a source registered in the database
+            properties:
+              created:
+                format: date-time
+                type: string
+              last_heard:
+                format: date-time
+                type:
+                - string
+                - 'null'
+              name:
+                type: string
+              urn:
+                type: string
+            required:
+            - urn
+            - name
+            - created
+            type: object
+          type: array
+        page_info:
+          $ref: '#/components/schemas/PageInfo_u32'
+          description: Information about the page
+      required:
+      - items
+      - page_info
+      type: object
+    Patch:
+      description: Representation of JSON Patch (list of patch operations)
+      items:
+        $ref: '#/components/schemas/PatchOperation'
+      type: array
+    PatchOperation:
+      description: JSON Patch single patch operation
+      oneOf:
+      - allOf:
+        - $ref: '#/components/schemas/AddOperation'
+          description: '''add'' operation'
+        - properties:
+            op:
+              enum:
+              - add
+              type: string
+          required:
+          - op
+          type: object
+        description: '''add'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/RemoveOperation'
+          description: '''remove'' operation'
+        - properties:
+            op:
+              enum:
+              - remove
+              type: string
+          required:
+          - op
+          type: object
+        description: '''remove'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/ReplaceOperation'
+          description: '''replace'' operation'
+        - properties:
+            op:
+              enum:
+              - replace
+              type: string
+          required:
+          - op
+          type: object
+        description: '''replace'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/MoveOperation'
+          description: '''move'' operation'
+        - properties:
+            op:
+              enum:
+              - move
+              type: string
+          required:
+          - op
+          type: object
+        description: '''move'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/CopyOperation'
+          description: '''copy'' operation'
+        - properties:
+            op:
+              enum:
+              - copy
+              type: string
+          required:
+          - op
+          type: object
+        description: '''copy'' operation'
+      - allOf:
+        - $ref: '#/components/schemas/TestOperation'
+          description: '''test'' operation'
+        - properties:
+            op:
+              enum:
+              - test
+              type: string
+          required:
+          - op
+          type: object
+        description: '''test'' operation'
+    ProviderRegistration:
+      description: Register himself as a provider
+      properties:
+        fast_handshake:
+          description: 'Use fast handshake
+
+
+            This suggest to the `songs` service that the webhook is known to work
+
+            and that checks can be skipped'
+          type: boolean
+        source_urn:
+          description: URN of the source this provider can answer for
+          type: string
+        url:
+          description: Url where this provider is serving the provider API
+          format: uri
+          type: string
+      required:
+      - source_urn
+      - url
+      type: object
+    Queue:
+      properties:
+        code:
+          type: string
+        config:
+          $ref: '#/components/schemas/IdOrRep_QueueConfig'
+        created:
+          format: date-time
+          type: string
+        current:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Current'
+        id:
+          format: uuid
+          type: string
+        player_state_id:
+          format: uuid
+          type: string
+        queue:
+          additionalProperties:
+            $ref: '#/components/schemas/QueuedSong'
+          propertyNames:
+            format: uuid
+            type: string
+          type: object
+        updated:
+          format: date-time
+          type: string
+        user:
+          $ref: '#/components/schemas/QueueUserDto'
+      required:
+      - id
+      - code
+      - player_state_id
+      - config
+      - user
+      - queue
+      - created
+      - updated
+      type: object
+    QueueConfig:
+      properties:
+        autolike:
+          type: boolean
+        banned_role:
+          type: string
+        created:
+          format: date-time
+          type: string
+        creator_role:
+          type: string
+        default_role:
+          type: string
+        id:
+          format: uuid
+          type: string
+        roles:
+          additionalProperties:
+            $ref: '#/components/schemas/QueueUserRole'
+          propertyNames:
+            type: string
+          type: object
+        updated:
+          format: date-time
+          type: string
+      required:
+      - id
+      - creator_role
+      - default_role
+      - banned_role
+      - roles
+      - autolike
+      - created
+      - updated
+      type: object
+    QueueConfigCreate:
+      properties:
+        autolike:
+          type: boolean
+        banned_role:
+          type: string
+        creator_role:
+          type: string
+        default_role:
+          type: string
+        roles:
+          additionalProperties:
+            $ref: '#/components/schemas/QueueUserRoleCreate'
+          propertyNames:
+            type: string
+          type: object
+      required:
+      - creator_role
+      - default_role
+      - banned_role
+      - roles
+      type: object
+    QueueCreate:
+      properties:
+        code:
+          type:
+          - string
+          - 'null'
+        config:
+          $ref: '#/components/schemas/Config'
+      type: object
+    QueueUserAction:
+      description: An action a user makes on a queue
+      enum:
+      - GET_QUEUE
+      - DELETE_QUEUE
+      - CONFIGURE_QUEUE
+      - REMOVE_SONG
+      - BAN_SONG
+      - UNBAN_SONG
+      - ENQUEUE_SONG
+      - PLAY_SONG
+      - PAUSE_SONG
+      - NEXT_SONG
+      - AUTO_NEXT_SONG
+      - LIKE_SONG
+      - BAN_USER
+      - UNBAN_USER
+      - REMOVE_USER
+      type: string
+    QueueUserDto:
+      properties:
+        auto_like:
+          type: boolean
+        likes:
+          format: int32
+          minimum: 0
+          type: integer
+        role:
+          type: string
+      required:
+      - auto_like
+      - likes
+      - role
+      type: object
+    QueueUserRole:
+      properties:
+        can_grant:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        can_revoke:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        id:
+          format: uuid
+          type: string
+        max_likes:
+          format: int32
+          minimum: 0
+          type: integer
+        permissions:
+          items:
+            $ref: '#/components/schemas/QueueUserAction'
+          type: array
+          uniqueItems: true
+      required:
+      - id
+      - max_likes
+      - permissions
+      - can_grant
+      - can_revoke
+      type: object
+    QueueUserRoleCreate:
+      properties:
+        can_grant:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        can_revoke:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        max_likes:
+          format: int32
+          minimum: 0
+          type: integer
+        permissions:
+          items:
+            $ref: '#/components/schemas/QueueUserAction'
+          type: array
+          uniqueItems: true
+      required:
+      - max_likes
+      - permissions
+      - can_grant
+      - can_revoke
+      type: object
+    QueuedSong:
+      properties:
+        likes:
+          description: Number of likes this song has
+          format: int32
+          minimum: 0
+          type: integer
+        queued_at:
+          description: When the song was queued
+          format: date-time
+          type: string
+        song:
+          $ref: '#/components/schemas/IdOrRep_Song'
+          description: Song that was queued
+        user_likes:
+          description: Number of likes this song has by the current user
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - song
+      - queued_at
+      - likes
+      - user_likes
+      type: object
+    RemoveOperation:
+      description: JSON Patch 'remove' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+      required:
+      - path
+      type: object
+    ReplaceOperation:
+      description: JSON Patch 'replace' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to replace with.
+      required:
+      - path
+      - value
+      type: object
+    ResolveSongRequest:
+      properties:
+        data:
+          description: 'Data that the user used to define the song
+
+
+            e.g. the video id for youtube'
+          type: object
+        source:
+          description: URN of the song source
+          type: string
+      required:
+      - source
+      - data
+      type: object
+    SearchResponseItem:
+      properties:
+        source:
+          description: Source that provided this search result
+          type: string
+        state:
+          $ref: '#/components/schemas/SearchResponseItemState'
+          description: Data to pass the service to resolve the song
+      required:
+      - source
+      - state
+      type: object
+    SearchResponseItemState:
+      description: How to resolve this search item
+      oneOf:
+      - description: Need to be resolved
+        properties:
+          data:
+            type: object
+          state:
+            enum:
+            - New
+            type: string
+        required:
+        - data
+        - state
+        type: object
+      - description: Is a known song
+        properties:
+          id:
+            format: uuid
+            type: string
+          state:
+            enum:
+            - Known
+            type: string
+        required:
+        - id
+        - state
+        type: object
+    SearchResponseItemState_Value:
+      description: How to resolve this search item
+      oneOf:
+      - description: Need to be resolved
+        properties:
+          data:
+            type: object
+          state:
+            enum:
+            - New
+            type: string
+        required:
+        - data
+        - state
+        type: object
+      - description: Is a known song
+        properties:
+          id:
+            format: uuid
+            type: string
+          state:
+            enum:
+            - Known
+            type: string
+        required:
+        - id
+        - state
+        type: object
+    Song:
+      properties:
+        added_by:
+          description: User that first added the song
+          format: uuid
+          type:
+          - string
+          - 'null'
+        created:
+          description: When the song was added
+          format: date-time
+          type: string
+        details:
+          description: 'Additional data from the song source
+
+
+            These contains stuff like thumbnails,
+
+            the artist, an url or any source specific
+
+            data. They are provided on-demand
+
+            as they require querying the source service'
+          type:
+          - object
+          - 'null'
+        duration:
+          description: Duration of the song
+          type: string
+        id:
+          description: Unique id of the song
+          format: uuid
+          type: string
+        source:
+          description: Source that provided this song
+          type: string
+        title:
+          description: Title of the song
+          type: string
+      required:
+      - id
+      - title
+      - duration
+      - created
+      - source
+      type: object
+    Source:
+      description: Information about a source registered in the database
+      properties:
+        created:
+          format: date-time
+          type: string
+        last_heard:
+          format: date-time
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+        urn:
+          type: string
+      required:
+      - urn
+      - name
+      - created
+      type: object
+    SourceRegister:
+      description: 'Create a new source
+
+
+        This is sent from source providers to the songs service
+
+        to signal that a new source is available'
+      properties:
+        name:
+          type: string
+        urn:
+          type: string
+      required:
+      - urn
+      - name
+      type: object
+    SyncData:
+      $ref: '#/components/schemas/Queue'
+    TestOperation:
+      description: JSON Patch 'test' operation representation
+      properties:
+        path:
+          description: 'JSON-Pointer value [RFC6901](https://tools.ietf.org/html/rfc6901)
+            that references a location
+
+            within the target document where the operation is performed.'
+          type: string
+        value:
+          description: Value to test against.
+      required:
+      - path
+      - value
+      type: object
+    TimeRef:
+      oneOf:
+      - properties:
+          position:
+            type: string
+        required:
+        - position
+        type: object
+      - properties:
+          starts_at:
+            format: date-time
+            type: string
+        required:
+        - starts_at
+        type: object
+    UserCreateDto:
+      description: Data to create a new user
+      properties:
+        name:
+          description: Unique user name
+          type: string
+        password:
+          description: Password
+          type: string
+      required:
+      - name
+      - password
+      type: object
+    UserDto:
+      description: Data about a user
+      properties:
+        created:
+          description: When the user was created
+          format: date-time
+          type: string
+        id:
+          description: Identifier of the user
+          format: uuid
+          type: string
+        last_login:
+          description: When the user was last seen
+          format: date-time
+          type: string
+        name:
+          description: Unique user name
+          type: string
+        roles:
+          description: Roles of the user
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+        updated:
+          description: When the user was last updated
+          format: date-time
+          type: string
+      required:
+      - id
+      - name
+      - roles
+      - created
+      - updated
+      - last_login
+      type: object
+    UserUpdateDto:
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        password:
+          type:
+          - string
+          - 'null'
+      type: object
+info:
+  contact:
+    email: zannabianca199712@gmail.com
+    name: zannabianca1997
+  description: '> A communist music queue
+
+
+    `apelle` is a service for handling a shared music queue. Users can insert songs
+
+    in the queues, and upvote them to push them upward. `apelle` will track the
+
+    position of each song in the queue, and the position of the currently playing
+
+    song.
+
+
+    This is the documentation for the external API.
+
+    '
+  license:
+    identifier: MIT
+    name: MIT
+  summary: Apelle public API
+  title: Apelle API
+  version: 2.0.0-alpha
+openapi: 3.1.0
+paths:
+  /api/configs/queues/{id}:
+    get:
+      description: 'Queue configs are immutable. When a queue change its config, a
+        new config is
+
+        created instead of changing the old one. This makes the result of this call
+
+        cachable.'
+      operationId: configs_get
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueConfig'
+          description: Queue config
+        '404':
+          description: Queue not found
+        '500':
+          description: Internal server error
+      summary: Returns a queue config
+      tags:
+      - service-configs
+  /api/queues:
+    get:
+      operationId: queues_find
+      parameters:
+      - description: The code of the searched queue
+        in: query
+        name: code
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            text/json:
+              schema:
+                format: uuid
+                type: string
+          description: Queue found
+        '403':
+          description: User is not allowed to read the queue data
+        '404':
+          description: Queue not found
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+    post:
+      description: 'Create a new empty queue with the given code and config.
+
+
+        If the config is not provided, a the default config will be used.
+
+        If no code is provided, a random code will be generated.'
+      operationId: queues_create
+      parameters:
+      - description: 'Return the full queue config instead of just the UUID
+
+          Return the whole config instead of just the id'
+        in: query
+        name: config
+        required: false
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: 'null'
+              - $ref: '#/components/schemas/QueueCreate'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+          description: Queue created
+        '404':
+          description: Config not found
+        '500':
+          description: Internal server error
+        '502':
+          description: Failed to connect to config service
+      summary: Create a new queue
+      tags:
+      - service-queues
+  /api/queues/{queue_id}:
+    delete:
+      operationId: queues_delete
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Queue deleted
+        '403':
+          description: User is not allowed to delete the queue
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+    get:
+      operationId: queues_get
+      parameters:
+      - description: Return the full queue config instead of just the UUID
+        in: query
+        name: config
+        required: false
+        schema:
+          type: boolean
+      - description: Return the full song data instead of just the UUID
+        in: query
+        name: songs
+        required: false
+        schema:
+          type: boolean
+      - in: query
+        name: details
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Queue'
+          description: Queue created
+        '403':
+          description: User is not allowed to read the queue data
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/enqueue:
+    post:
+      description: 'You can plug an object from the `/search` endpoint straight into
+        this
+
+        endpoint. Additional fields will be ignored. If a `state: "New"` song is
+
+        given, it will be solved even if already solved somewhere else.
+
+
+        `song` and `details` will be passed on to the songs service, and the
+
+        returned value will be expanded accordingly.
+
+
+        Trying to add a song that is already in the queue, or is the playing one
+
+        will result in a `409 Conflict`.'
+      operationId: queues_enqueue
+      parameters:
+      - description: Override the default behavior of auto-liking
+        in: query
+        name: autolike
+        required: false
+        schema:
+          type:
+          - boolean
+          - 'null'
+      - description: Return the full song data instead of just the UUID
+        in: query
+        name: song
+        required: false
+        schema:
+          type: boolean
+      - description: Return also the source data for the song
+        in: query
+        name: details
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchResponseItem'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueuedSong'
+          description: Song enqueued
+        '403':
+          description: User is not allowed to enqueue songs
+        '409':
+          description: The song is already in the queue
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Add a song to the queue
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/events:
+    get:
+      operationId: queues_events
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/EventContent'
+          description: Queue events
+        '403':
+          description: User is not allowed to read the queue events
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/next:
+    post:
+      description: 'Changes the current song to another one, and set the new one as
+        playing.
+
+
+        If no song is given, the one on top of the queue will be used. If the queue
+
+        is empty or the given song is not in the queue, a `404 Not Found` error will
+
+        be returned.
+
+
+        This endpoint can be accessed through two possible channels. Either one has
+
+        the `QUEUE_NEXT` permission, or the `QUEUE_AUTO_NEXT` permission. The second
+
+        channel requires additional restrictions to be met:
+
+        - The current song must be null, or ended without stopping.
+
+        - The song cannot be specified, enabling only moving to the top song.
+
+
+        If a song is not specified, the `If-Match` header is required.'
+      operationId: queues_next
+      parameters:
+      - description: 'Force this call to be evaluated in the `auto-next` mode
+
+
+          If missing, the call will pass in the `auto-next` mode only if the
+
+          conditions for one to succeed are met'
+        in: query
+        name: auto
+        required: false
+        schema:
+          type:
+          - boolean
+          - 'null'
+      - description: Move to a particular song instead of the next in list
+        in: query
+        name: song
+        required: false
+        schema:
+          format: uuid
+          type:
+          - string
+          - 'null'
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Song changed
+        '403':
+          description: User is not allowed to enqueue songs
+        '404':
+          description: 'Song not found: either a id was given of a song that is no
+            in the queue, or the list is empty'
+        '409':
+          description: The song is already in the queue
+        '428':
+          description: 'A request that does not contain a `song` parameter must have
+            an `If-Match` header.
+
+
+            This is needed as `next` requests come in bulk when the song ends, and
+            we must refuse all but one.'
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Change the current song
+      tags:
+      - service-queues
+  /api/queues/{queue_id}/queue/{song_id}/like:
+    post:
+      operationId: queues_like
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: song_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          description: Song liked
+        '403':
+          description: User is not allowed to like songs
+        '500':
+          description: Internal server error
+      summary: Read the queue data
+      tags:
+      - service-queues
+  /api/songs/search:
+    get:
+      description: 'Search for songs based on a query. The query will be normalized
+        by
+
+        lowercasing it, removing all the non-alphanumeric characters, and
+
+        normalizing all spaces with a single space.
+
+
+        If songs from only one source is wanted, the `source` query parameter can
+        be
+
+        used. It can be repeated to generate an aggregated query. If omitted, all
+
+        available sources will be used.
+
+
+        The order of the songs from a single source is kept. Different sources are
+
+        randomly mixed, but in a way that depends only from the set of sources
+
+        choosen and the query.
+
+
+        The songs are paginated. The cursor is an opaque string. The duration of
+
+        validity of the cursor depends on the specific providers. In case it
+
+        expires, a `400 Bad Request` is returned.'
+      operationId: songs_search
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        schema:
+          type: string
+      - description: 'List of sources to search
+
+
+          Empty to use all sources'
+        in: query
+        name: source
+        required: false
+        schema:
+          items:
+            type: string
+          type: array
+          uniqueItems: true
+      - description: Maximum number of items per page
+        in: query
+        name: page_size
+        required: false
+        schema:
+          format: int32
+          minimum: 0
+          type: integer
+      - description: Requested page
+        in: query
+        name: page
+        required: false
+        schema:
+          oneOf:
+          - type: 'null'
+          - type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginated_SearchResponseItem_Cursor'
+          description: Search results
+        '400':
+          description: 'Bad page token: either invalid, not from this search, or expired'
+        '404':
+          description: One of the requested sources was not found
+        '500':
+          description: Internal Server Error
+        '502':
+          description: Error in connectiong to the providers
+      summary: Search for songs
+      tags:
+      - service-songs
+  /api/songs/solved/{id}:
+    get:
+      description: 'Get the data of a song that was previously resolved. If `source_data`
+        is set
+
+        to `true`, the data from the song source will be included (like thumbnails
+
+        and url).'
+      operationId: songs_get
+      parameters:
+      - description: Include the data from the song source
+        in: query
+        name: details
+        required: false
+        schema:
+          type: boolean
+      - in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+          description: Song data
+        '500':
+          description: Internal Server Error
+        '502':
+          description: Error returned from provider
+      summary: Get song data
+      tags:
+      - service-songs
+  /api/songs/sources:
+    get:
+      description: Get a paginated list of sources. The sources are alphabetically
+        ordered.
+      operationId: songs_list
+      parameters:
+      - description: Maximum number of items per page
+        in: query
+        name: page_size
+        required: false
+        schema:
+          format: int32
+          minimum: 0
+          type: integer
+      - description: Requested page
+        in: query
+        name: page
+        required: false
+        schema:
+          oneOf:
+          - type: 'null'
+          - format: int32
+            minimum: 0
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginated_Source'
+          description: List of sources
+        '500':
+          description: Internal server error
+      summary: List available sources
+      tags:
+      - service-songs
+  /api/users:
+    post:
+      description: 'Create a new user with the given name and password. No global
+        role is
+
+        assigned. Name must be unique, not empty, not containing trailing or leading
+
+        spaces and control characters. It must also fit in a http header.'
+      operationId: users_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateDto'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: User created
+        '400':
+          description: Invalid user name
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+      summary: Create a new user
+      tags:
+      - service-users
+  /api/users/me:
+    delete:
+      description: Delete the user the credentials used refer to.
+      operationId: users_delete
+      responses:
+        '204':
+          description: User deleted
+        '500':
+          description: Internal server error
+      summary: Delete current user
+      tags:
+      - service-users
+    get:
+      description: Get data about the user the credentials used refer to.
+      operationId: users_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: Data about the user
+        '500':
+          description: Internal server error
+      summary: Current user data
+      tags:
+      - service-users
+    patch:
+      description: 'Modify the datas about the user the credentials used refer to.
+
+
+        See the creation endpoint for the constraints.'
+      operationId: users_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateDto'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+          description: Patched data about the user
+        '400':
+          description: Invalid user name
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+      summary: Patch current user data
+      tags:
+      - service-users
+tags:
+- description: Endpoints served by the `configs` service
+  name: service-configs
+- description: Endpoints served by the `queues` service
+  name: service-queues
+- description: Endpoints served by the `songs` service
+  name: service-songs
+- description: Endpoints served by the `users` service
+  name: service-users
+

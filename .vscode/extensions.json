@@ -6,6 +6,7 @@
         "lokalise.i18n-ally",
         "mechatroner.rainbow-csv",
         "mads-hartmann.bash-ide-vscode",
-        "jq-syntax-highlighting.jq-syntax-highlighting"
+        "jq-syntax-highlighting.jq-syntax-highlighting",
+        "42crunch.vscode-openapi"
     ]
 }

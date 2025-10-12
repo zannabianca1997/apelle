@@ -42,3 +42,11 @@ pub struct GetQueryParams {
 }
 
 pub type PushSyncEventQueryParam = GetQueryParams;
+
+#[derive(Debug, Clone, Serialize, ToSchema)]
+#[cfg_attr(debug_assertions, derive(Deserialize))]
+pub struct QueueUserDto {
+    pub auto_like: bool,
+    pub likes: u16,
+    pub role: String,
+}

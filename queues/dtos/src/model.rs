@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use crate::QueueUserDto;
+
 #[derive(Debug, Clone, Serialize, ToSchema)]
 #[cfg_attr(debug_assertions, derive(Deserialize))]
 pub struct Queue {
@@ -19,6 +21,7 @@ pub struct Queue {
     pub current: Option<Current>,
 
     pub config: IdOrRep<QueueConfig>,
+    pub user: QueueUserDto,
 
     pub queue: HashMap<Uuid, QueuedSong>,
 

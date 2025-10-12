@@ -443,6 +443,7 @@ export interface Queue {
     player_state_id: string;
     queue: QueueQueue;
     updated: string;
+    user: QueueUserDto;
 }
 
 export type QueueConfigRoles = { [key: string]: QueueUserRole };
@@ -499,6 +500,13 @@ export const QueueUserAction = {
     UNBAN_USER: 'UNBAN_USER',
     REMOVE_USER: 'REMOVE_USER'
 } as const;
+
+export interface QueueUserDto {
+    auto_like: boolean;
+    /** @minimum 0 */
+    likes: number;
+    role: string;
+}
 
 export interface QueueUserRole {
     can_grant: string[];
@@ -815,7 +823,7 @@ export type QueuesGetParams = {
      * Return the full song data instead of just the UUID
      */
     songs?: boolean;
-    songs_source?: boolean;
+    details?: boolean;
 };
 
 export type QueuesEnqueueParams = {
@@ -830,7 +838,7 @@ export type QueuesEnqueueParams = {
     /**
      * Return also the source data for the song
      */
-    song_source?: boolean;
+    details?: boolean;
 };
 
 export type QueuesNextParams = {
@@ -961,7 +969,7 @@ export const queuesGet = <TData = AxiosResponse<Queue>>(
 endpoint. Additional fields will be ignored. If a `state: "New"` song is
 given, it will be solved even if already solved somewhere else.
 
-`song` and `song_source` will be reported to the songs service, and the
+`song` and `details` will be passed on to the songs service, and the
 returned value will be expanded accordingly.
 
 Trying to add a song that is already in the queue, or is the playing one
