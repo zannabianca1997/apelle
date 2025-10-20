@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Current, IdOrRepSongOneOf, TimeRef } from '$lib/apis/apelle';
     import { _ } from 'svelte-i18n';
-    import { dayjs, durationjs } from '$lib/time';
+    import { dayjs, durationjs, time } from '$lib/time';
     import { readable } from 'svelte/store';
 
     let {
@@ -10,24 +10,13 @@
         song: TimeRef & { song: IdOrRepSongOneOf };
     } = $props();
 
-    /**
-     * Current time, with a second precision
-     */
-    const time = readable(dayjs(), (set) => {
-        set(dayjs());
-
-        const interval = setInterval(() => {
-            set(dayjs());
-        }, 1000);
-
-        return () => clearInterval(interval);
-    });
-
     const stopped = $derived('position' in song);
-    const duration = $derived(dayjs.duration(song.song.duration));
+    const duration = $derived(
+        dayjs.duration(dayjs.duration(song.song.duration).asMilliseconds())
+    );
     const position = $derived(
         'position' in song
-            ? dayjs.duration(song.position)
+            ? dayjs.duration(dayjs.duration(song.position).asMilliseconds())
             : dayjs.duration($time.diff(dayjs(song.starts_at)))
     );
 </script>
