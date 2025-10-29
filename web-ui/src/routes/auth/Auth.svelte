@@ -13,13 +13,6 @@
 
     const logger = new Logger('routes.auth');
 
-    async function onsuccess() {
-        const originalUrl = page.url.searchParams.get('original') ?? '/';
-
-        logger.debug('Redirecting to original url', originalUrl);
-        await goto(originalUrl);
-    }
-
     let signinData: AxiosBasicCredentials = $state({
         username: '',
         password: ''
@@ -57,8 +50,6 @@
             });
             return;
         }
-
-        await onsuccess();
     }
 
     let signupData: UserCreateDto & { checkPassword: string } = $state({
@@ -112,8 +103,6 @@
             });
             return;
         }
-
-        await onsuccess();
     }
 
     export const snapshot: Snapshot<{
