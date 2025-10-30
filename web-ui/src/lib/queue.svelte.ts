@@ -6,7 +6,6 @@ import { applyPatch } from 'fast-json-patch';
 
 const logger = new Logger('lib.queue');
 
-
 export default class Connection {
     private readonly source: Source;
     public queue: Queue | null = $state(null);
@@ -15,23 +14,27 @@ export default class Connection {
         this.source = getSource(`/api/queues/${queueId}/events`, {
             options: {
                 method: 'GET',
-                headers: authService.headers,
+                headers: authService.headers
             },
             open() {
-                logger.info(`Successfully connected to queue ${queueId}`)
+                logger.info(`Successfully connected to queue ${queueId}`);
             },
             close(event: Event) {
-                if (event.isLocal || (event.status >= 200 && event.status < 300)) {
+                if (
+                    event.isLocal ||
+                    (event.status >= 200 && event.status < 300)
+                ) {
                     // Normal shutdown
-                    logger.info(`Disconnetting from queue ${queueId}`, event)
+                    logger.info(`Disconnetting from queue ${queueId}`, event);
                 }
-                logger.warn(`Unexpected closure from queue ${queueId}`, event)
+                logger.warn(`Unexpected closure from queue ${queueId}`, event);
                 switch (event.status) {
-                    case 404: notFound?.()
+                    case 404:
+                        notFound?.();
                 }
             },
             error(event: Event) {
-                logger.error(`Error from queue ${queueId}`, event)
+                logger.error(`Error from queue ${queueId}`, event);
             }
         });
 

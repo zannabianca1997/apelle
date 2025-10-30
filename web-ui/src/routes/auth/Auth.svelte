@@ -1,7 +1,5 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { goto } from '$app/navigation';
-    import { page } from '$app/state';
     import TextInput from '$lib/components/forms/TextInput.svelte';
     import { error } from '$lib/errors.svelte';
     import Form from './Form.svelte';

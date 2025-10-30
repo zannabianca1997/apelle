@@ -47,7 +47,7 @@ class AuthService {
      * present, the user is considered not authenticated.
      */
     public constructor() {
-        let stored = localStorage.getItem(localStorageKey);
+        const stored = localStorage.getItem(localStorageKey);
         this._userData = (
             stored ? JSON.parse(stored) : null
         ) satisfies UserData | null;

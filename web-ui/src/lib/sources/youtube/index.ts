@@ -1,4 +1,8 @@
-import type { PaginatedSearchResponseItemCursorItemsItemDetails, Song, SongDetailsAnyOf } from '$lib/apis/apelle';
+import type {
+    PaginatedSearchResponseItemCursorItemsItemDetails,
+    Song,
+    SongDetailsAnyOf
+} from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
 import type { SearchResultDetails, SourcePlugin } from '../types';
 
@@ -105,14 +109,12 @@ export default {
         }
         return details.thumbnails;
     },
-    songThumbnailData(
-        song: Song & { details: SongDetailsAnyOf }
-    ): Thumbnail[] {
+    songThumbnailData(song: Song & { details: SongDetailsAnyOf }): Thumbnail[] {
         if (!isYoutubeSongData(song.details)) {
             const msg = 'Invalid value returned from Youtube provider';
             logger.error(msg, song.details);
             throw new Error(msg);
         }
-        return Object.values(song.details.thumbs)
+        return Object.values(song.details.thumbs);
     }
 } satisfies SourcePlugin<Thumbnail[]>;

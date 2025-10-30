@@ -212,7 +212,7 @@
             </div>
         {/if}
         <div class="col-span-2 flex gap-2">
-            {#each actionsBar as action}
+            {#each actionsBar as action, i (i)}
                 {#if permissions.includes(action.permission)}
                     {@render actionButton(action)}
                 {/if}

@@ -90,12 +90,12 @@
 
 <header class="w-full">
     <h1
-        class="my-10 text-center text-5xl font-extrabold leading-[1.5] tracking-[0.01em]"
+        class="my-10 text-center text-5xl leading-[1.5] font-extrabold tracking-[0.01em]"
     >
         {$_('landing.title')}
     </h1>
     <h2
-        class="my-10 text-center text-3xl font-extrabold leading-[1.5] tracking-[0.01em] text-[#e18282]"
+        class="my-10 text-center text-3xl leading-[1.5] font-extrabold tracking-[0.01em] text-[#e18282]"
     >
         {$_('landing.subtitle')}
     </h2>
