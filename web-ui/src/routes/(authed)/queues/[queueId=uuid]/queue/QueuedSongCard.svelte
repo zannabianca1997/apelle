@@ -20,6 +20,8 @@
     import { songThumbnailData } from '$lib/sources';
     import { Logger } from '$lib/logger';
     import type { Component } from 'svelte';
+    import type { Action } from '../../../../../lib/components/ActionTab.svelte';
+    import ActionTab from '../../../../../lib/components/ActionTab.svelte';
     const logger = new Logger(
         'routes.authed.queues.queueIdUuid.queue.QueuedSongCard'
     );
@@ -73,22 +75,17 @@
         });
     }
 
-    const actionsBar: {
-        permission: QueueUserAction;
-        label: string;
-        icon: Component<typeof iconsSizes>;
-        onclick: () => void;
-    }[] = [
+    const actions: Action[] = [
         {
             permission: 'NEXT_SONG',
             label: $_('backoffice.song.actions.next'),
-            icon: IconPlay,
+            Icon: IconPlay,
             onclick: next
         },
         {
             permission: 'REMOVE_SONG',
             label: $_('backoffice.song.actions.remove'),
-            icon: IconRemove,
+            Icon: IconRemove,
             onclick: next
         }
     ];
@@ -106,12 +103,12 @@
         return songThumbnailData({ ...songData, details: songDetails });
     });
 
-    const iconsSizes = {
+    const iconsSize = {
         height: 24,
         width: 24
     };
 
-    const IconVoted: Component<typeof iconsSizes & { color: string }> | null =
+    const IconVoted: Component<typeof iconsSize & { color: string }> | null =
         $derived.by(() => {
             switch (song.user_likes) {
                 case 0:
@@ -131,33 +128,6 @@
         <em>{name}:</em>
         {value}
     </li>
-{/snippet}
-
-{#snippet actionButton({
-    label,
-    onclick,
-    icon: IconElement
-}: typeof actionsBar extends (infer R)[] ? R : never)}
-    <button
-        aria-label={label}
-        {onclick}
-        class={[
-            'cursor-pointer rounded-lg border-0 p-1 shadow-lg',
-            'transition-all hover:bg-[#2e7d37]',
-            'focus:outline-none focus:ring-4 focus:ring-[#379B46]/50',
-            'group relative'
-        ]}
-    >
-        <IconElement {...iconsSizes} />
-        <span
-            class={[
-                'absolute z-10 hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block',
-                'left-1/2 top-full mt-2 -translate-x-1/2 transform'
-            ]}
-        >
-            {label}
-        </span>
-    </button>
 {/snippet}
 
 <li
@@ -192,7 +162,7 @@
                     class="flex h-12 w-[175px] cursor-pointer items-center justify-center gap-[10px] rounded-lg border-0 bg-[#379B46] text-base font-medium leading-none tracking-normal text-white shadow-lg transition-all hover:bg-[#2e7d37] focus:outline-none focus:ring-4 focus:ring-[#379B46]/50"
                 >
                     {$_('backoffice.queue.like')}
-                    <IconMoveUp {...iconsSizes} />
+                    <IconMoveUp {...iconsSize} />
                 </button>
                 <div
                     class="flex h-6 items-center justify-end pt-3 text-base font-light leading-snug tracking-wide"
@@ -206,18 +176,12 @@
                             </em>
                             {$_('backoffice.queue.liked.post', { default: '' })}
                         </span>
-                        <IconVoted {...iconsSizes} color="#379b46" />
+                        <IconVoted {...iconsSize} color="#379b46" />
                     {/if}
                 </div>
             </div>
         {/if}
-        <div class="col-span-2 flex gap-2">
-            {#each actionsBar as action, i (i)}
-                {#if permissions.includes(action.permission)}
-                    {@render actionButton(action)}
-                {/if}
-            {/each}
-        </div>
+        <ActionTab {actions} class="col-span-2" {permissions} {iconsSize} />
     {:else}
         <span>{$_('backoffice.song.loading')}</span>
     {/if}

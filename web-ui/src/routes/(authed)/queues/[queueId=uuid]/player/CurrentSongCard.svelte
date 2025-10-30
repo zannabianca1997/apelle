@@ -10,14 +10,29 @@
     import TopbarControl from '$lib/components/topbar/TopbarControl.svelte';
     import TopBarToggle from '$lib/components/topbar/controls/TopBarToggle.svelte';
 
+    import IconPlay from '~icons/mdi/play';
+    import IconPause from '~icons/mdi/pause';
+
+    import type { ComponentProps } from 'svelte';
+    import ActionTab, { type Action } from '$lib/components/ActionTab.svelte';
+
     export interface PlayerProps {
         queueId: string;
         permissions: QueueUserAction[];
         playerStateId: string;
         song: TimeRef & { song: IdOrRepSongOneOf };
+        actionTabProps: Omit<ComponentProps<typeof ActionTab>, 'actions'>;
+        nextAction: Action;
     }
 
-    const { queueId, song, permissions, playerStateId }: PlayerProps = $props();
+    const {
+        queueId,
+        song,
+        permissions,
+        playerStateId,
+        actionTabProps,
+        nextAction
+    }: PlayerProps = $props();
 
     const canAutoNext = $state(permissions.includes('AUTO_NEXT_SONG'));
 
@@ -51,6 +66,21 @@
             }
         );
     });
+
+    const actions: Action[] = $derived([
+        stopped
+            ? {
+                  permission: 'PLAY_SONG',
+                  label: $_('backoffice.currentSong.actions.play'),
+                  Icon: IconPlay
+              }
+            : {
+                  permission: 'PAUSE_SONG',
+                  label: $_('backoffice.currentSong.actions.pause'),
+                  Icon: IconPause
+              },
+        nextAction
+    ]);
 </script>
 
 {#if canAutoNext}
@@ -61,7 +91,7 @@
     </TopbarControl>
 {/if}
 
-<div>
+<hgroup>
     <h1>{song.song.title}</h1>
     <span>
         {$_('backoffice.currentSong.progress', {
@@ -71,4 +101,6 @@
             }
         })}
     </span>
-</div>
+</hgroup>
+
+<ActionTab {actions} {...actionTabProps} />
