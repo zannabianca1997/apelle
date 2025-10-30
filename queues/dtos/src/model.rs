@@ -41,8 +41,13 @@ pub struct Current {
 #[cfg_attr(debug_assertions, derive(Deserialize))]
 #[serde(untagged)]
 enum TimeRef {
-    Relative { position: Duration },
-    Absolute { starts_at: DateTime<FixedOffset> },
+    Relative {
+        #[serde(with = "apelle_common::iso8601::duration")]
+        position: Duration,
+    },
+    Absolute {
+        starts_at: DateTime<FixedOffset>,
+    },
 }
 
 impl Current {

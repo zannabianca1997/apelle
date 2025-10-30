@@ -8,6 +8,7 @@ use axum::{
     extract::Path,
     response::{IntoResponse, NoContent},
 };
+use chrono::Duration;
 use reqwest::StatusCode;
 use snafu::Snafu;
 use tracing::instrument;
@@ -106,7 +107,8 @@ pub async fn pause(
     )
     .fetch_optional(&mut tx)
     .await
-    .map_err(SqlError::from)?;
+    .map_err(SqlError::from)?
+    .map(|x| Duration::seconds(x as _));
 
     let Some(new_song_position) = new_song_position else {
         let current_song = sqlx::query_scalar!("SELECT current_song FROM queue WHERE id = $1", id)
@@ -124,7 +126,7 @@ pub async fn pause(
     };
 
     PatchEventBuilder::queue(id)
-        .add("/current/position", new_song_position)
+        .add("/current/position", new_song_position.to_string())
         .remove("/current/starts_at")
         .build()
         .collect(&collector)

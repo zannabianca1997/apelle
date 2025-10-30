@@ -63,30 +63,22 @@
     function vote() {
         queuesLike(queueId, songId);
     }
-    function remove() {
-        // TODO
-    }
-    function ban() {
-        // TODO
-    }
-    function next() {
-        queuesNext(queueId, {
-            song: songId
-        });
-    }
 
     const actions: Action[] = [
         {
             permission: 'NEXT_SONG',
             label: $_('backoffice.song.actions.next'),
             Icon: IconPlay,
-            onclick: next
+            onclick() {
+                queuesNext(queueId, {
+                    song: songId
+                });
+            }
         },
         {
             permission: 'REMOVE_SONG',
             label: $_('backoffice.song.actions.remove'),
-            Icon: IconRemove,
-            onclick: next
+            Icon: IconRemove
         }
     ];
 

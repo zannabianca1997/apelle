@@ -47,7 +47,7 @@
             ? dayjs.duration(dayjs.duration(song.position).asMilliseconds())
             : dayjs.duration($time.diff(dayjs(song.starts_at)))
     );
-    const ended = $derived(!stopped && position > duration);
+    const ended = $derived(!stopped && position >= duration);
 
     let autoNext = $state(canAutoNext);
 
@@ -58,7 +58,15 @@
             return;
         }
 
-        nextAction.onclick?.();
+        queuesNext(
+            queueId,
+            { auto: true },
+            {
+                headers: {
+                    'If-Match': `"${playerStateId}"`
+                }
+            }
+        );
     });
 
     const actions = $derived([

@@ -41,7 +41,7 @@
         onclick() {
             queuesNext(
                 playerProps.queueId,
-                { auto: true },
+                { auto: false },
                 {
                     headers: {
                         'If-Match': `"${playerProps.playerStateId}"`
