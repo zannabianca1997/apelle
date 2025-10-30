@@ -179,7 +179,7 @@ pub async fn next(
                                     .get(
                                         services
                                             .songs_url
-                                            .join(&format!("songs/{current_song}"))
+                                            .join(&format!("solved/{current_song}"))
                                             .unwrap(),
                                     )
                                     .query(&SolvedQueryParams { details: false })
