@@ -34,7 +34,7 @@
         direction: 'col'
     };
 
-    const nextAction: Action = {
+    const nextAction = {
         permission: 'NEXT_SONG',
         label: $_('backoffice.currentSong.actions.next'),
         Icon: IconNext,
@@ -49,7 +49,7 @@
                 }
             );
         }
-    };
+    } satisfies Action;
 </script>
 
 {#if !song}

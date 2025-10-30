@@ -44,6 +44,8 @@ mod handlers {
     pub mod get;
     pub mod like;
     pub mod next;
+    pub mod pause;
+    pub mod play;
     pub mod push_sync_event;
 }
 use handlers::*;
@@ -160,6 +162,8 @@ pub async fn app(
                         .routes(routes!(events::events))
                         .routes(routes!(enqueue::enqueue))
                         .routes(routes!(next::next))
+                        .routes(routes!(play::play))
+                        .routes(routes!(pause::pause))
                         .nest(
                             "/queue/{song_id}",
                             OpenApiRouter::new().routes(routes!(like::like)),

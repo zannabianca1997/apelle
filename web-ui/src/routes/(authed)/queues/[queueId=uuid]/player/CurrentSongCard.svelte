@@ -1,6 +1,8 @@
 <script lang="ts">
     import {
         queuesNext,
+        queuesPause,
+        queuesPlay,
         QueueUserAction,
         type IdOrRepSongOneOf,
         type TimeRef
@@ -56,31 +58,29 @@
             return;
         }
 
-        queuesNext(
-            queueId,
-            { auto: true },
-            {
-                headers: {
-                    'If-Match': `"${playerStateId}"`
-                }
-            }
-        );
+        nextAction.onclick?.();
     });
 
-    const actions: Action[] = $derived([
+    const actions = $derived([
         stopped
             ? {
                   permission: 'PLAY_SONG',
                   label: $_('backoffice.currentSong.actions.play'),
-                  Icon: IconPlay
+                  Icon: IconPlay,
+                  onclick() {
+                      queuesPlay(queueId);
+                  }
               }
             : {
                   permission: 'PAUSE_SONG',
                   label: $_('backoffice.currentSong.actions.pause'),
-                  Icon: IconPause
+                  Icon: IconPause,
+                  onclick() {
+                      queuesPause(queueId);
+                  }
               },
         nextAction
-    ]);
+    ] satisfies Action[]);
 </script>
 
 {#if canAutoNext}

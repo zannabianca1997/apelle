@@ -52,7 +52,7 @@ export type Cursor = string;
 export type EventContentOneOfKind =
     (typeof EventContentOneOfKind)[keyof typeof EventContentOneOfKind];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfKind = {
     Deleted: 'Deleted'
 } as const;
@@ -67,7 +67,7 @@ export type EventContentOneOf = {
 export type EventContentOneOfThreeKind =
     (typeof EventContentOneOfThreeKind)[keyof typeof EventContentOneOfThreeKind];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfThreeKind = {
     Patch: 'Patch'
 } as const;
@@ -84,7 +84,7 @@ export type EventContentOneOfThree = {
 export type EventContentOneOfFiveKind =
     (typeof EventContentOneOfFiveKind)[keyof typeof EventContentOneOfFiveKind];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventContentOneOfFiveKind = {
     Sync: 'Sync'
 } as const;
@@ -300,7 +300,7 @@ export type Patch = PatchOperation[];
 export type PatchOperationOneOfAllOfOp =
     (typeof PatchOperationOneOfAllOfOp)[keyof typeof PatchOperationOneOfAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfAllOfOp = {
     add: 'add'
 } as const;
@@ -317,7 +317,7 @@ export type PatchOperationOneOf = AddOperation & PatchOperationOneOfAllOf;
 export type PatchOperationOneOfFourAllOfOp =
     (typeof PatchOperationOneOfFourAllOfOp)[keyof typeof PatchOperationOneOfFourAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfFourAllOfOp = {
     remove: 'remove'
 } as const;
@@ -335,7 +335,7 @@ export type PatchOperationOneOfFour = RemoveOperation &
 export type PatchOperationOneOfSevenAllOfOp =
     (typeof PatchOperationOneOfSevenAllOfOp)[keyof typeof PatchOperationOneOfSevenAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfSevenAllOfOp = {
     replace: 'replace'
 } as const;
@@ -353,7 +353,7 @@ export type PatchOperationOneOfSeven = ReplaceOperation &
 export type PatchOperationOneOfOnezeroAllOfOp =
     (typeof PatchOperationOneOfOnezeroAllOfOp)[keyof typeof PatchOperationOneOfOnezeroAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnezeroAllOfOp = {
     move: 'move'
 } as const;
@@ -371,7 +371,7 @@ export type PatchOperationOneOfOnezero = MoveOperation &
 export type PatchOperationOneOfOnethreeAllOfOp =
     (typeof PatchOperationOneOfOnethreeAllOfOp)[keyof typeof PatchOperationOneOfOnethreeAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnethreeAllOfOp = {
     copy: 'copy'
 } as const;
@@ -389,7 +389,7 @@ export type PatchOperationOneOfOnethree = CopyOperation &
 export type PatchOperationOneOfOnesixAllOfOp =
     (typeof PatchOperationOneOfOnesixAllOfOp)[keyof typeof PatchOperationOneOfOnesixAllOfOp];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PatchOperationOneOfOnesixAllOfOp = {
     test: 'test'
 } as const;
@@ -482,7 +482,7 @@ export interface QueueCreate {
 export type QueueUserAction =
     (typeof QueueUserAction)[keyof typeof QueueUserAction];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QueueUserAction = {
     GET_QUEUE: 'GET_QUEUE',
     DELETE_QUEUE: 'DELETE_QUEUE',
@@ -590,7 +590,7 @@ export type SearchResponseItemStateOneOfData = { [key: string]: unknown };
 export type SearchResponseItemStateOneOfState =
     (typeof SearchResponseItemStateOneOfState)[keyof typeof SearchResponseItemStateOneOfState];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateOneOfState = {
     New: 'New'
 } as const;
@@ -606,7 +606,7 @@ export type SearchResponseItemStateOneOf = {
 export type SearchResponseItemStateOneOfFourState =
     (typeof SearchResponseItemStateOneOfFourState)[keyof typeof SearchResponseItemStateOneOfFourState];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateOneOfFourState = {
     Known: 'Known'
 } as const;
@@ -631,7 +631,7 @@ export type SearchResponseItemStateValueOneOfData = { [key: string]: unknown };
 export type SearchResponseItemStateValueOneOfState =
     (typeof SearchResponseItemStateValueOneOfState)[keyof typeof SearchResponseItemStateValueOneOfState];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateValueOneOfState = {
     New: 'New'
 } as const;
@@ -647,7 +647,7 @@ export type SearchResponseItemStateValueOneOf = {
 export type SearchResponseItemStateValueOneOfFourState =
     (typeof SearchResponseItemStateValueOneOfFourState)[keyof typeof SearchResponseItemStateValueOneOfFourState];
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchResponseItemStateValueOneOfFourState = {
     Known: 'Known'
 } as const;
@@ -1026,6 +1026,30 @@ export const queuesNext = <TData = AxiosResponse<void>>(
 };
 
 /**
+ * This will pause the current song. If the song is already paused,
+this is a no-op.
+ * @summary Pause the current song
+ */
+export const queuesPause = <TData = AxiosResponse<void>>(
+    queueId: string,
+    options?: AxiosRequestConfig
+): Promise<TData> => {
+    return axios.post(`/api/queues/${queueId}/pause`, undefined, options);
+};
+
+/**
+ * This will start playing the current song. If the song is already playing,
+this is a no-op.
+ * @summary Start playing the current song
+ */
+export const queuesPlay = <TData = AxiosResponse<void>>(
+    queueId: string,
+    options?: AxiosRequestConfig
+): Promise<TData> => {
+    return axios.post(`/api/queues/${queueId}/play`, undefined, options);
+};
+
+/**
  * @summary Read the queue data
  */
 export const queuesLike = <TData = AxiosResponse<void>>(
@@ -1155,6 +1179,8 @@ export type QueuesGetResult = AxiosResponse<Queue>;
 export type QueuesEnqueueResult = AxiosResponse<QueuedSong>;
 export type QueuesEventsResult = AxiosResponse<EventContent>;
 export type QueuesNextResult = AxiosResponse<void>;
+export type QueuesPauseResult = AxiosResponse<void>;
+export type QueuesPlayResult = AxiosResponse<void>;
 export type QueuesLikeResult = AxiosResponse<void>;
 export type SongsSearchResult =
     AxiosResponse<PaginatedSearchResponseItemCursor>;

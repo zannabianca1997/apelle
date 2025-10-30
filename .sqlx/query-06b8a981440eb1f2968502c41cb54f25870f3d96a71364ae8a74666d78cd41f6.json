@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE queue\n        SET\n            current_song_start_at = NOW() - (current_song_position * INTERVAL '1 second'),\n            current_song_position = NULL\n        WHERE\n            id = $1\n            AND current_song_position IS NOT NULL\n        RETURNING\n            current_song_start_at as \"new_song_start_at!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "new_song_start_at!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "06b8a981440eb1f2968502c41cb54f25870f3d96a71364ae8a74666d78cd41f6"
+}
