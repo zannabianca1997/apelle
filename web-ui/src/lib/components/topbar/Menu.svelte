@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { controls } from './controls.svelte';
+    import TopBarButton from './controls/TopBarButton.svelte';
 
     let hovered: boolean = $state(false);
     let opened: boolean = $state(false);
@@ -12,19 +13,20 @@
     );
 </script>
 
-{#if menuControls.length > 0}<div
+{#if menuControls.length > 0}
+    <div
         class="relative flex h-full items-center justify-center"
         onmouseenter={() => (hovered = true)}
         onmouseleave={() => (hovered = false)}
         role="menu"
         tabindex="-1"
     >
-        <button onclick={() => (opened = !opened)}>
+        <TopBarButton onclick={() => (opened = !opened)}>
             {$_('navbar.dropdown')}
-        </button>
+        </TopBarButton>
         {#if hovered || opened}
             <menu
-                class="left absolute right-0 top-full flex flex-col gap-1 whitespace-nowrap border border-gray-50 bg-gray-600 p-2"
+                class="left absolute right-0 top-full flex flex-col gap-1 whitespace-nowrap border border-gray-50 bg-gray-600"
             >
                 {#each menuControls as [id, { children }] (id)}
                     <li>{@render children()}</li>

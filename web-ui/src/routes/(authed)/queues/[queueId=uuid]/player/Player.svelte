@@ -10,9 +10,11 @@
     import isString from '$lib/utils/isString';
 
     let {
-        song
+        song,
+        canAutoNext
     }: {
         song?: QueueCurrent;
+        canAutoNext: boolean;
     } = $props();
 
     function isLoaded(current: Current): current is TimeRef & {
@@ -29,5 +31,5 @@
             : $_('backoffice.currentSong.nothingPlaying')}
     </span>
 {:else}
-    <CurrentSongCard {song} />
+    <CurrentSongCard {song} {canAutoNext} />
 {/if}

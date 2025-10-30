@@ -51,7 +51,7 @@
     </Button>
     {#if active}
         <form
-            class="flex flex-grow-1 flex-wrap items-center justify-stretch gap-2"
+            class="flex-grow-1 flex flex-wrap items-center justify-stretch gap-2"
             {onsubmit}
         >
             {@render children()}

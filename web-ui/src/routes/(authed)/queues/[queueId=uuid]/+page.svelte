@@ -67,7 +67,10 @@
         <section
             class="flex h-[244px] w-full flex-row items-center justify-evenly gap-6 rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3"
         >
-            <Player song={queue.current} />
+            <Player
+                song={queue.current}
+                canAutoNext={permissions.includes('AUTO_NEXT_SONG')}
+            />
         </section>
         <section>
             <h1 class={titleClasses}>
