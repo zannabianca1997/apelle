@@ -8,8 +8,8 @@
 
     let menuControls = $derived(
         Object.entries(controls)
-            .filter(([_, c]) => c.location == 'menu')
-            .toSorted(([_0, a], [_1, b]) => b.order - a.order)
+            .filter(([, c]) => c.location == 'menu')
+            .toSorted(([, a], [, b]) => b.order - a.order)
     );
 </script>
 

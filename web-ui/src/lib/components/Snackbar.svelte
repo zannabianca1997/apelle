@@ -30,7 +30,7 @@
 </script>
 
 <aside class="center fixed bottom-4 flex flex-col-reverse gap-[5px]">
-    {#each notifications as notification, _ (notification.id)}
+    {#each notifications as notification (notification.id)}
         <div
             id="notification-{notification.id}"
             class="flex items-center justify-between rounded-md bg-red-500 p-4 text-white"

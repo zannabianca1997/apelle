@@ -1,14 +1,13 @@
 <script lang="ts">
     import ApelleIcon from '~icons/mdi/music-clef-treble';
 
-    import { _ } from 'svelte-i18n';
     import Menu from './Menu.svelte';
     import { controls } from './controls.svelte';
 
     let navControls = $derived(
         Object.entries(controls)
-            .filter(([_, c]) => c.location == 'nav')
-            .toSorted(([_0, a], [_1, b]) => b.order - a.order)
+            .filter(([, c]) => c.location == 'nav')
+            .toSorted(([, a], [, b]) => b.order - a.order)
     );
 </script>
 

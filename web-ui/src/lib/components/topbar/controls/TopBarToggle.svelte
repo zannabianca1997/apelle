@@ -2,7 +2,6 @@
     import type { Component, Snippet } from 'svelte';
     import IconOnDefault from '~icons/mdi/checkbox-marked-circle-outline';
     import IconOffDefault from '~icons/mdi/checkbox-blank-circle-outline';
-    import { _ } from 'svelte-i18n';
     import TopBarButton from './TopBarButton.svelte';
     import type { SVGAttributes } from 'svelte/elements';
 

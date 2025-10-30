@@ -15,7 +15,7 @@
     } = $props();
 
     const sortedSongs = $derived(
-        Object.entries(songs).sort(([_0, a], [_1, b]) => {
+        Object.entries(songs).sort(([, a], [, b]) => {
             if (a.likes != b.likes) {
                 return b.likes - a.likes;
             }
@@ -26,7 +26,7 @@
 
 {#if sortedSongs.length > 0}
     <ol class="flex list-none flex-col gap-3">
-        {#each sortedSongs as [id, _], i (id)}
+        {#each sortedSongs as [id] (id)}
             <QueuedSongCard {queueId} bind:song={songs[id]} {permissions} />
         {/each}
     </ol>

@@ -61,7 +61,7 @@
                     class={[
                         'cursor-pointer rounded-lg border-0 p-1 shadow-lg',
                         'transition-all hover:bg-[#2e7d37]',
-                        'focus:outline-none focus:ring-4 focus:ring-[#379B46]/50',
+                        'focus:ring-4 focus:ring-[#379B46]/50 focus:outline-none',
                         'group relative'
                     ]}
                 >
@@ -69,7 +69,7 @@
                     <span
                         class={[
                             'absolute z-10 hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block',
-                            'left-1/2 top-full mt-2 -translate-x-1/2 transform'
+                            'top-full left-1/2 mt-2 -translate-x-1/2 transform'
                         ]}
                     >
                         {label}

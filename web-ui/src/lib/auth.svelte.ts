@@ -15,7 +15,7 @@ const logger = new Logger('lib.auth');
 const localStorageKey = config.auth.localStorageKey;
 
 class BadCredentials {
-    _tag: 'badCredentials' = 'badCredentials';
+    readonly _tag = 'badCredentials';
     username: string;
 
     constructor(username: string) {
@@ -24,7 +24,7 @@ class BadCredentials {
 }
 
 class UserExists {
-    _tag: 'userExists' = 'userExists';
+    readonly _tag = 'userExists';
     username: string;
 
     constructor(username: string) {

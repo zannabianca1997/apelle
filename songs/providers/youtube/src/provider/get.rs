@@ -83,7 +83,7 @@ pub async fn get(
     .collect::<Result<_, _>>()?;
 
     Ok(Json(PublicSongData {
-        url: video_url(&youtube_api.public_url, &*video_id),
+        url: video_url(&youtube_api.public_url, &video_id),
         video_id,
         thumbs,
     }))

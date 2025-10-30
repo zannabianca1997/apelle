@@ -1,4 +1,3 @@
-import { browser } from '$app/environment';
 import { Logger } from '$lib/logger';
 import { init, register } from 'svelte-i18n';
 

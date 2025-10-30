@@ -361,8 +361,8 @@ pub async fn search(
     }
 
     let total = continuations
-        .iter()
-        .map(|(_, p)| p.page_info.total)
+        .values()
+        .map(|p| p.page_info.total)
         .reduce(|a, b| a.and_then(|a| b.map(|b| a.saturating_add(b))))
         .flatten();
 

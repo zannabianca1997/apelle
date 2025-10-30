@@ -18,6 +18,12 @@ pub struct Collector<const CAP: usize> {
     inner: Arc<Mutex<ArrayVec<Event, CAP>>>,
 }
 
+impl<const CAP: usize> Default for Collector<CAP> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const CAP: usize> Collector<CAP> {
     pub fn new() -> Self {
         Self {

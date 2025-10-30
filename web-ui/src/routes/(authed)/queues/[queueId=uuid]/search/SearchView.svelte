@@ -97,7 +97,7 @@
     {#if songs}
         <table class="w-full table-fixed">
             <tbody>
-                {#each songs.items as song}
+                {#each songs.items as song, i (i)}
                     <SearchedSongCard {song} {onSongChosen} />
                 {/each}
             </tbody>

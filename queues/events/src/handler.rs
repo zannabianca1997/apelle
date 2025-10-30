@@ -141,13 +141,13 @@ struct StateMachine {
 
 impl StateMachine {
     fn new(queues_url: Url, id: Uuid, client: ServicesClient, sync_timeout: Duration) -> Arc<Self> {
-        return Arc::new(Self {
+        Arc::new(Self {
             push_sync_event_endpoint: queues_url
                 .join(&format!("/queues/{}/push_sync_event", id))
                 .unwrap(),
             client,
             sync_timeout,
-        });
+        })
     }
 
     async fn ask_sync_event(self: Arc<Self>) -> Result<(), GetEventsError> {
@@ -188,7 +188,7 @@ impl StateMachine {
                 self.clone()
                     .ask_sync_event()
                     .map(|r| {
-                        if let Ok(_) = r {
+                        if r.is_ok() {
                             // Continue
                             Some(None)
                         } else {

@@ -129,7 +129,7 @@ params(EnqueueQueryParams, QueuePathParams)
 )]
 pub async fn enqueue(
     mut tx: SqlTx,
-    mut collector: Collector<5>,
+    collector: Collector<5>,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
@@ -261,7 +261,7 @@ pub async fn enqueue(
                 user_likes,
             )
             .build()
-            .collect(&mut collector)
+            .collect(&collector)
             .await;
     }
 

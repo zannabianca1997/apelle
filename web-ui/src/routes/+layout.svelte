@@ -21,7 +21,9 @@
         }),
 
         restore: ({ auth: authData }) => {
-            authData && auth?.snapshot.restore(authData);
+            if (authData) {
+                auth?.snapshot.restore(authData);
+            }
         }
     };
 </script>
