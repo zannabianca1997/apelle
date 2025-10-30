@@ -6,16 +6,15 @@
         TimeRef
     } from '$lib/apis/apelle';
     import { _ } from 'svelte-i18n';
-    import CurrentSongCard from './CurrentSongCard.svelte';
+    import CurrentSongCard, {
+        type PlayerProps
+    } from './CurrentSongCard.svelte';
     import isString from '$lib/utils/isString';
 
     let {
         song,
-        canAutoNext
-    }: {
-        song?: QueueCurrent;
-        canAutoNext: boolean;
-    } = $props();
+        ...playerProps
+    }: Omit<PlayerProps, 'song'> & { song?: QueueCurrent } = $props();
 
     function isLoaded(current: Current): current is TimeRef & {
         song: IdOrRepSongOneOf;
@@ -31,5 +30,5 @@
             : $_('backoffice.currentSong.nothingPlaying')}
     </span>
 {:else}
-    <CurrentSongCard {song} {canAutoNext} />
+    <CurrentSongCard {song} {...playerProps} />
 {/if}

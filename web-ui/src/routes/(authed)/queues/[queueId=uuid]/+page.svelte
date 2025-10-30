@@ -2,8 +2,7 @@
     import {
         configsGet,
         type Queue,
-        type QueueUserAction,
-        type SearchResponseItem
+        type QueueUserAction
     } from '$lib/apis/apelle';
     import Search from './search/SearchSection.svelte';
     import type { PageProps } from './$types';
@@ -69,7 +68,9 @@
         >
             <Player
                 song={queue.current}
-                canAutoNext={permissions.includes('AUTO_NEXT_SONG')}
+                {queueId}
+                {permissions}
+                playerStateId={queue.player_state_id}
             />
         </section>
         <section>
