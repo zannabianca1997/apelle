@@ -49,12 +49,15 @@ impl IntoResponses for PushSyncEventError {
     }
 }
 
-#[debug_handler(state=crate::App)]
-#[utoipa::path(post, path = "/push_sync_event", responses(PushSyncEventError))]
 /// Force a sync event to be sent to the event stream
 ///
-/// This will sent the entire state of the queue to the event stream,
+/// This will send the entire state of the queue to the event stream,
 /// ensuring the user has the correct state of the queue
+#[debug_handler(state=crate::App)]
+#[utoipa::path(post, path = "/push_sync_event", responses( 
+    (status = StatusCode::NO_CONTENT, description = "Sync event created"),
+    PushSyncEventError
+))]
 pub async fn push_sync_event(
     tx: SqlTx,
     collector: Collector<5>,

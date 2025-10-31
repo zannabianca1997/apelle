@@ -59,11 +59,15 @@ impl IntoResponses for LikeError {
     }
 }
 
-/// Read the queue data
+/// Like a song
+///
+/// Add one like to the like conunter of the song. If the user already reached
+/// the maximum number of likes, the oldest like given by that user will be
+/// deleted.
 #[debug_handler(state = crate::App)]
 #[utoipa::path(post, path = "/like",
 responses(
-    (status = StatusCode::OK, description = "Song liked"),
+    (status = StatusCode::NO_CONTENT, description = "Song liked"),
     LikeError
 ),
 params(QueuedSongPathParams)
