@@ -14,6 +14,7 @@
         actions,
         permissions,
         iconsSize: iconsSizeProps = 24,
+        direction_md,
         direction = 'row',
         class: clazz
     }: {
@@ -22,6 +23,7 @@
         iconsSize?:
             | ComponentProps<Action['Icon']>['height']
             | ComponentProps<Action['Icon']>;
+        direction_md?: 'col' | 'row';
         direction?: 'col' | 'row';
         class?: ClassValue;
     } = $props();
@@ -49,6 +51,8 @@
     <div
         class={[
             'flex gap-2',
+            direction_md &&
+                (direction_md == 'col' ? 'md:flex-col' : 'md:flex-row'),
             direction === 'col' ? 'flex-col' : 'flex-row',
             clazz
         ]}

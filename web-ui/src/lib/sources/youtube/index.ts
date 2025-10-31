@@ -5,30 +5,13 @@ import type {
 } from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
 import type { SearchResultDetails, SourcePlugin } from '../types';
-
 import ThumbnailElement from '$lib/components/Thumbnail.svelte';
+import type { YoutubeSearchItemDetails, YoutubeThumbnail, YoutubeSongData } from './types';
+import YoutubePlayer from './YoutubePlayer.svelte';
 
 const logger = new Logger('lib.sources.youtube');
 
-interface Thumbnail {
-    width: number;
-    height: number;
-    url: string;
-}
-
-interface SearchItemDetails {
-    title: string;
-    url: string;
-    thumbnails: Thumbnail[];
-}
-
-interface YoutubeSongData {
-    video_id: string;
-    url: string;
-    thumbs: Thumbnail[];
-}
-
-function isThumbnail(obj: unknown): obj is Thumbnail {
+function isThumbnail(obj: unknown): obj is YoutubeThumbnail {
     return (
         typeof obj === 'object' &&
         obj !== null &&
@@ -41,7 +24,7 @@ function isThumbnail(obj: unknown): obj is Thumbnail {
     );
 }
 
-function isSearchItemDetails(obj: unknown): obj is SearchItemDetails {
+function isSearchItemDetails(obj: unknown): obj is YoutubeSearchItemDetails {
     if (typeof obj !== 'object' || obj === null) {
         return false;
     }
@@ -90,6 +73,7 @@ function isYoutubeSongData(obj: unknown): obj is YoutubeSongData {
     return true;
 }
 
+
 export default {
     searchDetails(
         details: PaginatedSearchResponseItemCursorItemsItemDetails
@@ -105,7 +89,7 @@ export default {
     ThumbnailElement: ThumbnailElement,
     searchThumbnailData(
         details: PaginatedSearchResponseItemCursorItemsItemDetails
-    ): Thumbnail[] {
+    ): YoutubeThumbnail[] {
         if (!isSearchItemDetails(details)) {
             const msg = 'Invalid value returned from Youtube provider';
             logger.error(msg, details);
@@ -113,12 +97,14 @@ export default {
         }
         return details.thumbnails;
     },
-    songThumbnailData(song: Song & { details: SongDetailsAnyOf }): Thumbnail[] {
+    songThumbnailData(song: Song & { details: SongDetailsAnyOf }): YoutubeThumbnail[] {
         if (!isYoutubeSongData(song.details)) {
             const msg = 'Invalid value returned from Youtube provider';
             logger.error(msg, song.details);
             throw new Error(msg);
         }
         return Object.values(song.details.thumbs);
-    }
-} satisfies SourcePlugin<Thumbnail[]>;
+    },
+
+    PlayerElement: YoutubePlayer
+} satisfies SourcePlugin<YoutubeThumbnail[], YoutubeSongData>;

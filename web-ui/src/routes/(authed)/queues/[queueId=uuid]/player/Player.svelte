@@ -13,6 +13,7 @@
     import isString from '$lib/utils/isString';
     import ActionTab, { type Action } from '$lib/components/ActionTab.svelte';
     import IconNext from '~icons/mdi/skip-next';
+    import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
 
     const {
         song,
@@ -31,7 +32,8 @@
     const actionTabProps: PlayerProps['actionTabProps'] = {
         permissions,
         iconsSize: 48,
-        direction: 'col'
+        direction_md: 'col',
+        direction: 'row'
     };
 
     const nextAction = {
@@ -53,9 +55,9 @@
 </script>
 
 {#if !song}
-    <span>
+    <MarqueeOnHover host="span" class="shrink">
         {$_('backoffice.currentSong.nothingPlaying')}
-    </span>
+    </MarqueeOnHover>
     <ActionTab
         actions={[
             {
@@ -66,9 +68,9 @@
         {...actionTabProps}
     />
 {:else if !isLoaded(song)}
-    <span>
+    <MarqueeOnHover host="span" class="shrink">
         {$_('backoffice.currentSong.loading')}
-    </span>
+    </MarqueeOnHover>
 {:else}
     <CurrentSongCard
         {song}

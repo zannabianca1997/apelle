@@ -4,7 +4,9 @@ import type {
     SongDetailsAnyOf
 } from '$lib/apis/apelle';
 import { Logger } from '$lib/logger';
+import type { Component } from 'svelte';
 import type {
+    PlayerElement,
     SearchResultDetails,
     SourcePlugin,
     ThumbnailElement
@@ -13,18 +15,18 @@ import type {
 const logger = new Logger('lib.sources.api');
 
 type ThumbnailElementAndData<Plugin> =
-    Plugin extends SourcePlugin<infer TData>
-        ? [ThumbnailElement<TData>, TData]
-        : never;
+    Plugin extends SourcePlugin<infer TData, any>
+    ? [ThumbnailElement<TData>, TData]
+    : never;
 
-type GenericSourcePlugin = SourcePlugin<any>;
+type GenericSourcePlugin = SourcePlugin<any, any>;
 
 export default class Plugins<PluginIndex> {
     constructor(
         private readonly plugins: PluginIndex & {
             [key: string]: GenericSourcePlugin;
         }
-    ) {}
+    ) { }
 
     private plugin(source: string): GenericSourcePlugin {
         if (source in this.plugins) {
@@ -57,5 +59,12 @@ export default class Plugins<PluginIndex> {
     ): ThumbnailElementAndData<GenericSourcePlugin> {
         const plugin = this.plugin(song.source);
         return [plugin.ThumbnailElement, plugin.songThumbnailData(song)];
+    }
+
+    public playerElement(
+        song: Song & { details: SongDetailsAnyOf }
+    ): PlayerElement<any> {
+        const plugin = this.plugin(song.source);
+        return plugin.PlayerElement;
     }
 }

@@ -1,7 +1,9 @@
 import 'unplugin-icons/types/svelte';
 
 declare global {
-    namespace App {}
+    namespace App { }
+
+    function onYouTubeIframeAPIReady();
 }
 
-export {};
+export { };

@@ -45,11 +45,18 @@
     const duration = $derived(
         dayjs.duration(dayjs.duration(song.song.duration).asMilliseconds())
     );
-    const position = $derived(
-        'position' in song
-            ? dayjs.duration(dayjs.duration(song.position).asMilliseconds())
-            : dayjs.duration($time.diff(dayjs(song.starts_at)))
-    );
+    const position = $derived.by(() => {
+        if ('position' in song) {
+            return dayjs.duration(
+                dayjs.duration(song.position).asMilliseconds()
+            );
+        }
+        const elapsed = dayjs.duration($time.diff(dayjs(song.starts_at)));
+        if (elapsed > duration) {
+            return duration;
+        }
+        return elapsed;
+    });
     const ended = $derived(!stopped && position >= duration);
 
     let autoNext = $state(canAutoNext);
@@ -95,18 +102,29 @@
 
     let playFromHere = $state(false);
 
-    let [Thumbnail, tData] = $derived.by(() => {
+    const [Thumbnail, tData, Player, songWithDetails] = $derived.by(() => {
         const details = song.song.details;
         if (!details || typeof details === 'string') {
             songsGet(song.song.id, { details: true }).then(({ data }) => {
                 song.song = data;
             });
 
-            return [null, null];
+            return [null, null, null, null];
         }
 
-        return sources.songThumbnailData({ ...song.song, details });
+        const songWithDetails = { ...song.song, details };
+
+        return [
+            ...sources.songThumbnailData(songWithDetails),
+            sources.playerElement(songWithDetails),
+            songWithDetails
+        ];
     });
+
+    const playerOrThumbSize = {
+        width: '100%',
+        height: '100%'
+    };
 </script>
 
 {#if canAutoNext}
@@ -123,9 +141,23 @@
     </TopBarToggle>
 </TopbarControl>
 
-<Thumbnail src={tData} class="h-full" />
+<div
+    class="grow-0 min-h-[200px] min-w-[300px] flex justify-center items-center"
+>
+    {#if playFromHere && songWithDetails}
+        <Player
+            song={songWithDetails}
+            {...playerOrThumbSize}
+            {position}
+            {stopped}
+            volume={0.5}
+        />
+    {:else}
+        <Thumbnail src={tData} {...playerOrThumbSize} />
+    {/if}
+</div>
 
-<hgroup>
+<hgroup class="shrink overflow-auto">
     <MarqueeOnHover host="h1">{song.song.title}</MarqueeOnHover>
     <span>
         {$_('backoffice.currentSong.progress', {

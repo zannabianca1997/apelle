@@ -64,7 +64,7 @@
 {#if queue}
     <main class="flex w-4/5 flex-col gap-[57px]">
         <section
-            class="flex h-[244px] w-full flex-row items-center justify-evenly gap-6 rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3"
+            class="flex w-full flex-col items-center justify-evenly gap-6 rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3 md:flex-row"
         >
             <Player
                 song={queue.current}
