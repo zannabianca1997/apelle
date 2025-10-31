@@ -83,7 +83,7 @@ params(QueuePathParams)
 #[instrument(name = "pause", skip_all, fields(id = %id, user.id = %user.id()))]
 pub async fn pause(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<(Option<Changed>, NoContent), PauseError> {
@@ -133,7 +133,7 @@ pub async fn pause(
         .await;
 
     Ok((
-        Some(Changed::new(&mut tx, &collector, id).await?),
+        Some(Changed::change(&mut tx, &collector, id).await?),
         NoContent,
     ))
 }

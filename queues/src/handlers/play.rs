@@ -82,7 +82,7 @@ params(QueuePathParams)
 #[instrument(name = "play", skip_all, fields(id = %id, user.id = %user.id()))]
 pub async fn play(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<(Option<Changed>, NoContent), PlayError> {
@@ -132,7 +132,7 @@ pub async fn play(
         .await;
 
     Ok((
-        Some(Changed::new(&mut tx, &collector, id).await?),
+        Some(Changed::change(&mut tx, &collector, id).await?),
         NoContent,
     ))
 }

@@ -58,7 +58,7 @@ impl IntoResponses for DeleteError {
 )]
 pub async fn delete(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuePathParams { id }): Path<QueuePathParams>,
 ) -> Result<NoContent, DeleteError> {

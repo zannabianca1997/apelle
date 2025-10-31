@@ -185,9 +185,10 @@ pub struct Changed {
 }
 
 impl Changed {
-    pub async fn new(
+    /// Mark the queue as changed
+    pub async fn change(
         tx: &mut SqlTx,
-        collector: &Collector<5>,
+        collector: &Collector,
         queue_id: Uuid,
     ) -> Result<Self, SqlError> {
         let state = sqlx::query!(

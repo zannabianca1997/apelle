@@ -74,7 +74,7 @@ params(QueuedSongPathParams)
 )]
 pub async fn like(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     Extension(user): Extension<Arc<QueueUser>>,
     Path(QueuedSongPathParams { queue, song }): Path<QueuedSongPathParams>,
 ) -> Result<(Option<Changed>, NoContent), LikeError> {
@@ -181,7 +181,7 @@ pub async fn like(
     collector.collect(user_event.build()).await;
 
     Ok((
-        Some(Changed::new(&mut tx, &collector, queue).await?),
+        Some(Changed::change(&mut tx, &collector, queue).await?),
         NoContent,
     ))
 }

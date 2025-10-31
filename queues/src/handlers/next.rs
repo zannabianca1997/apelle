@@ -145,7 +145,7 @@ params(NextQueryParams, QueuePathParams)
 #[instrument(name = "next", skip_all, fields(id = %id, user.id = %user.id()))]
 pub async fn next(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
@@ -383,5 +383,5 @@ pub async fn next(
         .collect(&collector)
         .await;
 
-    Ok((Changed::new(&mut tx, &collector, id).await?, NoContent))
+    Ok((Changed::change(&mut tx, &collector, id).await?, NoContent))
 }

@@ -129,7 +129,7 @@ params(EnqueueQueryParams, QueuePathParams)
 )]
 pub async fn enqueue(
     mut tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,
@@ -266,7 +266,7 @@ pub async fn enqueue(
     }
 
     Ok((
-        Changed::new(&mut tx, &collector, id).await?,
+        Changed::change(&mut tx, &collector, id).await?,
         Json(queued_song),
     ))
 }

@@ -60,7 +60,7 @@ impl IntoResponses for PushSyncEventError {
 ))]
 pub async fn push_sync_event(
     tx: SqlTx,
-    collector: Collector<5>,
+    collector: Collector,
     client: ServicesClient,
     State(services): State<Arc<Services>>,
     Extension(user): Extension<Arc<QueueUser>>,

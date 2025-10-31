@@ -1,7 +1,6 @@
 use std::{mem, sync::Arc};
 
 use apelle_common::common_errors::PubSubError;
-use arrayvec::ArrayVec;
 use axum::{
     Extension,
     extract::{FromRequestParts, OptionalFromRequestParts, Request, State},
@@ -14,20 +13,20 @@ use tokio::sync::Mutex;
 use super::{Event, Publisher};
 
 #[derive(Debug, Clone)]
-pub struct Collector<const CAP: usize> {
-    inner: Arc<Mutex<ArrayVec<Event, CAP>>>,
+pub struct Collector {
+    inner: Arc<Mutex<Vec<Event>>>,
 }
 
-impl<const CAP: usize> Default for Collector<CAP> {
+impl Default for Collector {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<const CAP: usize> Collector<CAP> {
+impl Collector {
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(Mutex::new(ArrayVec::new())),
+            inner: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -55,12 +54,12 @@ impl<const CAP: usize> Collector<CAP> {
     }
 }
 
-pub async fn event_middleware<const CAP: usize>(
+pub async fn event_middleware(
     State(mut publisher): State<Publisher>,
     mut request: Request,
     next: Next,
 ) -> Result<Response, PubSubError> {
-    let collector = Collector::<CAP>::new();
+    let collector = Collector::new();
     request.extensions_mut().insert(collector.clone());
 
     // Run the next middleware
@@ -78,7 +77,7 @@ pub async fn event_middleware<const CAP: usize>(
     Ok(response)
 }
 
-impl<S, const CAP: usize> FromRequestParts<S> for Collector<CAP>
+impl<S> FromRequestParts<S> for Collector
 where
     S: Sync,
     Extension<Self>: FromRequestParts<S>,
@@ -93,7 +92,7 @@ where
     }
 }
 
-impl<S, const CAP: usize> OptionalFromRequestParts<S> for Collector<CAP>
+impl<S> OptionalFromRequestParts<S> for Collector
 where
     S: Sync,
     Extension<Self>: OptionalFromRequestParts<S>,
@@ -111,7 +110,7 @@ where
 }
 
 impl Event {
-    pub async fn collect(self, collector: &Collector<5>) -> () {
+    pub async fn collect(self, collector: &Collector) {
         collector.collect(self).await
     }
 }

@@ -141,7 +141,7 @@ pub async fn app(
         .layer(map_request_with_state(app.clone(), extract_queue_user));
 
     let common_middleware = tower::ServiceBuilder::new()
-        .layer(from_fn_with_state(app.clone(), event_middleware::<5>))
+        .layer(from_fn_with_state(app.clone(), event_middleware))
         .layer(tx_layer);
 
     Ok(OpenApiRouter::with_openapi(AppApi::openapi())
