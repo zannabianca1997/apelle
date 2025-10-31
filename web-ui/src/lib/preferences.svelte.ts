@@ -8,4 +8,4 @@ export const preferences: Preferences = $state({
     volume: 1.0,
     playFromHere: false,
     autoNext: true
-})
+});

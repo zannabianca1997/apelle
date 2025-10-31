@@ -16,8 +16,8 @@ const logger = new Logger('lib.sources.api');
 
 type ThumbnailElementAndData<Plugin> =
     Plugin extends SourcePlugin<infer TData, any>
-    ? [ThumbnailElement<TData>, TData]
-    : never;
+        ? [ThumbnailElement<TData>, TData]
+        : never;
 
 type GenericSourcePlugin = SourcePlugin<any, any>;
 
@@ -26,7 +26,7 @@ export default class Plugins<PluginIndex> {
         private readonly plugins: PluginIndex & {
             [key: string]: GenericSourcePlugin;
         }
-    ) { }
+    ) {}
 
     private plugin(source: string): GenericSourcePlugin {
         if (source in this.plugins) {

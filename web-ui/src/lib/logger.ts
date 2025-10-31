@@ -39,17 +39,16 @@ export class Logger {
 
         const wrap =
             (fn: (...args: any[]) => void) =>
-                (...args: any[]) => {
-                    fn(`[${name}]`, ...args);
-                };
+            (...args: any[]) => {
+                fn(`[${name}]`, ...args);
+            };
 
-        this.debug = shouldLog(level, 'debug') ? wrap(console.debug) : () => { };
-        this.info = shouldLog(level, 'info') ? wrap(console.info) : () => { };
-        this.warn = shouldLog(level, 'warn') ? wrap(console.warn) : () => { };
-        this.error = shouldLog(level, 'error') ? wrap(console.error) : () => { };
+        this.debug = shouldLog(level, 'debug') ? wrap(console.debug) : () => {};
+        this.info = shouldLog(level, 'info') ? wrap(console.info) : () => {};
+        this.warn = shouldLog(level, 'warn') ? wrap(console.warn) : () => {};
+        this.error = shouldLog(level, 'error') ? wrap(console.error) : () => {};
     }
 }
-
 
 logger = new Logger('lib.logger');
 logger.debug('Loaded rules:', rules);

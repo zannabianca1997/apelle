@@ -6,7 +6,11 @@ import type {
 import { Logger } from '$lib/logger';
 import type { SearchResultDetails, SourcePlugin } from '../types';
 import ThumbnailElement from '$lib/components/Thumbnail.svelte';
-import type { YoutubeSearchItemDetails, YoutubeThumbnail, YoutubeSongData } from './types';
+import type {
+    YoutubeSearchItemDetails,
+    YoutubeThumbnail,
+    YoutubeSongData
+} from './types';
 import YoutubePlayer from './YoutubePlayer.svelte';
 
 const logger = new Logger('lib.sources.youtube');
@@ -73,7 +77,6 @@ function isYoutubeSongData(obj: unknown): obj is YoutubeSongData {
     return true;
 }
 
-
 export default {
     searchDetails(
         details: PaginatedSearchResponseItemCursorItemsItemDetails
@@ -97,7 +100,9 @@ export default {
         }
         return details.thumbnails;
     },
-    songThumbnailData(song: Song & { details: SongDetailsAnyOf }): YoutubeThumbnail[] {
+    songThumbnailData(
+        song: Song & { details: SongDetailsAnyOf }
+    ): YoutubeThumbnail[] {
         if (!isYoutubeSongData(song.details)) {
             const msg = 'Invalid value returned from Youtube provider';
             logger.error(msg, song.details);

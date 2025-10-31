@@ -1,4 +1,3 @@
-
 export interface YoutubeThumbnail {
     width: number;
     height: number;

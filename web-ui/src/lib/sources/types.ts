@@ -19,18 +19,16 @@ export type ThumbnailElement<TData> = Component<
     { src: TData } & Omit<HTMLImgAttributes, 'src'>
 >;
 
-export type PlayerElement<SourceDetails> = Component<
-    {
-        song: Song & { details: SourceDetails },
-        height?: number | string,
-        width?: number | string,
-        position: durationjs.Duration,
-        /// if the song is stopped
-        stopped: boolean,
-        /// Volume, between 0 and 1
-        volume: number
-    }
->;
+export type PlayerElement<SourceDetails> = Component<{
+    song: Song & { details: SourceDetails };
+    height?: number | string;
+    width?: number | string;
+    position: durationjs.Duration;
+    /// if the song is stopped
+    stopped: boolean;
+    /// Volume, between 0 and 1
+    volume: number;
+}>;
 
 export interface SourcePlugin<TData, PDetails> {
     searchDetails(

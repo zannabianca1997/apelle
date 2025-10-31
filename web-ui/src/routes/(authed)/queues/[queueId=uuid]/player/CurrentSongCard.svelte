@@ -145,7 +145,7 @@
 </TopbarControl>
 
 <div
-    class="grow-0 min-h-[200px] min-w-[300px] flex justify-center items-center"
+    class="flex min-h-[200px] min-w-[300px] grow-0 items-center justify-center"
 >
     {#if preferences.playFromHere && songWithDetails}
         <Player
