@@ -4,6 +4,7 @@
         queuesPause,
         queuesPlay,
         QueueUserAction,
+        songsGet,
         type IdOrRepSongOneOf,
         type TimeRef
     } from '$lib/apis/apelle';
@@ -17,6 +18,8 @@
 
     import type { ComponentProps } from 'svelte';
     import ActionTab, { type Action } from '$lib/components/ActionTab.svelte';
+    import sources from '$lib/sources';
+    import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
 
     export interface PlayerProps {
         queueId: string;
@@ -36,7 +39,7 @@
         nextAction
     }: PlayerProps = $props();
 
-    const canAutoNext = $state(permissions.includes('AUTO_NEXT_SONG'));
+    const canAutoNext = permissions.includes('AUTO_NEXT_SONG');
 
     const stopped = $derived('position' in song);
     const duration = $derived(
@@ -89,6 +92,21 @@
               },
         nextAction
     ] satisfies Action[]);
+
+    let playFromHere = $state(false);
+
+    let [Thumbnail, tData] = $derived.by(() => {
+        const details = song.song.details;
+        if (!details || typeof details === 'string') {
+            songsGet(song.song.id, { details: true }).then(({ data }) => {
+                song.song = data;
+            });
+
+            return [null, null];
+        }
+
+        return sources.songThumbnailData({ ...song.song, details });
+    });
 </script>
 
 {#if canAutoNext}
@@ -99,8 +117,16 @@
     </TopbarControl>
 {/if}
 
+<TopbarControl location="menu" order={1}>
+    <TopBarToggle bind:value={playFromHere}>
+        {$_('navbar.playFromHere')}
+    </TopBarToggle>
+</TopbarControl>
+
+<Thumbnail src={tData} class="h-full" />
+
 <hgroup>
-    <h1>{song.song.title}</h1>
+    <MarqueeOnHover host="h1">{song.song.title}</MarqueeOnHover>
     <span>
         {$_('backoffice.currentSong.progress', {
             values: {

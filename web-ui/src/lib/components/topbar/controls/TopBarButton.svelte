@@ -14,10 +14,10 @@
 
 <button
     {...buttonAttributes}
-    class="flex w-full flex-row items-center justify-center gap-2 rounded px-2 py-1 font-semibold shadow-md transition duration-300 hover:bg-gray-800"
+    class="flex w-full flex-row-reverse items-center justify-between gap-2 rounded px-2 py-1 font-semibold shadow-md transition duration-300 hover:bg-gray-800"
 >
+    {@render children?.()}
     {#if Icon}
         <Icon width="24px" height="24px" />
     {/if}
-    {@render children?.()}
 </button>
