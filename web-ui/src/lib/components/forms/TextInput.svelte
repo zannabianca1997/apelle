@@ -14,6 +14,7 @@
         class?: ClassValue | null;
 
         onchange?: ChangeEventHandler<HTMLInputElement> | undefined | null;
+        noerror?: boolean;
     }
 
     type Props = CapturedProps &
@@ -25,6 +26,8 @@
 
         password = false,
         error: errorTxt = $bindable(null),
+
+        noerror = false,
 
         value = $bindable(),
 
@@ -62,13 +65,15 @@
         {onchange}
         {...inputAttributes}
     />
-    <div
-        class={[
-            'mt-auto h-[20px] w-full',
-            !!error &&
-                'rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500'
-        ]}
-    >
-        {error}
-    </div>
+    {#if !noerror}
+        <div
+            class={[
+                'mt-auto h-[20px] w-full',
+                !!error &&
+                    'rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500'
+            ]}
+        >
+            {error}
+        </div>
+    {/if}
 </div>

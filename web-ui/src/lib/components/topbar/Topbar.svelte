@@ -12,7 +12,7 @@
 </script>
 
 <header
-    class="from-backgroundtop to-backgroundbottom absolute top-0 flex w-full flex-row items-center justify-between border-b border-gray-300 bg-gradient-to-b p-3"
+    class="from-backgroundtop to-backgroundbottom absolute top-0 z-30 flex w-full flex-row items-center justify-between border-b border-gray-300 bg-gradient-to-b p-3"
 >
     <hgroup class="flex flex-row items-center">
         <ApelleIcon height="40" width="40" />

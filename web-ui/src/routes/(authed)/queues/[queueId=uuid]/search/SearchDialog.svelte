@@ -3,19 +3,21 @@
     import SearchView from './SearchView.svelte';
     import type { SearchResponseItem } from '$lib/apis/apelle';
 
-    const {
-        onSongChosen: onSongChosenInner
+    let {
+        onSongChosen: onSongChosenInner,
+        query = $bindable('')
     }: {
         onSongChosen?: (s: SearchResponseItem) => void;
+        query?: string;
     } = $props();
 
     let dialog: HTMLDialogElement;
 
     let searchView: SearchView;
 
-    export async function open(initialQuery: string) {
+    export function open() {
         dialog.show();
-        await searchView.searchFor(initialQuery);
+        searchView.search();
     }
 
     function onSongChosen(s: SearchResponseItem) {
@@ -56,7 +58,12 @@
 </script>
 
 <dialog bind:this={dialog}>
-    <SearchView bind:this={searchView} {onSongChosen} onDismiss={close} />
+    <SearchView
+        bind:this={searchView}
+        {onSongChosen}
+        onDismiss={close}
+        bind:query
+    />
 </dialog>
 
 <style lang="scss">
@@ -65,7 +72,6 @@
 
         display: flex;
         flex-direction: column;
-        gap: 39px;
 
         border-radius: 8px;
         background: #282828;
@@ -78,6 +84,10 @@
         transform: translate(-50%, -50%);
         margin: 0;
 
+        gap: 20px;
+
         padding: 10px;
+
+        z-index: 20;
     }
 </style>

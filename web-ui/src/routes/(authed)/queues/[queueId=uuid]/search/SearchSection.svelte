@@ -10,13 +10,13 @@
         queueId: string;
     } = $props();
 
-    let value = $state('');
+    let query = $state('');
     let dialog: SearchDialog;
 
     async function onsubmit(e: SubmitEvent) {
         e.preventDefault();
 
-        await dialog.open(value);
+        await dialog.open();
     }
 
     function onSongChosen(item: SearchResponseItem): void {
@@ -30,8 +30,9 @@
     <SearchBar
         label={$_('backoffice.search.label')}
         submitTxt={$_('backoffice.search.submit')}
-        bind:value
+        bind:value={query}
+        noerror
     />
 </form>
 
-<SearchDialog bind:this={dialog} {onSongChosen} />
+<SearchDialog bind:this={dialog} {onSongChosen} bind:query />

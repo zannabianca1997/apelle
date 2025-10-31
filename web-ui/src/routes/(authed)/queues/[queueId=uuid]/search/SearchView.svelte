@@ -15,15 +15,16 @@
 
     const page_size = config.search.page_size;
 
-    const {
+    let {
         onSongChosen: onSongChosenInner,
-        onDismiss: onDismissInner
+        onDismiss: onDismissInner,
+        query = $bindable('')
     }: {
         onSongChosen?: (s: SearchResponseItem) => void;
         onDismiss?: () => void;
+        query?: string;
     } = $props();
 
-    let query = $state('');
     let songs = $state.raw<PaginatedSearchResponseItemCursor | null>(null);
     let searching = $state(false);
 
@@ -35,9 +36,8 @@
      *
      * @param q The song to search for
      */
-    export async function searchFor(q: string): Promise<boolean> {
+    export async function search(): Promise<boolean> {
         searching = true;
-        query = q;
         songs = (await songsSearch({ q: query, page_size })).data;
         searching = false;
         return true;
@@ -76,32 +76,29 @@
     const onDismiss =
         onDismissInner &&
         (() => {
-            query = '';
-            songs = null;
             searching = false;
             onDismissInner();
         });
 </script>
 
 <section>
-    <form onsubmit={() => searchFor(query)}>
+    <form onsubmit={() => search()}>
         <SearchBar
             label={$_('backoffice.search.label')}
             submitTxt={$_('backoffice.search.submit')}
             bind:value={query}
+            noerror
         />
     </form>
 </section>
 
 <section>
     {#if songs}
-        <table class="w-full table-fixed">
-            <tbody>
-                {#each songs.items as song, i (i)}
-                    <SearchedSongCard {song} {onSongChosen} />
-                {/each}
-            </tbody>
-        </table>
+        <ol class="flex w-full flex-col gap-2">
+            {#each songs.items as song, i (i)}
+                <SearchedSongCard {song} {onSongChosen} />
+            {/each}
+        </ol>
     {/if}
 </section>
 

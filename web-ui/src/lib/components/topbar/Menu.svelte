@@ -26,7 +26,7 @@
         </TopBarButton>
         {#if hovered || opened}
             <menu
-                class="left absolute top-full right-0 flex flex-col gap-1 border border-gray-50 bg-gray-600 whitespace-nowrap"
+                class="left absolute top-full right-0 flex flex-col gap-1 rounded border border-gray-50 bg-gray-600 whitespace-nowrap"
             >
                 {#each menuControls as [id, { children }] (id)}
                     <li>{@render children()}</li>

@@ -76,9 +76,9 @@
 </svelte:head>
 
 {#if queue}
-    <main class="flex w-4/5 flex-col gap-[57px]">
+    <main class="flex max-w-[1000px] flex-col gap-[57px]">
         <section
-            class="flex w-full flex-col items-center justify-evenly gap-6 rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3 md:flex-row"
+            class="flex w-full flex-col items-center justify-between gap-6 overflow-hidden rounded-md bg-gradient-to-r from-[rgba(55,155,70,0.75)] to-[rgba(36,101,46,0.75)] p-3 md:flex-row"
         >
             <Player
                 song={queue.current}

@@ -11,7 +11,6 @@
     import isString from '$lib/utils/isString';
     import { _ } from 'svelte-i18n';
     import IconRemove from '~icons/mdi/delete-empty-outline';
-    import IconBan from '~icons/mdi/cancel';
     import IconPlay from '~icons/mdi/play';
     import IconVotedOnce from '~icons/mdi/chevron-up';
     import IconVotedTwice from '~icons/mdi/chevron-double-up';
@@ -19,13 +18,9 @@
     import IconMoveUp from '~icons/mdi/arrow-up';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
     import sources from '$lib/sources';
-    import { Logger } from '$lib/logger';
     import type { Component } from 'svelte';
-    import type { Action } from '../../../../../lib/components/ActionTab.svelte';
-    import ActionTab from '../../../../../lib/components/ActionTab.svelte';
-    const logger = new Logger(
-        'routes.authed.queues.queueIdUuid.queue.QueuedSongCard'
-    );
+    import type { Action } from '$lib/components/ActionTab.svelte';
+    import ActionTab from '$lib/components/ActionTab.svelte';
 
     const {
         queueId,

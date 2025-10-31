@@ -1,7 +1,11 @@
 <script lang="ts">
     import Button from '$lib/components/forms/Button.svelte';
     import { onMount, type Component, type Snippet } from 'svelte';
-    import type { HTMLFormAttributes, SVGAttributes } from 'svelte/elements';
+    import type {
+        ClassValue,
+        HTMLFormAttributes,
+        SVGAttributes
+    } from 'svelte/elements';
 
     interface Props extends Pick<HTMLFormAttributes, 'onsubmit'> {
         icon: Component<Pick<SVGAttributes<SVGSVGElement>, 'height' | 'width'>>;
@@ -10,6 +14,7 @@
         active?: boolean;
         children: Snippet;
         color: 'red' | 'blue';
+        class?: ClassValue;
     }
 
     const id = $props.id();
@@ -20,7 +25,8 @@
         active = false,
         children,
         color,
-        onsubmit
+        onsubmit,
+        class: clazz
     }: Props = $props();
 
     onMount(() => {
@@ -37,7 +43,8 @@
     class={[
         'flex flex-col gap-2 rounded-md',
         color === 'red' ? 'border-redpill' : 'border-bluepill',
-        active ? 'flex-grow-1 border-3 p-2' : 'p-0'
+        active ? 'grow border-3 p-2' : 'p-0',
+        clazz
     ]}
 >
     <Button

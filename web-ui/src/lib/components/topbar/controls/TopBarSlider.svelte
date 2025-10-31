@@ -1,7 +1,6 @@
 <script lang="ts">
-    import type { Component, Snippet } from 'svelte';
+    import type { Snippet } from 'svelte';
     import type { HTMLInputAttributes } from 'svelte/elements';
-    import { _ } from 'svelte-i18n';
 
     let {
         value = $bindable(0),

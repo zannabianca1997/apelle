@@ -100,13 +100,13 @@
         {$_('landing.subtitle')}
     </h2>
 </header>
-<main class="flex h-64 w-full items-stretch gap-10">
+<main class="flex w-full items-stretch justify-stretch gap-3">
     <img
         src={morpheus}
         alt={$_('landing.images.morpheus')}
-        class="h-64 rounded-md max-md:hidden"
+        class="h-full max-h-64 rounded-md max-md:hidden"
     />
-    <div class="flex w-[100%] flex-col gap-3">
+    <div class="flex grow flex-col gap-3">
         <Panel
             icon={IconCrown}
             title={$_('landing.choices.host.text')}

@@ -12,12 +12,14 @@
         icon?: Component<
             Pick<SVGAttributes<SVGSVGElement>, 'height' | 'width'>
         >;
+        tight?: boolean;
     }
 
     const {
         children,
         class: clazz,
         icon: Icon,
+        tight = false,
         ...buttonAttributes
     }: Props = $props();
 </script>
@@ -25,7 +27,9 @@
 <button
     {...buttonAttributes}
     class={[
-        'flex flex-row items-center justify-center gap-2 rounded-md border-2 p-3',
+        'flex flex-row items-center justify-center gap-2 rounded-md border-2 ',
+        tight ? 'p-1' : 'p-3',
+        'transition duration-300 ease-in-out hover:bg-gray-100/20 hover:shadow-md',
         clazz
     ]}
 >

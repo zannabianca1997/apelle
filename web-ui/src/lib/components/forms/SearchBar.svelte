@@ -1,36 +1,87 @@
 <script lang="ts">
-    import type { ComponentProps } from 'svelte';
+    import type {
+        ChangeEventHandler,
+        ClassValue,
+        HTMLInputAttributes
+    } from 'svelte/elements';
     import Button from './Button.svelte';
-    import TextInput from './TextInput.svelte';
 
-    interface Props
-        extends Pick<
-            ComponentProps<typeof TextInput>,
-            'label' | 'placeholder' | 'error' | 'value' | 'onchange' | 'oninput'
-        > {
+    interface CapturedProps {
+        label?: string | null;
+
+        password?: boolean;
+        error?: string | null;
+
+        class?: ClassValue | null;
+
+        onchange?: ChangeEventHandler<HTMLInputElement> | undefined | null;
+        noerror?: boolean;
+
         submitTxt: string;
     }
 
+    type Props = CapturedProps &
+        Omit<HTMLInputAttributes, keyof CapturedProps | 'type' | 'id'>;
+
+    const id = $props.id();
     let {
         label,
-        placeholder,
-        submitTxt,
-        error,
+
+        password = false,
+        error: errorTxt = $bindable(null),
+
+        noerror = false,
+
         value = $bindable(),
-        onchange,
-        oninput
+
+        onchange: onchangeInner,
+
+        class: clazz,
+
+        submitTxt,
+
+        ...inputAttributes
     }: Props = $props();
+
+    let dirty: boolean = $state(false);
+
+    function onchange(...args: Parameters<NonNullable<typeof onchangeInner>>) {
+        dirty = true;
+        onchangeInner?.(...args);
+    }
+
+    let error: string | null = $derived((dirty && errorTxt) || null);
 </script>
 
-<div class="flex w-full items-center gap-3">
-    <TextInput
-        {label}
-        {placeholder}
-        {error}
-        {onchange}
-        {oninput}
-        bind:value
-        class="alig flex-grow-1"
-    />
-    <Button>{submitTxt}</Button>
+<div class={['flex flex-col gap-1.5', clazz]}>
+    {#if label}
+        <label
+            for="input-{id}"
+            class="w-full text-base leading-[150%] font-light tracking-[1%]"
+        >
+            {label}
+        </label>
+    {/if}
+    <div class="flex gap-2">
+        <input
+            id="input-{id}"
+            type={password ? 'password' : 'text'}
+            class="w-full rounded-md border border-[#122a42] p-3 text-base leading-[150%] font-light tracking-[1%] text-black placeholder-[#122a4282]"
+            bind:value
+            {onchange}
+            {...inputAttributes}
+        />
+        <Button>{submitTxt}</Button>
+    </div>
+    {#if !noerror}
+        <div
+            class={[
+                'mt-auto h-[20px] w-full',
+                !!error &&
+                    'rounded-sm border border-red-500 text-center text-xs leading-[150%] font-light tracking-[1%] text-red-500'
+            ]}
+        >
+            {error}
+        </div>
+    {/if}
 </div>
