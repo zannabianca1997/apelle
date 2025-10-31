@@ -147,7 +147,7 @@
                 )}
                 {@render property(
                     $_('backoffice.song.likes'),
-                    song.user_likes.toString()
+                    song.likes.toString()
                 )}
             </ul>
         </div>
