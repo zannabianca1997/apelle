@@ -13,6 +13,9 @@
     import Connection from '$lib/queue.svelte';
     import { goto } from '$app/navigation';
     import { error } from '$lib/errors.svelte';
+    import type { Snapshot } from '@sveltejs/kit';
+    import type { Preferences } from '$lib/preferences.svelte';
+    import { preferences } from '$lib/preferences.svelte';
 
     const { data }: PageProps = $props();
     const queueId = $derived(data.queueId);
@@ -49,6 +52,17 @@
 
     const titleClasses =
         'text-[32px] font-black leading-[1.5] tracking-[.01em] text-[#379b46]';
+
+    export const snapshot: Snapshot<{ preferences: Preferences }> = {
+        capture() {
+            return { preferences };
+        },
+        restore(data) {
+            preferences.autoNext = data.preferences.autoNext;
+            preferences.playFromHere = data.preferences.playFromHere;
+            preferences.volume = data.preferences.volume;
+        }
+    };
 </script>
 
 <svelte:head>

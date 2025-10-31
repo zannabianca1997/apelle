@@ -20,6 +20,7 @@
     import ActionTab, { type Action } from '$lib/components/ActionTab.svelte';
     import sources from '$lib/sources';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
+    import { preferences } from '$lib/preferences.svelte';
 
     export interface PlayerProps {
         queueId: string;
@@ -59,12 +60,10 @@
     });
     const ended = $derived(!stopped && position >= duration);
 
-    let autoNext = $state(canAutoNext);
-
     // Restart the song when ended
     $effect(() => {
         // Can we autonext? and has the song ended?
-        if (!autoNext || !ended) {
+        if (!preferences.autoNext || !ended) {
             return;
         }
 
@@ -100,8 +99,6 @@
         nextAction
     ] satisfies Action[]);
 
-    let playFromHere = $state(false);
-
     const [Thumbnail, tData, Player, songWithDetails] = $derived.by(() => {
         const details = song.song.details;
         if (!details || typeof details === 'string') {
@@ -129,14 +126,14 @@
 
 {#if canAutoNext}
     <TopbarControl location="menu" order={0}>
-        <TopBarToggle bind:value={autoNext}>
+        <TopBarToggle bind:value={preferences.autoNext}>
             {$_('navbar.autoplay')}
         </TopBarToggle>
     </TopbarControl>
 {/if}
 
 <TopbarControl location="menu" order={1}>
-    <TopBarToggle bind:value={playFromHere}>
+    <TopBarToggle bind:value={preferences.playFromHere}>
         {$_('navbar.playFromHere')}
     </TopBarToggle>
 </TopbarControl>
@@ -144,13 +141,13 @@
 <div
     class="grow-0 min-h-[200px] min-w-[300px] flex justify-center items-center"
 >
-    {#if playFromHere && songWithDetails}
+    {#if preferences.playFromHere && songWithDetails}
         <Player
             song={songWithDetails}
             {...playerOrThumbSize}
             {position}
             {stopped}
-            volume={0.5}
+            volume={preferences.volume}
         />
     {:else}
         <Thumbnail src={tData} {...playerOrThumbSize} />
@@ -158,7 +155,9 @@
 </div>
 
 <hgroup class="shrink overflow-auto">
-    <MarqueeOnHover host="h1">{song.song.title}</MarqueeOnHover>
+    <MarqueeOnHover host="h1" class="pb-1 text-lg font-semibold">
+        {song.song.title}
+    </MarqueeOnHover>
     <span>
         {$_('backoffice.currentSong.progress', {
             values: {
