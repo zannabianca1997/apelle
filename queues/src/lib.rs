@@ -48,6 +48,7 @@ mod handlers {
     pub mod push_sync_event;
     pub mod queue {
         pub mod like;
+        pub mod next;
         pub mod remove;
     }
 }
@@ -170,6 +171,7 @@ pub async fn app(
                         .nest(
                             "/queue/{song_id}",
                             OpenApiRouter::new()
+                                .routes(routes!(queue::next::next_song))
                                 .routes(routes!(queue::remove::remove_song))
                                 .routes(routes!(queue::like::like_song)),
                         )

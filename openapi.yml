@@ -1403,6 +1403,50 @@ paths:
       summary: Like a song
       tags:
       - service-queues
+  /api/queues/{queue_id}/queue/{song_id}/next:
+    post:
+      description: 'Changes the current song to this song, and set it as playing
+
+
+        This endpoint need the `QUEUE_NEXT` permission.'
+      operationId: queues_next_song
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: song_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Song changed
+        '403':
+          description: User is not allowed to enqueue songs
+        '404':
+          description: 'Song not found: either a id was given of a song that is no
+            in the queue, or the list is empty'
+        '409':
+          description: The song is already in the queue
+        '428':
+          description: 'A request that does not contain a `song` parameter must have
+            an `If-Match` header.
+
+
+            This is needed as `next` requests come in bulk when the song ends, and
+            we must refuse all but one.'
+        '500':
+          description: Internal server error
+        '502':
+          description: Error returned from songs service
+      summary: Change the current song to this
+      tags:
+      - service-queues
   /api/songs/search:
     get:
       description: 'Search for songs based on a query. The query will be normalized

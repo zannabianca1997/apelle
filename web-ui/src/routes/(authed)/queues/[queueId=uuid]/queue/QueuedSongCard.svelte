@@ -1,7 +1,7 @@
 <script lang="ts">
     import {
         queuesLikeSong,
-        queuesNext,
+        queuesNextSong,
         queuesRemoveSong,
         QueueUserAction,
         songsGet,
@@ -71,9 +71,7 @@
             label: $_('backoffice.song.actions.next'),
             Icon: IconPlay,
             onclick() {
-                queuesNext(queueId, {
-                    song: songId
-                });
+                queuesNextSong(queueId, songId);
             }
         },
         {

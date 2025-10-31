@@ -52,6 +52,7 @@ export type Cursor = string;
 export type EventContentOneOfKind =
     (typeof EventContentOneOfKind)[keyof typeof EventContentOneOfKind];
 
+ 
 export const EventContentOneOfKind = {
     Deleted: 'Deleted'
 } as const;
@@ -66,6 +67,7 @@ export type EventContentOneOf = {
 export type EventContentOneOfThreeKind =
     (typeof EventContentOneOfThreeKind)[keyof typeof EventContentOneOfThreeKind];
 
+ 
 export const EventContentOneOfThreeKind = {
     Patch: 'Patch'
 } as const;
@@ -82,6 +84,7 @@ export type EventContentOneOfThree = {
 export type EventContentOneOfFiveKind =
     (typeof EventContentOneOfFiveKind)[keyof typeof EventContentOneOfFiveKind];
 
+ 
 export const EventContentOneOfFiveKind = {
     Sync: 'Sync'
 } as const;
@@ -297,6 +300,7 @@ export type Patch = PatchOperation[];
 export type PatchOperationOneOfAllOfOp =
     (typeof PatchOperationOneOfAllOfOp)[keyof typeof PatchOperationOneOfAllOfOp];
 
+ 
 export const PatchOperationOneOfAllOfOp = {
     add: 'add'
 } as const;
@@ -313,6 +317,7 @@ export type PatchOperationOneOf = AddOperation & PatchOperationOneOfAllOf;
 export type PatchOperationOneOfFourAllOfOp =
     (typeof PatchOperationOneOfFourAllOfOp)[keyof typeof PatchOperationOneOfFourAllOfOp];
 
+ 
 export const PatchOperationOneOfFourAllOfOp = {
     remove: 'remove'
 } as const;
@@ -330,6 +335,7 @@ export type PatchOperationOneOfFour = RemoveOperation &
 export type PatchOperationOneOfSevenAllOfOp =
     (typeof PatchOperationOneOfSevenAllOfOp)[keyof typeof PatchOperationOneOfSevenAllOfOp];
 
+ 
 export const PatchOperationOneOfSevenAllOfOp = {
     replace: 'replace'
 } as const;
@@ -347,6 +353,7 @@ export type PatchOperationOneOfSeven = ReplaceOperation &
 export type PatchOperationOneOfOnezeroAllOfOp =
     (typeof PatchOperationOneOfOnezeroAllOfOp)[keyof typeof PatchOperationOneOfOnezeroAllOfOp];
 
+ 
 export const PatchOperationOneOfOnezeroAllOfOp = {
     move: 'move'
 } as const;
@@ -364,6 +371,7 @@ export type PatchOperationOneOfOnezero = MoveOperation &
 export type PatchOperationOneOfOnethreeAllOfOp =
     (typeof PatchOperationOneOfOnethreeAllOfOp)[keyof typeof PatchOperationOneOfOnethreeAllOfOp];
 
+ 
 export const PatchOperationOneOfOnethreeAllOfOp = {
     copy: 'copy'
 } as const;
@@ -381,6 +389,7 @@ export type PatchOperationOneOfOnethree = CopyOperation &
 export type PatchOperationOneOfOnesixAllOfOp =
     (typeof PatchOperationOneOfOnesixAllOfOp)[keyof typeof PatchOperationOneOfOnesixAllOfOp];
 
+ 
 export const PatchOperationOneOfOnesixAllOfOp = {
     test: 'test'
 } as const;
@@ -473,6 +482,7 @@ export interface QueueCreate {
 export type QueueUserAction =
     (typeof QueueUserAction)[keyof typeof QueueUserAction];
 
+ 
 export const QueueUserAction = {
     GET_QUEUE: 'GET_QUEUE',
     DELETE_QUEUE: 'DELETE_QUEUE',
@@ -580,6 +590,7 @@ export type SearchResponseItemStateOneOfData = { [key: string]: unknown };
 export type SearchResponseItemStateOneOfState =
     (typeof SearchResponseItemStateOneOfState)[keyof typeof SearchResponseItemStateOneOfState];
 
+ 
 export const SearchResponseItemStateOneOfState = {
     New: 'New'
 } as const;
@@ -595,6 +606,7 @@ export type SearchResponseItemStateOneOf = {
 export type SearchResponseItemStateOneOfFourState =
     (typeof SearchResponseItemStateOneOfFourState)[keyof typeof SearchResponseItemStateOneOfFourState];
 
+ 
 export const SearchResponseItemStateOneOfFourState = {
     Known: 'Known'
 } as const;
@@ -619,6 +631,7 @@ export type SearchResponseItemStateValueOneOfData = { [key: string]: unknown };
 export type SearchResponseItemStateValueOneOfState =
     (typeof SearchResponseItemStateValueOneOfState)[keyof typeof SearchResponseItemStateValueOneOfState];
 
+ 
 export const SearchResponseItemStateValueOneOfState = {
     New: 'New'
 } as const;
@@ -634,6 +647,7 @@ export type SearchResponseItemStateValueOneOf = {
 export type SearchResponseItemStateValueOneOfFourState =
     (typeof SearchResponseItemStateValueOneOfFourState)[keyof typeof SearchResponseItemStateValueOneOfFourState];
 
+ 
 export const SearchResponseItemStateValueOneOfFourState = {
     Known: 'Known'
 } as const;
@@ -1069,6 +1083,24 @@ export const queuesLikeSong = <TData = AxiosResponse<void>>(
 };
 
 /**
+ * Changes the current song to this song, and set it as playing
+
+This endpoint need the `QUEUE_NEXT` permission.
+ * @summary Change the current song to this
+ */
+export const queuesNextSong = <TData = AxiosResponse<void>>(
+    queueId: string,
+    songId: string,
+    options?: AxiosRequestConfig
+): Promise<TData> => {
+    return axios.post(
+        `/api/queues/${queueId}/queue/${songId}/next`,
+        undefined,
+        options
+    );
+};
+
+/**
  * Search for songs based on a query. The query will be normalized by
 lowercasing it, removing all the non-alphanumeric characters, and
 normalizing all spaces with a single space.
@@ -1187,6 +1219,7 @@ export type QueuesPauseResult = AxiosResponse<void>;
 export type QueuesPlayResult = AxiosResponse<void>;
 export type QueuesRemoveSongResult = AxiosResponse<void>;
 export type QueuesLikeSongResult = AxiosResponse<void>;
+export type QueuesNextSongResult = AxiosResponse<void>;
 export type SongsSearchResult =
     AxiosResponse<PaginatedSearchResponseItemCursor>;
 export type SongsGetResult = AxiosResponse<Song>;
