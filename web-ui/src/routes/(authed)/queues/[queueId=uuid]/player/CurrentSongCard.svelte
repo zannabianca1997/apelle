@@ -21,6 +21,7 @@
     import sources from '$lib/sources';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
     import { preferences } from '$lib/preferences.svelte';
+    import TopBarSlider from '$lib/components/topbar/controls/TopBarSlider.svelte';
 
     export interface PlayerProps {
         queueId: string;
@@ -136,6 +137,11 @@
     <TopBarToggle bind:value={preferences.playFromHere}>
         {$_('navbar.playFromHere')}
     </TopBarToggle>
+</TopbarControl>
+<TopbarControl location="menu" order={1}>
+    <TopBarSlider bind:value={preferences.volume} max={1} min={0} step={0.1}>
+        {$_('navbar.volume')}
+    </TopBarSlider>
 </TopbarControl>
 
 <div
