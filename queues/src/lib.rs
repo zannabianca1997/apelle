@@ -47,6 +47,7 @@ mod handlers {
     pub mod pause;
     pub mod play;
     pub mod push_sync_event;
+    pub mod remove_song;
 }
 use handlers::*;
 
@@ -166,7 +167,9 @@ pub async fn app(
                         .routes(routes!(pause::pause))
                         .nest(
                             "/queue/{song_id}",
-                            OpenApiRouter::new().routes(routes!(like::like)),
+                            OpenApiRouter::new()
+                                .routes(routes!(remove_song::remove_song))
+                                .routes(routes!(like::like)),
                         )
                         .route_layer(queue_middleware),
                 ),

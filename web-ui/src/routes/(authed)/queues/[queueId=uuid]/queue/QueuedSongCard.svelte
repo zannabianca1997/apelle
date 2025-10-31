@@ -2,6 +2,7 @@
     import {
         queuesLike,
         queuesNext,
+        queuesRemoveSong,
         QueueUserAction,
         songsGet,
         type QueuedSong
@@ -78,7 +79,10 @@
         {
             permission: 'REMOVE_SONG',
             label: $_('backoffice.song.actions.remove'),
-            Icon: IconRemove
+            Icon: IconRemove,
+            onclick() {
+                queuesRemoveSong(queueId, songId);
+            }
         }
     ];
 
@@ -132,7 +136,7 @@
 >
     {#if song && !isString(song.song)}
         <Thumbnail src={TData} class="place-self-center" />
-        <div class=" overflow-y-hidden pr-4 pl-4">
+        <div class=" overflow-y-hidden pl-4 pr-4">
             <MarqueeOnHover host="h3" class="pb-1 text-lg font-semibold">
                 {song.song.title}
             </MarqueeOnHover>
@@ -151,18 +155,18 @@
             <div class="row-span-2 flex flex-col items-center justify-evenly">
                 <button
                     onclick={vote}
-                    class="flex h-12 w-[175px] cursor-pointer items-center justify-center gap-[10px] rounded-lg border-0 bg-[#379B46] text-base leading-none font-medium tracking-normal text-white shadow-lg transition-all hover:bg-[#2e7d37] focus:ring-4 focus:ring-[#379B46]/50 focus:outline-none"
+                    class="flex h-12 w-[175px] cursor-pointer items-center justify-center gap-[10px] rounded-lg border-0 bg-[#379B46] text-base font-medium leading-none tracking-normal text-white shadow-lg transition-all hover:bg-[#2e7d37] focus:outline-none focus:ring-4 focus:ring-[#379B46]/50"
                 >
                     {$_('backoffice.queue.like')}
                     <IconMoveUp {...iconsSize} />
                 </button>
                 <div
-                    class="flex h-6 items-center justify-end pt-3 text-base leading-snug font-light tracking-wide"
+                    class="flex h-6 items-center justify-end pt-3 text-base font-light leading-snug tracking-wide"
                 >
                     {#if song.user_likes}
                         <span>
                             {$_('backoffice.queue.liked.pre', { default: '' })}
-                            <em class="text-green-600 not-italic">
+                            <em class="not-italic text-green-600">
                                 {song.user_likes}
                                 {$_('backoffice.queue.liked.unit')}
                             </em>

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        DELETE FROM queued_song\n        WHERE queue_id = $1 AND song_id = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "44d134130aa6d5305491efc544a9380bddad3feddcf83e4465789325e6ee1801"
+}

@@ -1343,8 +1343,42 @@ paths:
       summary: Start playing the current song
       tags:
       - service-queues
+  /api/queues/{queue_id}/queue/{song_id}:
+    post:
+      operationId: queues_remove_song
+      parameters:
+      - in: path
+        name: queue_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: song_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Song removed
+        '403':
+          description: User is not allowed to remove songs
+        '404':
+          description: The song is not in the queue
+        '500':
+          description: Internal server error
+      summary: Remove a song from the queue
+      tags:
+      - service-queues
   /api/queues/{queue_id}/queue/{song_id}/like:
     post:
+      description: 'Add one like to the like conunter of the song. If the user already
+        reached
+
+        the maximum number of likes, the oldest like given by that user will be
+
+        deleted.'
       operationId: queues_like
       parameters:
       - in: path
@@ -1360,13 +1394,13 @@ paths:
           format: uuid
           type: string
       responses:
-        '200':
+        '204':
           description: Song liked
         '403':
           description: User is not allowed to like songs
         '500':
           description: Internal server error
-      summary: Read the queue data
+      summary: Like a song
       tags:
       - service-queues
   /api/songs/search:
