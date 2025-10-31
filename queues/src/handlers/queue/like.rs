@@ -72,7 +72,7 @@ responses(
 ),
 params(QueuedSongPathParams)
 )]
-pub async fn like(
+pub async fn like_song(
     mut tx: SqlTx,
     collector: Collector,
     Extension(user): Extension<Arc<QueueUser>>,

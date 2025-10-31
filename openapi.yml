@@ -1379,7 +1379,7 @@ paths:
         the maximum number of likes, the oldest like given by that user will be
 
         deleted.'
-      operationId: queues_like
+      operationId: queues_like_song
       parameters:
       - in: path
         name: queue_id

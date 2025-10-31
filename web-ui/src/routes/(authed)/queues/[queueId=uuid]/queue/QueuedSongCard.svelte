@@ -1,6 +1,6 @@
 <script lang="ts">
     import {
-        queuesLike,
+        queuesLikeSong,
         queuesNext,
         queuesRemoveSong,
         QueueUserAction,
@@ -62,7 +62,7 @@
     });
 
     function vote() {
-        queuesLike(queueId, songId);
+        queuesLikeSong(queueId, songId);
     }
 
     const actions: Action[] = [
