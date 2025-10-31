@@ -4,31 +4,31 @@
 
 ### Feature parity with 1.0
 
-- [ ] Actions
+- [x] Actions
   - [x] Get
   - [x] Events
   - [x] Enqueue
   - [x] Like
-  - [ ] Play
-  - [ ] Pause
+  - [x] Play
+  - [x] Pause
   - [x] Next
     - [x] AutoNext
-  - [ ] Remove
+  - [x] Remove
 - [x] WebUI
   - [x] Login page
   - [x] Landing page
-  - [ ] Queue page
+  - [x] Queue page
     - [x] Queue model
-    - [ ] Player view
-    - [ ] Search bar
-    - [ ] Queued songs cards
-  - [ ] Players
-    - [ ] Youtube
+    - [x] Player view
+    - [x] Search bar
+    - [x] Queued songs cards
+  - [x] Players
+    - [x] Youtube
 
 ### TODO
 
 - [ ] Collect common queueu action in db functions
-- [ ] Events collector (returned as a response extension)
+- [x] Events collector (returned as a response extension)
 - [ ] Graceful shutdown (Cancellation token)
 - [ ] Intra-services http cache
 
