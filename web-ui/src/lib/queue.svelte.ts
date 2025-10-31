@@ -55,24 +55,22 @@ export default class Connection {
                     case 'Sync':
                         this.queue = event.value;
                         return;
-                    case 'Patch':
+                    case 'Patch': {
                         if (!this.queue) {
                             logger.warn(
-                                `Got a patch event before a sync event`
+                                'Got a patch event before a sync event'
                             );
                             return;
                         }
                         applyPatch(this.queue, event.value);
                         return;
-                    default:
-                        const _: never = event;
-                        logger.error(
-                            `Unknown event kind: ${(event as any).kind}`,
-                            event
-                        );
-                        throw new Error(
-                            `Unknown event kind: ${(event as any).kind}`
-                        );
+                    }
+                    default: {
+                        const eventNever: never = event;
+                        const message = `Unknown event kind: ${(eventNever as { kind?: string }).kind}`;
+                        logger.error(message, eventNever);
+                        throw new Error(message);
+                    }
                 }
             });
     }

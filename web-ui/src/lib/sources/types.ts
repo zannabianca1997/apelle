@@ -1,3 +1,7 @@
+/**
+ * Types relative to source plugins
+ */
+
 import type {
     PaginatedSearchResponseItemCursorItemsItemDetails,
     Song,

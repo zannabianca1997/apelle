@@ -5,7 +5,7 @@
     } from '$lib/apis/apelle';
     import { _ } from 'svelte-i18n';
     import IconAdd from '~icons/mdi/plus';
-    import { searchDetails, searchThumbnailData } from '$lib/sources';
+    import sources from '$lib/sources';
     import MarqueeOnHover from '$lib/components/MarqueeOnHover.svelte';
 
     const {
@@ -16,8 +16,8 @@
         onSongChosen?: (s: SearchResponseItem) => void;
     } = $props();
 
-    const details = $derived(searchDetails(song));
-    const [Thumbnail, TData] = $derived(searchThumbnailData(song));
+    const details = $derived(sources.searchDetails(song));
+    const [Thumbnail, TData] = $derived(sources.searchThumbnailData(song));
 </script>
 
 <tr>

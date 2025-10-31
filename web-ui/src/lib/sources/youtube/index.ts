@@ -28,12 +28,15 @@ interface YoutubeSongData {
     thumbs: Thumbnail[];
 }
 
-function isThumbnail(obj: any): obj is Thumbnail {
+function isThumbnail(obj: unknown): obj is Thumbnail {
     return (
         typeof obj === 'object' &&
         obj !== null &&
+        'width' in obj &&
         typeof obj.width === 'number' &&
+        'height' in obj &&
         typeof obj.height === 'number' &&
+        'url' in obj &&
         typeof obj.url === 'string'
     );
 }
@@ -43,47 +46,48 @@ function isSearchItemDetails(obj: unknown): obj is SearchItemDetails {
         return false;
     }
 
-    const item = obj as any;
-
-    const hasValidTitle = typeof item.title === 'string';
-    const hasValidUrl = typeof item.url === 'string';
+    const hasValidTitle = 'title' in obj && typeof obj.title === 'string';
+    const hasValidUrl = 'url' in obj && typeof obj.url === 'string';
 
     if (!hasValidTitle || !hasValidUrl) {
         return false;
     }
 
-    const hasValidThumbnailsArray = Array.isArray(item.thumbnails);
+    const hasValidThumbnailsArray =
+        'thumbnails' in obj &&
+        Array.isArray(obj.thumbnails) &&
+        obj.thumbnails.every(isThumbnail);
 
     if (!hasValidThumbnailsArray) {
         return false;
     }
 
-    const allThumbnailsAreValid = item.thumbnails.every(isThumbnail);
-    return allThumbnailsAreValid;
+    return true;
 }
 
-function isYoutubeSongData(obj: any): obj is YoutubeSongData {
+function isYoutubeSongData(obj: unknown): obj is YoutubeSongData {
     if (typeof obj !== 'object' || obj === null) {
         return false;
     }
 
-    const item = obj as any;
-
-    const hasValidVideoId = typeof item.video_id === 'string';
-    const hasValidUrl = typeof item.url === 'string';
+    const hasValidVideoId =
+        'video_id' in obj && typeof obj.video_id === 'string';
+    const hasValidUrl = 'url' in obj && typeof obj.url === 'string';
 
     if (!hasValidVideoId || !hasValidUrl) {
         return false;
     }
 
-    const hasValidThumbsArray = Array.isArray(item.thumbs);
+    const hasValidThumbsArray =
+        'thumbs' in obj &&
+        Array.isArray(obj.thumbs) &&
+        obj.thumbs.every(isThumbnail);
 
     if (!hasValidThumbsArray) {
         return false;
     }
 
-    const allThumbnailsAreValid = item.thumbs.every(isThumbnail);
-    return allThumbnailsAreValid;
+    return true;
 }
 
 export default {

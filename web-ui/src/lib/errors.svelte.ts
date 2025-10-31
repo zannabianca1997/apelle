@@ -6,8 +6,7 @@ export type Failure<E extends ErrorType> = Result<never, E>;
 export interface ErrorType {
     _tag: string;
     msg?: string;
-
-    [key: string]: any;
+    display?(): string;
 }
 
 type MatchCases<T, E extends ErrorType, U> = {

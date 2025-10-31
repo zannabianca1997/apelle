@@ -3,8 +3,6 @@ import { config } from './config';
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export type LogLevelFilter = LogLevel | 'all' | 'none';
 
-let logger: Logger | undefined;
-
 function shouldLog(filter: LogLevelFilter, level: LogLevel): boolean {
     switch (filter) {
         case 'none':
@@ -50,5 +48,5 @@ export class Logger {
     }
 }
 
-logger = new Logger('lib.logger');
+const logger: Logger = new Logger('lib.logger');
 logger.debug('Loaded rules:', rules);
