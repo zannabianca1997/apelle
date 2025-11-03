@@ -1,5 +1,6 @@
 services:
   songs-youtube:
+    image: zannabianca1997/${COMPOSE_PROJECT_NAME}-songs-youtube
     container_name: ${COMPOSE_PROJECT_NAME}-songs-youtube
     restart: always
     environment:

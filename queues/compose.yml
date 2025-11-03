@@ -2,6 +2,7 @@ include:
   - events/compose.yml
 services:
   queues:
+    image: zannabianca1997/${COMPOSE_PROJECT_NAME}-queues
     container_name: ${COMPOSE_PROJECT_NAME}-queues
     restart: always
     depends_on:

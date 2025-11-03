@@ -2,6 +2,7 @@ include:
   - providers/youtube/compose.yml
 services:
   songs:
+    image: zannabianca1997/${COMPOSE_PROJECT_NAME}-songs
     container_name: ${COMPOSE_PROJECT_NAME}-songs
     restart: always
     depends_on:

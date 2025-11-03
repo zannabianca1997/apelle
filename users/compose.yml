@@ -1,5 +1,6 @@
 services:
   users:
+    image: zannabianca1997/${COMPOSE_PROJECT_NAME}-users
     container_name: ${COMPOSE_PROJECT_NAME}-users
     restart: always
     depends_on:

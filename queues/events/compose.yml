@@ -1,5 +1,6 @@
 services:
   queues-events:
+    image: zannabianca1997/${COMPOSE_PROJECT_NAME}-queues-events
     container_name: ${COMPOSE_PROJECT_NAME}-queues-events
     restart: always
     depends_on:
