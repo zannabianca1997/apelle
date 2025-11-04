@@ -1,7 +1,0 @@
-[environments.development]
-schemas = ["public"]
-displayName = "Production database"
-
-[flyway]
-environment = "production"
-locations = ["filesystem:./sql/**/base", "filesystem:./sql/**/prod"]

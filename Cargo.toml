@@ -10,6 +10,7 @@ members = [
     "queues/dtos",
     "configs",
     "configs/dtos",
+    "db/migrator",
 ]
 resolver = "3"
 
@@ -18,10 +19,23 @@ license = "MIT"
 
 [workspace.dependencies]
 # Members
+
+## Common library
 apelle-common = { path = "common" }
+
+## Dtos libraries
 apelle-songs-dtos = { path = "songs/dtos" }
 apelle-configs-dtos = { path = "configs/dtos" }
 apelle-queues-dtos = { path = "queues/dtos" }
+
+## Services
+apelle-songs = { path = "songs" }
+apelle-users = { path = "users" }
+apelle-songs-youtube = { path = "songs/providers/youtube" }
+apelle-configs = { path = "configs" }
+apelle-queues = { path = "queues" }
+apelle-queues-events = { path = "queues/events" }
+
 
 # Networking
 axum = { version = "0.8.4", features = ["tokio", "http1", "macros", "tracing"] }
@@ -88,11 +102,13 @@ derive_more = { version = "2.0.1", features = [
     "display",
     "deref",
     "deref_mut",
+    "from",
 ] }
 itertools = "0.14.0"
 const_format = "0.2.34"
 rand = { version = "0.9.1", features = ["serde"] }
 rand_xoshiro = { version = "0.7.0", features = ["serde"] }
+phf = "0.13.1"
 
 
 [workspace.dependencies.reqwest]

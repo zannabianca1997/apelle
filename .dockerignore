@@ -18,10 +18,6 @@ docker/Dockerfile*
 
 logs/
 
-# Migrations and db service
-db/
-**/migrations/
-
 # Gateway
 gateway/
 

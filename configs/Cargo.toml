@@ -27,3 +27,4 @@ textwrap-macros.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
 utoipa-axum.workspace = true
+phf.workspace = true

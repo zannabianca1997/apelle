@@ -1,4 +1,4 @@
-use apelle_common::db::{SqlState, db_state_and_layer};
+use apelle_common::db::{InitError, SqlState, db_state_and_layer};
 use axum::extract::FromRef;
 use config::Config;
 use snafu::{ResultExt as _, Snafu};
@@ -20,13 +20,13 @@ pub struct App {
 /// Main fatal error
 #[derive(Debug, Snafu)]
 pub enum MainError {
-    DbConnectionError { source: sqlx::Error },
+    DbConnectionError { source: InitError },
 }
 
-pub async fn app(Config { db_url }: Config) -> Result<OpenApiRouter, MainError> {
+pub async fn app(Config { db_url, migrate }: Config) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database");
 
-    let (db, sql_layer) = db_state_and_layer(db_url)
+    let (db, sql_layer) = db_state_and_layer(db_url, &MIGRATIONS, &migrate)
         .await
         .context(DbConnectionSnafu)?;
 
@@ -37,3 +37,12 @@ pub async fn app(Config { db_url }: Config) -> Result<OpenApiRouter, MainError> 
         .route_layer(sql_layer)
         .with_state(App { db }))
 }
+
+pub static MIGRATIONS: ::apelle_common::db::migrations::Migrations =
+    ::apelle_common::db::migrations::Migrations {
+        base: ::sqlx::migrate!("./migrations/base"),
+        environs: ::phf::phf_map!(
+            "dev" => ::sqlx::migrate!("./migrations/dev"),
+            "prod" => ::sqlx::migrate!("./migrations/prod")
+        ),
+    };

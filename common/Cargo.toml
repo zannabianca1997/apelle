@@ -39,3 +39,4 @@ axum-extra.workspace = true
 derive_more.workspace = true
 axum-sqlx-tx = "0.10.0"
 url.workspace = true
+phf = { workspace = true, features = ["macros"] }

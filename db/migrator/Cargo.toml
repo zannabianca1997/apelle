@@ -1,0 +1,22 @@
+[package]
+name = "apelle-migrator"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+
+[dependencies]
+apelle-common.workspace = true
+
+apelle-songs.workspace = true
+apelle-users.workspace = true
+apelle-songs-youtube.workspace = true
+apelle-configs.workspace = true
+apelle-queues.workspace = true
+
+serde.workspace = true
+url.workspace = true
+snafu.workspace = true
+sqlx.workspace = true
+futures.workspace = true
+tracing.workspace = true
+derive_more.workspace = true

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{
     cache_pubsub,
-    db::{SqlState, db_state_and_layer},
+    db::{InitError, SqlState, db_state_and_layer},
 };
 use apelle_queues_dtos::events::event_middleware;
 use axum::{
@@ -72,7 +72,7 @@ struct QueuedSongPathParams {
 #[derive(Debug, Snafu)]
 pub enum MainError {
     DbConnectionError {
-        source: sqlx::Error,
+        source: InitError,
     },
     CacheConnectionError {
         source: redis::RedisError,
@@ -108,6 +108,7 @@ pub async fn app(
         songs_url,
         configs_url,
         code,
+        migrate,
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
     if code.alphabet.is_empty() {
@@ -116,7 +117,7 @@ pub async fn app(
 
     tracing::info!("Connecting to database and cache");
 
-    let db = db_state_and_layer(db_url)
+    let db = db_state_and_layer(db_url, &MIGRATIONS, &migrate)
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
@@ -181,3 +182,9 @@ pub async fn app(
         .route_layer(common_middleware)
         .with_state(app))
 }
+
+pub static MIGRATIONS: ::apelle_common::db::migrations::Migrations =
+    ::apelle_common::db::migrations::Migrations {
+        base: ::sqlx::migrate!("./migrations/base"),
+        environs: ::phf::phf_map!(),
+    };

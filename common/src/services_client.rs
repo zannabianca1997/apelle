@@ -4,7 +4,7 @@ use axum::{
 };
 use reqwest::{IntoUrl, Method, Request, RequestBuilder, Response};
 
-use crate::{AuthHeaders, main_wrapper::TRACE_ID_HEADER};
+use crate::{AuthHeaders, service_wrapper::TRACE_ID_HEADER};
 
 /// Client for intra-microservice requests
 ///

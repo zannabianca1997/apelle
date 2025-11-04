@@ -114,6 +114,7 @@ dependencies = [
  "futures 0.3.31",
  "iso8601",
  "itertools",
+ "phf",
  "redis",
  "reqwest",
  "serde",
@@ -144,6 +145,7 @@ dependencies = [
  "axum-extra",
  "futures 0.3.31",
  "itertools",
+ "phf",
  "serde",
  "snafu",
  "sqlx",
@@ -171,6 +173,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "apelle-migrator"
+version = "0.1.0"
+dependencies = [
+ "apelle-common",
+ "apelle-configs",
+ "apelle-queues",
+ "apelle-songs",
+ "apelle-songs-youtube",
+ "apelle-users",
+ "derive_more",
+ "futures 0.3.31",
+ "serde",
+ "snafu",
+ "sqlx",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "apelle-queues"
 version = "0.1.0"
 dependencies = [
@@ -183,6 +204,7 @@ dependencies = [
  "chrono",
  "futures 0.3.31",
  "json-patch",
+ "phf",
  "rand 0.9.2",
  "redis",
  "reqwest",
@@ -267,6 +289,7 @@ dependencies = [
  "derive_more",
  "futures 0.3.31",
  "itertools",
+ "phf",
  "rand 0.9.2",
  "rand_xoshiro",
  "redis",
@@ -311,6 +334,7 @@ dependencies = [
  "chrono",
  "const_format",
  "futures 0.3.31",
+ "phf",
  "redis",
  "reqwest",
  "serde",
@@ -336,6 +360,7 @@ dependencies = [
  "axum-extra",
  "chrono",
  "futures 0.3.31",
+ "phf",
  "route-recognizer",
  "serde",
  "snafu",
@@ -2141,6 +2166,49 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
+name = "phf"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
+dependencies = [
+ "phf_macros",
+ "phf_shared",
+ "serde",
+]
+
+[[package]]
+name = "phf_generator"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "135ace3a761e564ec88c03a77317a7c6b80bb7f7135ef2544dbe054243b89737"
+dependencies = [
+ "fastrand",
+ "phf_shared",
+]
+
+[[package]]
+name = "phf_macros"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef"
+dependencies = [
+ "phf_generator",
+ "phf_shared",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
+dependencies = [
+ "siphasher",
+]
+
+[[package]]
 name = "pin-project"
 version = "1.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2724,6 +2792,12 @@ dependencies = [
  "digest",
  "rand_core 0.6.4",
 ]
+
+[[package]]
+name = "siphasher"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 
 [[package]]
 name = "slab"

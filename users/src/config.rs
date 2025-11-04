@@ -1,4 +1,6 @@
-use apelle_common::{ProvideDefaults, Provider};
+use apelle_common::{
+    Figment, ProvideDefaults, Provider, Serialized, db::migrations::MigrationsConfigs,
+};
 use serde::Deserialize;
 use url::Url;
 
@@ -9,10 +11,14 @@ pub struct Config {
 
     /// Size of the queue for the login date updater
     pub login_queue_size: usize,
+
+    pub migrate: MigrationsConfigs,
 }
 
 impl ProvideDefaults for Config {
     fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
-        ("login_queue_size", 10)
+        Figment::new()
+            .join(("login_queue_size", 10))
+            .join(Serialized::default("migrate", MigrationsConfigs::default()))
     }
 }

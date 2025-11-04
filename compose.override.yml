@@ -4,8 +4,13 @@ services:
     ports:
       - "5432:5432"
   migrator:
+    environment:
+      APELLE__MIGRATE__ENVIRON: dev
+    build:
+      args:
+        PROFILE: dev
     volumes:
-      - ./db/flyway.dev.toml:/flyway/conf/flyway.toml:ro
+      - ./logs/:/app/logs
   cache-pubsub:
     ports:
       - "6379:6379"

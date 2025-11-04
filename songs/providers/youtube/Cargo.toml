@@ -28,3 +28,4 @@ base64.workspace = true
 bincode.workspace = true
 utoipa.workspace = true
 utoipa-axum.workspace = true
+phf.workspace = true

@@ -1,4 +1,6 @@
-use apelle_common::{Figment, ProvideDefaults, Provider, Serialized};
+use apelle_common::{
+    Figment, ProvideDefaults, Provider, Serialized, db::migrations::MigrationsConfigs,
+};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -18,11 +20,16 @@ pub struct Config {
 
     /// Configuration for the code generator
     pub code: CodeConfig,
+
+    /// Migrate
+    pub migrate: MigrationsConfigs,
 }
 
 impl ProvideDefaults for Config {
     fn defaults(_service_name: &str, _service_default_port: u16) -> impl Provider {
-        Figment::new().join(Serialized::default("code", CodeConfig::default()))
+        Figment::new()
+            .join(Serialized::default("code", CodeConfig::default()))
+            .join(Serialized::default("migrate", MigrationsConfigs::default()))
     }
 }
 

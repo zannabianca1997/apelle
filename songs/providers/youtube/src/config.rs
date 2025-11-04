@@ -1,4 +1,6 @@
-use apelle_common::{Figment, ProvideDefaults, Provider};
+use apelle_common::{
+    Figment, ProvideDefaults, Provider, Serialized, db::migrations::MigrationsConfigs,
+};
 use chrono::Duration;
 use serde::Deserialize;
 use url::Url;
@@ -29,6 +31,9 @@ pub struct Config {
     pub db_url: Url,
     /// Cache connection string
     pub cache_url: Url,
+
+    /// Migrate
+    pub migrate: MigrationsConfigs,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -66,5 +71,6 @@ impl ProvideDefaults for Config {
             // Max size of a youtbe page
             .join(("youtube.page_size", 50))
             .join(("youtube.expiration", "P1D"))
+            .join(Serialized::default("migrate", MigrationsConfigs::default()))
     }
 }

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use apelle_common::{
     ServicesClient, cache_pubsub,
-    db::{SqlState, db_state_and_layer},
+    db::{InitError, SqlState, db_state_and_layer},
 };
 use apelle_songs_dtos::{
     provider::{ProviderRegistrationError, ProviderRegistrationRef},
@@ -28,7 +28,7 @@ const CACHE_NAMESPACE: &str = "apelle:songs-youtube:";
 #[derive(Debug, Snafu)]
 pub enum MainError {
     DbConnectionError {
-        source: sqlx::Error,
+        source: InitError,
     },
     CacheConnectionError {
         source: redis::RedisError,
@@ -90,10 +90,11 @@ pub async fn app(
         youtube,
         db_url,
         cache_url,
+        migrate,
     }: Config,
 ) -> Result<(OpenApiRouter, impl AsyncFnOnce() -> Result<(), MainError>), MainError> {
     tracing::info!("Connecting to database");
-    let db = db_state_and_layer(db_url)
+    let db = db_state_and_layer(db_url, &MIGRATIONS, &migrate)
         .map(|r| r.context(DbConnectionSnafu))
         .instrument(info_span!("Connecting to database"));
 
@@ -236,3 +237,9 @@ pub async fn app(
         },
     ))
 }
+
+pub static MIGRATIONS: ::apelle_common::db::migrations::Migrations =
+    ::apelle_common::db::migrations::Migrations {
+        base: ::sqlx::migrate!("./migrations/base"),
+        environs: ::phf::phf_map!(),
+    };

@@ -1,3 +1,7 @@
+//! Common wrapper for services
+//!
+//! Wrap a service main with some common utilities, like configuration and logging
+
 use std::{fmt::Debug, io, str::FromStr};
 
 use axum::{
@@ -149,7 +153,7 @@ where
                 socket: serve.socket.to_string(),
             })?;
 
-            tracing::info!(socket = %serve.socket, "Serving app",);
+            tracing::info!(socket = %serve.socket, name=full_name, "Serving app",);
 
             // Starting server thread
             let serving = tokio::spawn(

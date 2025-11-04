@@ -1,4 +1,4 @@
-use apelle_common::db::{SqlState, db_state_and_layer};
+use apelle_common::db::{InitError, SqlState, db_state_and_layer};
 use argon2::Argon2;
 use axum::extract::FromRef;
 use config::Config;
@@ -27,7 +27,7 @@ pub struct App {
 #[derive(Debug, Snafu)]
 pub enum MainError {
     #[snafu(display("Cannot connect to database"))]
-    Connection { source: sqlx::Error },
+    Connection { source: InitError },
 }
 
 #[derive(OpenApi)]
@@ -37,10 +37,13 @@ pub async fn app(
     Config {
         db_url,
         login_queue_size,
+        migrate,
     }: Config,
 ) -> Result<OpenApiRouter, MainError> {
     tracing::info!("Connecting to database");
-    let (db, tx_layer) = db_state_and_layer(db_url).await.context(ConnectionSnafu)?;
+    let (db, tx_layer) = db_state_and_layer(db_url, &MIGRATIONS, &migrate)
+        .await
+        .context(ConnectionSnafu)?;
 
     let password_hasher = Argon2::default();
 
@@ -67,3 +70,12 @@ pub async fn app(
             login_sender,
         }))
 }
+
+pub static MIGRATIONS: ::apelle_common::db::migrations::Migrations =
+    ::apelle_common::db::migrations::Migrations {
+        base: ::sqlx::migrate!("./migrations/base"),
+        environs: ::phf::phf_map!(
+            "dev" => ::sqlx::migrate!("./migrations/dev"),
+            "prod" => ::sqlx::migrate!("./migrations/prod")
+        ),
+    };

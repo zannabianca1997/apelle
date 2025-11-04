@@ -10,17 +10,15 @@ use serde::{
     de::{DeserializeOwned, Error as _},
 };
 
-use crate::main_wrapper::CommonConfig;
-
 #[derive(Debug, Clone, clap::Parser)]
 pub struct CliArgs {
     /// Configuration file. If not specified, will look for `Apelle.toml` in the current directory
     /// or in one of the ancestors
     #[clap(short, long)]
-    pub config_file: Option<PathBuf>,
+    config_file: Option<PathBuf>,
     /// Do not search for the default config file
     #[clap(long)]
-    pub no_default_config_file: bool,
+    no_default_config_file: bool,
     /// Do not load enviroment variables
     #[clap(long)]
     no_env: bool,
@@ -72,13 +70,14 @@ impl Provider for CliArgs {
 }
 
 impl CliArgs {
-    pub fn get_configuration<AppConfig>(
+    pub fn get_configuration<AppConfig, CommonConfig>(
         self,
         service_name: &str,
         service_default_port: u16,
     ) -> figment::Result<(AppConfig, CommonConfig)>
     where
         AppConfig: ProvideDefaults + DeserializeOwned,
+        CommonConfig: ProvideDefaults + DeserializeOwned,
     {
         // First, the defaults values
         let mut figment = if self.no_defaults {
