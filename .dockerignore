@@ -11,18 +11,24 @@ docker/Dockerfile*
 **/target/
 
 # Dev setup and runtime generated files
-**/.env
-**/.env.local
+**/.env*
 **/Apelle.toml
 **/Apelle-*.toml
 
 logs/
 
-# Gateway
-gateway/
-
-# Web UI (dockerized aside)
-web-ui/
-
 # Documentation
 **/*.md
+
+.editorconfig
+.vscode
+
+# web ui
+web-ui/.npmrc
+web-ui/.prettierrc
+web-ui/.eslintrc.cjs
+web-ui/.graphqlrc
+web-ui/.svelte-kit
+web-ui/node_modules
+web-ui/build
+web-ui/package
