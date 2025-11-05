@@ -10,7 +10,7 @@ members = [
     "queues/dtos",
     "configs",
     "configs/dtos",
-    "db/migrator",
+    "migrator",
 ]
 resolver = "3"
 
