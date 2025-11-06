@@ -12,7 +12,7 @@ NPM="${NPM:-npm}"
 JSONNET="${JSONNET:-rsjsonnet}"
 PYTHON="${PYTHON:-python3}"
 
-set -e
+set -euo pipefail
 
 echo "🚀 Starting bindings generation..."
 

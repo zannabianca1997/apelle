@@ -74,8 +74,8 @@ class AuthService {
     public get headers(): Record<string, string> {
         return this.auth
             ? {
-                  Authorization: `Basic ${btoa(`${this.auth.username}:${this.auth.password}`)}`
-              }
+                Authorization: `Basic ${btoa(`${this.auth.username}:${this.auth.password}`)}`
+            }
             : {};
     }
 
@@ -189,11 +189,3 @@ class AuthService {
 
 const authService = $state(new AuthService());
 export default authService;
-
-export async function routeToAuth(url: URL) {
-    logger.debug('User is not authenticated, rerouting to auth endpoint');
-
-    const authUrl = new URL('/auth', url);
-    authUrl.searchParams.set('original', url.toString());
-    await goto(authUrl);
-}

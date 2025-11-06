@@ -90,20 +90,11 @@ prepare:
 POSTGRES_USER?=apelle
 POSTGRES_PASSWORD?=apelle
 POSTGRES_DB?=apelle
-DEV_DATABASE_URL?=postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(POSTGRES_DB)
 
 # SQLx prepare target
 .PHONY: sqlx-prepare
 sqlx-prepare: .env composes-dev
-	@cp .env docker/composes/.env
-	@echo "🚀 Starting services for sqlx-prepare..."
-	@COMPOSE_PROJECT_NAME="apelle-sqlx-prepare" $(DOCKER) compose -f docker/composes/compose.dev.yml up -d db migrator 
-	@echo "⏳ Waiting for migrator service to complete..."
-	@COMPOSE_PROJECT_NAME="apelle-sqlx-prepare" $(DOCKER) compose -f docker/composes/compose.dev.yml wait migrator
-	@echo "🔧 Running cargo sqlx prepare on workspace..."
-	@DATABASE_URL="$(DEV_DATABASE_URL)" $(CARGO) sqlx prepare --workspace
-	@echo "🛑 Stopping services..."
-	@COMPOSE_PROJECT_NAME="apelle-sqlx-prepare" $(DOCKER) compose -f docker/composes/compose.dev.yml down
+	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" POSTGRES_USER="$(POSTGRES_USER)" POSTGRES_PASSWORD="$(POSTGRES_PASSWORD)" POSTGRES_DB="$(POSTGRES_DB)" ./scripts/sqlx-prepare.sh
 
 # Help target
 .PHONY: help

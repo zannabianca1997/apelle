@@ -10,10 +10,10 @@ NVM_SH="${NVM_SH:-$HOME/.nvm/nvm.sh}"
 JSONNET="${JSONNET:-rsjsonnet}"
 PYTHON="${PYTHON:-python3}"
 
-set -e
+set -uo pipefail
 
 echo "⚙️ Preparing the repo for development..."
-
+echo
 echo "🔍 Checking developement tools..."
 
 missing_tools=false
@@ -94,11 +94,17 @@ fi
 echo "✅ All required tools are available!"
 
 # Environment variables setup
-echo ""
+echo
 echo "🔧 Setting up environment variables..."
 
 # Check if .env already exists
 skip_envs=false
+
+# Initialize empty variables
+YOUTUBE_API_KEY="${YOUTUBE_API_KEY:-}"
+DEPLOY_DOCKER_HOST="${DEPLOY_DOCKER_HOST:-}"
+DEPLOY_POSTGRES_PASSWORD="${DEPLOY_POSTGRES_PASSWORD:-}"
+
 if [ -f ".env" ]; then
     echo "⚠️  .env file already exists."
     read -p "Do you want to overwrite it? (y/N): " -n 1 -r
@@ -107,6 +113,10 @@ if [ -f ".env" ]; then
         echo "⏭️  Skipping environment variables setup."
         skip_envs=true
     fi
+
+    set -a  # Export all variables
+    source .env
+    set +a
 fi
 
 if [ "$skip_envs" = false ]; then
@@ -114,21 +124,52 @@ if [ "$skip_envs" = false ]; then
     echo "📝 Please provide values for the following environment variables:"
     echo ""
 
-    # Initialize empty variables
-    YOUTUBE_API_KEY=""
 
     # Prompt for YouTube API Key
     echo "🎬 YouTube API Key (required for songs-provider-youtube)"
-    read -s -p "Enter your YouTube API Key (or press Enter to skip): " YOUTUBE_API_KEY
+    if [ -n "$YOUTUBE_API_KEY" ]; then
+        read -s -p "Enter your YouTube API Key [${YOUTUBE_API_KEY:0:10}...] (or press Enter to keep current): " input
+        if [ -n "$input" ]; then
+            YOUTUBE_API_KEY="$input"
+        fi
+    else
+        read -s -p "Enter your YouTube API Key (or press Enter to skip): " YOUTUBE_API_KEY
+    fi
+    echo
+
+    # Prompt for Deploy Docker Host
+    echo "🐳 Deploy Docker Host (optional, for deployment)"
+    if [ -n "$DEPLOY_DOCKER_HOST" ]; then
+        read -p "Enter your deploy Docker host [$DEPLOY_DOCKER_HOST] (or press Enter to keep current): " input
+        if [ -n "$input" ]; then
+            DEPLOY_DOCKER_HOST="$input"
+        fi
+    else
+        read -p "Enter your deploy Docker host (or press Enter to skip): " DEPLOY_DOCKER_HOST
+    fi
+
+    # Prompt for Deploy Postgres Password
+    echo "🐘 Deploy Postgres Password (optional, for deployment)"
+    if [ -n "$DEPLOY_POSTGRES_PASSWORD" ]; then
+        read -s -p "Enter your deploy Postgres password [****] (or press Enter to keep current): " input
+        if [ -n "$input" ]; then
+            DEPLOY_POSTGRES_PASSWORD="$input"
+        fi
+    else
+        read -s -p "Enter your deploy Postgres password (or press Enter to skip): " DEPLOY_POSTGRES_PASSWORD
+    fi
     echo
 
     # Create .env file
     echo "📄 Creating .env file..."
     cat > .env << EOF
 YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+DEPLOY_DOCKER_HOST=${DEPLOY_DOCKER_HOST}
+DEPLOY_POSTGRES_PASSWORD=${DEPLOY_POSTGRES_PASSWORD}
 EOF
 
     echo "✅ .env file created successfully!"
 fi
 
+echo
 echo "✅ Repo is ready to develop!"
