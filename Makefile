@@ -1,5 +1,7 @@
 # Makefile for Apelle project
 
+include .env
+
 MAKEFLAGS += -rR
 
 # Command variables (can be overridden by environment)
@@ -87,14 +89,16 @@ bindings: up-detach
 prepare:
 	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" NVM_SH="$(NVM_SH)" NVM="$(NVM)" NPM="$(NPM)" JSONNET="$(JSONNET)" PYTHON="$(PYTHON)" ./scripts/prepare.sh
 
-POSTGRES_USER?=apelle
-POSTGRES_PASSWORD?=apelle
-POSTGRES_DB?=apelle
-
 # SQLx prepare target
 .PHONY: sqlx-prepare
 sqlx-prepare: .env composes-dev
-	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" POSTGRES_USER="$(POSTGRES_USER)" POSTGRES_PASSWORD="$(POSTGRES_PASSWORD)" POSTGRES_DB="$(POSTGRES_DB)" ./scripts/sqlx-prepare.sh
+	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" ./scripts/sqlx-prepare.sh
+
+# Deploy target
+.PHONY: deploy
+deploy: .env push composes-prod
+	@cp .env docker/composes/.env
+	@DOCKER="$(DOCKER)" DEPLOY_DOCKER_HOST="$(DEPLOY_DOCKER_HOST)" DEPLOY_POSTGRES_PASSWORD="$(DEPLOY_POSTGRES_PASSWORD)" ./scripts/deploy.sh
 
 # Help target
 .PHONY: help
@@ -108,6 +112,7 @@ help:
 	@echo "  push          - Build and push services using build compose file"
 	@echo "  bindings      - Generate API bindings"
 	@echo "  sqlx-prepare  - Prepare SQLx queries"
+	@echo "  deploy        - Deploy the application"
 	@echo "  check         - Run cargo check on the entire workspace"
 	@echo "  format        - Format all code (Rust and web UI)"
 	@echo "  format-rust   - Format Rust code"
