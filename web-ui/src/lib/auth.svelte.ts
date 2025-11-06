@@ -74,8 +74,8 @@ class AuthService {
     public get headers(): Record<string, string> {
         return this.auth
             ? {
-                Authorization: `Basic ${btoa(`${this.auth.username}:${this.auth.password}`)}`
-            }
+                  Authorization: `Basic ${btoa(`${this.auth.username}:${this.auth.password}`)}`
+              }
             : {};
     }
 

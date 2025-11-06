@@ -1,6 +1,6 @@
 # Makefile for Apelle project
 
-include .env
+-include .env
 
 MAKEFLAGS += -rR
 
@@ -12,6 +12,8 @@ NVM ?= nvm
 NPM ?= npm
 
 SHELL := /bin/bash
+
+PROJ_DIR := $(shell cd -- "$( dirname -- "$(MAKEFILE_LIST)" )" &> /dev/null && pwd)
 
 .PHONY: default
 default: up
@@ -87,7 +89,7 @@ bindings: up-detach
 # Prepare target
 .PHONY: prepare
 prepare:
-	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" NVM_SH="$(NVM_SH)" NVM="$(NVM)" NPM="$(NPM)" JSONNET="$(JSONNET)" PYTHON="$(PYTHON)" ./scripts/prepare.sh
+	@DOCKER="$(DOCKER)" CARGO="$(CARGO)" NVM_SH="$(NVM_SH)" NVM="$(NVM)" NPM="$(NPM)" JSONNET="$(JSONNET)" PYTHON="$(PYTHON)" PROJ_DIR="$(PROJ_DIR)" ./scripts/prepare.sh
 
 # SQLx prepare target
 .PHONY: sqlx-prepare
