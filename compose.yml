@@ -1,9 +1,0 @@
-include:
-  - db/compose.yml
-  - cache-pubsub/compose.yml
-  - users/compose.yml
-  - songs/compose.yml
-  - queues/compose.yml
-  - configs/compose.yml
-  - gateway/compose.yml
-  - web-ui/compose.yml

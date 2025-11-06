@@ -1,8 +1,0 @@
-name: ${COMPOSE_PROJECT_NAME:-apelle-prod}
-services:
-  gateway:
-    ports:
-      - "80:8080"
-  migrator:
-    environment:
-      APELLE__MIGRATE__ENVIRON: prod

@@ -8,6 +8,7 @@
         "mads-hartmann.bash-ide-vscode",
         "jq-syntax-highlighting.jq-syntax-highlighting",
         "42crunch.vscode-openapi",
-        "bradlc.vscode-tailwindcss"
+        "bradlc.vscode-tailwindcss",
+        "grafana.vscode-jsonnet"
     ]
 }

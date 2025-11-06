@@ -1,0 +1,53 @@
+{
+    "$schema": "./docker/deploy.schema.json",
+    "services": {
+        "users": {
+            "devPort": 8081,
+            "db": true,
+            "cache": true
+        },
+        "songs": {
+            "devPort": 8082,
+            "db": true
+        },
+        "songs-youtube": {
+            "devPort": 8091,
+            "db": true,
+            "gateway": true,
+            "deps": [
+                "songs"
+            ],
+            "secrets": [
+                {
+                    "src": "YOUTUBE_API_KEY",
+                    "dst": "APELLE__YOUTUBE__API_KEY",
+                    "err": "The youtube api key must be set"
+                }
+            ]
+        },
+        "queues": {
+            "devPort": 8083,
+            "db": true,
+            "pubsub": true,
+            "deps": [
+                "users",
+                "songs",
+                "configs"
+            ]
+        },
+        "queues-events": {
+            "devPort": 8085,
+            "pubsub": true,
+            "deps": [
+                "queues"
+            ]
+        },
+        "configs": {
+            "devPort": 8084,
+            "db": true
+        }
+    },
+    "registry": {
+        "user": "zannabianca1997"
+    }
+}

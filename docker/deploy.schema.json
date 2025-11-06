@@ -1,0 +1,106 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://apelle.zannabianca1997.site/schemas/services.schema.json",
+    "title": "Apelle deploy description",
+    "description": "Description of the Apelle deploy",
+    "type": "object",
+    "properties": {
+        "services": {
+            "title": "Apelle services",
+            "description": "Description of all the deployed rust services",
+            "type": "object",
+            "additionalProperties": {
+                "title": "Apelle service",
+                "description": "A single Apelle service",
+                "type": "object",
+                "properties": {
+                    "devPort": {
+                        "description": "The port to expose in the dev enviroment",
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "db": {
+                        "description": "If this service requires access to the db",
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "cache": {
+                        "description": "If this service requires access to the cache",
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "pubsub": {
+                        "description": "If this service requires access to the pubsub",
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "gateway": {
+                        "description": "If this service requires the gateway to be up and running",
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "deps": {
+                        "description": "List of services that should be up before this one is launched",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "secrets": {
+                        "description": "List of secrets values that are needed for this service to run",
+                        "type": "array",
+                        "items": {
+                            "description": "A secret value injected as an env",
+                            "type": "object",
+                            "properties": {
+                                "src": {
+                                    "description": "The enviroment variable to get from the enviroment",
+                                    "type": "string"
+                                },
+                                "dst": {
+                                    "description": "The enviroment variable to set in the container",
+                                    "type": "string"
+                                },
+                                "err": {
+                                    "description": "The error message if missing",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "src",
+                                "dst",
+                                "err"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "registry": {
+            "description": "Docker registry where to push the images",
+            "properties": {
+                "user": {
+                    "description": "User of the registry",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "user"
+            ]
+        }
+    },
+    "required": [
+        "services",
+        "registry"
+    ]
+}

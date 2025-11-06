@@ -1,8 +1,0 @@
-services:
-    front:
-        image: zannabianca1997/${COMPOSE_PROJECT_NAME}-front
-        container_name: ${COMPOSE_PROJECT_NAME}-front
-        restart: always
-        build:
-            context: .
-            dockerfile: ../docker/Dockerfile.sv
