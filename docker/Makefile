@@ -15,6 +15,9 @@ SRC_DIR := $(SCRIPT_DIR)/src/artifacts
 OUTPUT_DIR := $(SCRIPT_DIR)/composes
 PROJ_DIR := $(SCRIPT_DIR)/..
 
+# Dependencies
+DEPLOY_JSON := $(PROJ_DIR)/deploy.json
+
 SONNETS := $(shell find $(SCRIPT_DIR)/src/ -type f -name '*.libsonnet')
 
 MAKEFLAGS += -rR
@@ -28,21 +31,21 @@ all: $(ENVIRONS)
 $(ENVIRONS): % : $(OUTPUT_DIR)/compose.%.yml
 
 
-$(OUTPUT_DIR)/compose.%.yml: $(SRC_DIR)/compose.%.jsonnet $(SONNETS)
-	@echo "Building $* compose"
+$(OUTPUT_DIR)/compose.%.yml: $(SRC_DIR)/compose.%.jsonnet $(SONNETS) $(DEPLOY_JSON)
+	@echo "🔨 Building $* compose"
 	@mkdir -p $(OUTPUT_DIR)
 	$(JSONNET) --ext-str projDir=../.. -J "$(PROJ_DIR)" "$<" | $(PYTHON) -c 'import sys, yaml, json; j=json.loads(sys.stdin.read()); print(yaml.safe_dump(j))' > "$@"
 
 # Clean generated files
 .PHONY: clean
 clean:
-	@echo "Cleaning generated compose files"
+	@echo "🧹 Cleaning generated compose files"
 	@rm -rf $(OUTPUT_DIR)/*.yml
 
 # Help target
 .PHONY: help
 help:
-	@echo "Available targets:"
+	@echo "❓ Available targets:"
 	@echo "  all     - Generate compose files for all environments ($(ENVIRONS))"
 	@echo "  dev     - Generate development compose file"
 	@echo "  build   - Generate build compose file"
@@ -50,6 +53,6 @@ help:
 	@echo "  clean   - Remove all generated compose files"
 	@echo "  help    - Show this help message"
 	@echo ""
-	@echo "Environment variables:"
+	@echo "⚙️ Environment variables:"
 	@echo "  JSONNET - Jsonnet executable (default: rsjsonnet)"
 	@echo "  PYTHON  - Python executable (default: python3)"

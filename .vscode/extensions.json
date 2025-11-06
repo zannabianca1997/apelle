@@ -9,6 +9,7 @@
         "jq-syntax-highlighting.jq-syntax-highlighting",
         "42crunch.vscode-openapi",
         "bradlc.vscode-tailwindcss",
-        "grafana.vscode-jsonnet"
+        "grafana.vscode-jsonnet",
+        "ms-vscode.makefile-tools"
     ]
 }

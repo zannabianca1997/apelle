@@ -25,7 +25,7 @@ local migratorService = (import '../service.libsonnet')
                         .composeService('migrator')
                         // Adding db manually so it does not add migrator
                         .addDependsOn('db')
-                        .withRestart('no');
+                        .withRestart('on-failure');
 
 // Add the service to a docker compose
 function(file)

@@ -13,8 +13,15 @@ the youtube video ID).
 
 ## Local developement
 
-The services can be built and run with `docker compose up --build -d`. Each
-service has a corresponding compose file that specifies dependencies.
+To build this project, you'll need:
+- [cargo](https://doc.rust-lang.org/cargo/)
+- [docker](https://www.docker.com/)
+- A valid implementation of [jsonnet](https://jsonnet.org/), by default
+  [rsjsonnet](https://github.com/eduardosm/rsjsonnet) is used
+- A valid python interpreter
+
+The services can be built and run with `make`. If you want to detach, `make
+up-detach` is available.
 
 The `gateway` service will be available at `http://localhost:8080`, and
 corresponds to how a user would use the service. Additionally, each service
@@ -142,14 +149,6 @@ To add a new public-facing service one must:
 - run `api-docs/api-docs.sh`
 - run `nvm use && npm run orval` inside the `web-ui` directory
 
-## Prod-like mode
-
-The docker compose is already configured to deploy the services in prod-like
-mode, by using a different compose override file:
-```bash
-docker compose -f compose.yml -f compose.prod.yml up --build -d
-```
-
-This will compile the services in release mode, and setup them with no file
-logging. It will also expose the main gateway port on the port 80 instead of
-8080.
+## Building and pushing to the registry
+By running `make push` one can build all the container and push them to the
+registry. `docker login` must be runned beforehand.
