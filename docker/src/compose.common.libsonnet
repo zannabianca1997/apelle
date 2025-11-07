@@ -31,9 +31,20 @@ withCachePubsub {
       },
     };
 
-    local withoutVolumesInBuild = if environment == 'build' then
-      withSpecializedServices.clearVolumes()
+    // Add certbot volume
+    local withCertVolume = if environment == 'prod' then
+      withSpecializedServices.addVolume(
+        'certbot-www',
+        compose.volume().withName('${COMPOSE_PROJECT_NAME}-certbot-www')
+      ).addVolume(
+        'certbot-conf',
+        compose.volume().withName('${COMPOSE_PROJECT_NAME}-certbot-conf')
+      )
     else withSpecializedServices;
+
+    local withoutVolumesInBuild = if environment == 'build' then
+      withCertVolume.clearVolumes()
+    else withCertVolume;
 
     local withName = withoutVolumesInBuild.withName(withoutVolumesInBuild.name + '-' + if environment == 'dev' then 'dev' else 'prod');
 

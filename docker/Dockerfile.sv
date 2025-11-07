@@ -29,4 +29,4 @@ COPY gateway/nginx-prod.conf /etc/nginx/nginx.conf
 COPY gateway/inbound /etc/nginx/inbound
 COPY gateway/outbound /etc/nginx/outbound
 
-EXPOSE 3000
+EXPOSE 80

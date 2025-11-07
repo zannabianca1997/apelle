@@ -6,7 +6,7 @@ local deploy = import 'deploy.json';
 
 local image = deploy.registry.user + '/${COMPOSE_PROJECT_NAME}-gateway';
 
-local service =
+local gatewayService =
   compose.service()
   .withContainerName('${COMPOSE_PROJECT_NAME}-gateway')
   .withRestart('always')
@@ -35,7 +35,10 @@ local service =
         )
       else
         self.withImage(image)
-        .addPort('80:8080');
+        .addPort('80:80')
+        .addPort('443:443')
+        .addVolume('certbot-www:/var/www/certbot/:ro')
+        .addVolume('certbot-conf:/etc/letsencrypt/:ro');
 
 
       // Remove anything not related to the build if the enviroment is a build one
@@ -50,4 +53,18 @@ local service =
       withoutRunningArgs,
   };
 
-function(file) file.addService('gateway', service)
+local certbotService =
+  compose.service()
+  .withImage('certbot/certbot:latest')
+  .withContainerName('${COMPOSE_PROJECT_NAME}-certbot')
+  .addVolume('certbot-www:/var/www/certbot/:rw')
+  .addVolume('certbot-conf:/etc/letsencrypt/:rw')
+  + {
+    specializeFor:: function(enviroment)
+      if enviroment == 'prod' then self
+      // service certbot exists only in prod
+      else null,
+  }
+;
+
+function(file) file.addService('gateway', gatewayService).addService('certbot', certbotService)
